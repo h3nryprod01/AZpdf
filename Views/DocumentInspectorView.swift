@@ -67,7 +67,7 @@ struct DocumentInspectorView: View {
             }
 
             Section("Ủng hộ AZpdf") {
-                Link("Buy Me a Coffee", destination: URL(string: "https://www.buymeacoffee.com/")!)
+                Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
             }
         }
         .formStyle(.grouped)

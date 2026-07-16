@@ -97,6 +97,9 @@ struct ContentView: View {
         .sheet(isPresented: $store.isSignatureSheetPresented) {
             SignatureSheet(store: store)
         }
+        .sheet(isPresented: $store.isCertificateSigningSheetPresented) {
+            CertificateSignatureSheet(store: store)
+        }
         .sheet(isPresented: $store.isPasswordProtectSheetPresented) {
             PasswordProtectSheet(store: store)
         }
@@ -120,6 +123,7 @@ struct ContentView: View {
             Button { store.addNote() } label: { Label("Thêm ghi chú", systemImage: "note.text") }
             Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }
             Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }
+            Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }
             Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }
             Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }
             Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }

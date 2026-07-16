@@ -22,7 +22,7 @@ struct SettingsView: View {
             }
             Section("Dự án") {
                 LabeledContent("Giấy phép") { Text("AGPL-3.0") }
-                Link("Buy Me a Coffee", destination: URL(string: "https://www.buymeacoffee.com/")!)
+                Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
             }
         }
         .padding(24).frame(width: 420)

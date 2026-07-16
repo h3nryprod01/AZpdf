@@ -8,10 +8,12 @@
 
 ## Trước v1.0
 
-- [ ] Chữ ký số dựa trên certificate do người dùng cung cấp
-- [ ] Plugin host sandbox với cấp quyền theo tài liệu
+- [x] Chữ ký CMS/PKCS#7 tách rời dựa trên certificate trong Keychain (PDF gốc không bị sửa)
+- [ ] Nhúng chữ ký số PDF (ByteRange) và xác minh trong app
+- [ ] XPC plugin host sandbox với cấp quyền theo tài liệu (discovery/validation đã có; chưa thực thi plugin)
 - [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
-- [ ] Cập nhật/đóng gói macOS có signing/notarization cho bản phát hành chính thức
+- [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào
+- [ ] Ký/notarize bản phát hành chính thức bằng Developer ID Application certificate
 
 ## Windows và Linux
 

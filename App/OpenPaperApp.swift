@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct AZpdfApp: App {
     @State private var workspace = DocumentWorkspace()
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
         WindowGroup("AZpdf") {
@@ -24,6 +25,9 @@ struct AZpdfApp: App {
                 Button("Đóng tab") { workspace.closeTab(workspace.selectedTabID) }
                     .keyboardShortcut("w", modifiers: .command)
             }
+            CommandGroup(replacing: .appInfo) {
+                Button("Giới thiệu về AZpdf") { openWindow(id: "about") }
+            }
             CommandMenu("Điều hướng") {
                 Button("Trang trước") { workspace.activeStore.goToPreviousPage() }
                     .keyboardShortcut("[", modifiers: .command)
@@ -39,6 +43,7 @@ struct AZpdfApp: App {
                     .keyboardShortcut("t", modifiers: [.command, .shift])
                 Button("Chèn chữ ký…") { workspace.activeStore.beginSignature() }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
+                Button("Ký bằng certificate…") { workspace.activeStore.beginCertificateSigning() }
                 Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
                 Button("Redact vùng chọn") { workspace.activeStore.beginRedaction() }
@@ -58,10 +63,26 @@ struct AZpdfApp: App {
                 Button("Xóa trang hiện tại") { workspace.activeStore.deleteCurrentPage() }
                     .keyboardShortcut(.delete, modifiers: [.command, .shift])
             }
+            CommandGroup(replacing: .help) {
+                Button("Trợ giúp AZpdf") { openWindow(id: "help") }
+                    .keyboardShortcut("/", modifiers: [.command, .shift])
+                Link("Mã nguồn AZpdf", destination: AZpdfLinks.repository)
+            }
         }
 
         Settings {
             SettingsView()
         }
+
+        Window("Giới thiệu về AZpdf", id: "about") {
+            AboutView()
+        }
+        .defaultSize(width: 400, height: 330)
+        .windowResizability(.contentSize)
+
+        Window("Trợ giúp AZpdf", id: "help") {
+            HelpView()
+        }
+        .defaultSize(width: 620, height: 500)
     }
 }

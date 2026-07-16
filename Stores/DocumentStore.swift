@@ -27,6 +27,7 @@ final class DocumentStore {
     var isPasswordProtectSheetPresented = false
     var isTextAnnotationSheetPresented = false
     var isSignatureSheetPresented = false
+    var isCertificateSigningSheetPresented = false
     var isRedactionConfirmationPresented = false
     var searchText = ""
     var searchResultCount = 0
@@ -39,6 +40,8 @@ final class DocumentStore {
     var exportPassword = ""
     var draftTextAnnotation = ""
     var draftSignatureStrokes: [SignatureStroke] = []
+    var certificateSigningIdentities: [CertificateIdentity] = []
+    var selectedCertificateIdentityID = ""
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
     var documentRevision = 0
@@ -245,6 +248,34 @@ final class DocumentStore {
         isSignatureSheetPresented = false
         draftSignatureStrokes = []
         sendReaderAction(.signature(strokes))
+    }
+
+    func beginCertificateSigning() {
+        guard document != nil else { return }
+        do {
+            certificateSigningIdentities = try CertificateSigningService.availableIdentities()
+            selectedCertificateIdentityID = certificateSigningIdentities.first?.id ?? ""
+            isCertificateSigningSheetPresented = true
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    @MainActor
+    func exportDetachedCertificateSignature() {
+        guard let documentData = document?.dataRepresentation(),
+              let identity = certificateSigningIdentities.first(where: { $0.id == selectedCertificateIdentityID }) else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.data]
+        panel.nameFieldStringValue = "\(title).pdf.p7s"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            let signature = try CertificateSigningService.detachedSignature(for: documentData, identity: identity)
+            try signature.write(to: url, options: .atomic)
+            isCertificateSigningSheetPresented = false
+        } catch {
+            lastError = "Không thể tạo chữ ký số: \(error.localizedDescription)"
+        }
     }
 
     func beginRedaction() {
