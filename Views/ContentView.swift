@@ -23,17 +23,28 @@ struct ContentView: View {
             .toolbar { toolbar }
         }
         .overlay {
-            if isDropTarget {
-                RoundedRectangle(cornerRadius: 12)
-                    .strokeBorder(.tint, style: StrokeStyle(lineWidth: 3, dash: [8, 5]))
-                    .padding(12)
-                    .allowsHitTesting(false)
-                    .overlay {
-                        Label("Thả PDF để mở", systemImage: "doc.badge.plus")
-                            .font(.title3.weight(.semibold))
-                            .padding(18)
-                            .background(.regularMaterial, in: Capsule())
+            ZStack(alignment: .top) {
+                if isDropTarget {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(.tint, style: StrokeStyle(lineWidth: 3, dash: [8, 5]))
+                        .padding(12)
+                        .allowsHitTesting(false)
+                        .overlay {
+                            Label("Thả PDF để mở", systemImage: "doc.badge.plus")
+                                .font(.title3.weight(.semibold))
+                                .padding(18)
+                                .background(.regularMaterial, in: Capsule())
+                        }
+                }
+                if let instruction = store.placementInstruction {
+                    HStack {
+                        Label(instruction, systemImage: "scope")
+                        Button("Hủy") { store.cancelPlacement() }
                     }
+                    .padding(.horizontal, 14).padding(.vertical, 10)
+                    .background(.regularMaterial, in: Capsule())
+                    .padding(.top, 12)
+                }
             }
         }
         .onDrop(of: [.fileURL], isTargeted: $isDropTarget) { providers in
