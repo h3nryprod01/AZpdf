@@ -30,3 +30,5 @@ CI chạy `script/audit_local_first.sh` để từ chối `URLSession`, socket v
 2. Chọn và triển khai PDF engine adapter cho Windows/Linux qua ADR công khai, sau kiểm tra giấy phép và fidelity PDF.
 3. Dùng cùng fixture PDF và behavioral tests trên cả ba nền tảng.
 4. Chỉ phát hành plugin host khi sandbox, cấp quyền theo tài liệu và audit log cục bộ đã sẵn sàng.
+
+ADR hiện tại: [0001 - MuPDF prototype cho Windows/Linux](adr/0001-cross-platform-pdf-engine.md).

@@ -18,6 +18,7 @@
 - [x] Tách portable core Foundation-only (`AZpdfCore`) cho policy, plugin manifest và intent thao tác
 - [x] Đưa adapter PDFKit macOS qua contract `PDFDocumentEngine`
 - [ ] Mở rộng portable core để mô hình hóa toàn bộ đọc/lưu/chỉnh sửa độc lập PDFKit
-- [ ] Quyết định engine PDF qua ADR về fidelity, performance và giấy phép
+- [x] Quyết định engine prototype qua ADR về giấy phép và kiến trúc (MuPDF AGPL)
+- [ ] Benchmark fidelity/performance MuPDF trên fixture chung trước khi tích hợp
 - [ ] Xây dựng UI adapter và CI theo nền tảng
 - [ ] Chạy cùng fixture và conformance tests với macOS
