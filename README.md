@@ -2,6 +2,8 @@
 
 Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặt quyền riêng tư lên trước.
 
+![Biểu tượng AZpdf](Assets/AZpdf-icon.png)
+
 ## Có trong bản đầu
 - Mở, đọc, tìm kiếm và điều hướng PDF
 - Điều hướng trang bằng toolbar, sidebar và phím tắt `⌘[` / `⌘]`

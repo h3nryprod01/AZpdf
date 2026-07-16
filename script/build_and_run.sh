@@ -7,12 +7,15 @@ BUNDLE_ID="org.azpdf.mac"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 APP_MACOS="$APP_BUNDLE/Contents/MacOS"
+APP_RESOURCES="$APP_BUNDLE/Contents/Resources"
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 swift build
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS"
 cp "$(swift build --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
+mkdir -p "$APP_RESOURCES"
+cp "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
@@ -22,6 +25,7 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <key>CFBundleExecutable</key><string>$APP_NAME</string>
 <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
 <key>CFBundleName</key><string>$APP_NAME</string>
+<key>CFBundleIconFile</key><string>AZpdf.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
 <key>NSPrincipalClass</key><string>NSApplication</string>
