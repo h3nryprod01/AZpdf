@@ -36,7 +36,9 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md).
 
 ## Phát triển
-Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`.
+Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI.
+
+Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
 ## License
 
