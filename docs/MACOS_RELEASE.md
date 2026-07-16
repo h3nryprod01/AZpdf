@@ -8,6 +8,12 @@
 
 Identity Apple Development hiện chỉ dùng để phát triển; không đủ để phát hành notarized ra ngoài Mac App Store.
 
+## Tạo điều kiện phát hành
+
+1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
+2. Tạo notarytool keychain profile (Apple ID hoặc App Store Connect API key), ví dụ `AZpdf-notary`.
+3. Xác nhận bằng `security find-identity -p codesigning -v`; kết quả phải có `Developer ID Application`, không chỉ `Apple Development`.
+
 ## Đóng gói và ký
 
 ```bash
