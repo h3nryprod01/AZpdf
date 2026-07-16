@@ -7,6 +7,7 @@ import AZpdfCore
 
 @Observable
 final class DocumentStore {
+    private let engine = PDFKitDocumentEngine()
     private let recentDocumentsKey = "recentDocumentPaths"
     private struct DocumentSnapshot {
         let data: Data
@@ -296,22 +297,24 @@ final class DocumentStore {
     }
 
     func rotateCurrentPage() {
-        guard let page = document?.page(at: selectedPageIndex) else { return }
+        guard let document else { return }
         registerUndoStep()
-        page.rotation = (page.rotation + 90) % 360
+        let operation = DocumentOperation.rotate(page: selectedPageIndex)
+        guard apply(operation, to: document) else { return }
         documentRevision += 1
         isModified = true
-        lastOperation = .rotate(page: selectedPageIndex)
+        lastOperation = operation
     }
 
     func deleteCurrentPage() {
         guard let document, document.pageCount > 1 else { return }
         registerUndoStep()
-        document.removePage(at: selectedPageIndex)
+        let operation = DocumentOperation.delete(page: selectedPageIndex)
+        guard apply(operation, to: document) else { return }
         selectedPageIndex = min(selectedPageIndex, document.pageCount - 1)
         documentRevision += 1
         isModified = true
-        lastOperation = .delete(page: selectedPageIndex)
+        lastOperation = operation
     }
 
     func deleteAnnotation(at index: Int) {
@@ -323,13 +326,14 @@ final class DocumentStore {
     }
 
     func duplicateCurrentPage() {
-        guard let document, let page = document.page(at: selectedPageIndex), let copy = page.copy() as? PDFPage else { return }
+        guard let document else { return }
         registerUndoStep()
-        document.insert(copy, at: selectedPageIndex + 1)
+        let operation = DocumentOperation.duplicate(page: selectedPageIndex)
+        guard apply(operation, to: document) else { return }
         selectedPageIndex += 1
         documentRevision += 1
         isModified = true
-        lastOperation = .duplicate(page: selectedPageIndex - 1)
+        lastOperation = operation
     }
 
     func insertPages(from url: URL) {
@@ -365,14 +369,13 @@ final class DocumentStore {
     func movePages(from offsets: IndexSet, to destination: Int) {
         guard let document, !offsets.isEmpty else { return }
         registerUndoStep()
-        let pages = offsets.compactMap { document.page(at: $0) }
-        for index in offsets.sorted(by: >) { document.removePage(at: index) }
         let adjustedDestination = destination - offsets.filter { $0 < destination }.count
-        for (offset, page) in pages.enumerated() { document.insert(page, at: adjustedDestination + offset) }
+        let operation = DocumentOperation.movePages(from: offsets.sorted(), destination: adjustedDestination)
+        guard apply(operation, to: document) else { return }
         selectedPageIndex = min(adjustedDestination, document.pageCount - 1)
         documentRevision += 1
         isModified = true
-        lastOperation = .movePages(from: offsets.sorted(), destination: adjustedDestination)
+        lastOperation = operation
     }
 
     private func sendReaderAction(_ action: PDFReaderAction) {
@@ -381,6 +384,16 @@ final class DocumentStore {
         readerAction = action
         readerActionID += 1
         isModified = true
+    }
+
+    private func apply(_ operation: DocumentOperation, to document: PDFDocument) -> Bool {
+        do {
+            try engine.apply(operation, to: document)
+            return true
+        } catch {
+            lastError = "Không thể thực hiện thao tác PDF này."
+            return false
+        }
     }
 
     func undo() {
