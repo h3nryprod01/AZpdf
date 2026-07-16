@@ -22,6 +22,8 @@ AZpdf là trình đọc/chỉnh sửa PDF local-first, miễn phí và AGPL-3.0-
 3. Plugin không tự tải, không tự cập nhật và không được cấp PDF nếu chưa có thao tác chủ động của người dùng.
 4. Redact vĩnh viễn phải tạo dữ liệu PDF mới, không chỉ thêm overlay có thể xóa.
 
+CI chạy `script/audit_local_first.sh` để từ chối `URLSession`, socket và WebSocket client trong App/Core/Services/Stores. Link mở trình duyệt do người dùng nhấp (ví dụ Buy Me a Coffee) không phải PDF transmission và không nằm trong gate này.
+
 ## Lộ trình tương thích
 
 1. Mở rộng `AZpdfCore` với model thao tác trang/annotation độc lập UI.
