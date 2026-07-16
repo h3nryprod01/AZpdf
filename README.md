@@ -2,7 +2,8 @@
 
 Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặt quyền riêng tư lên trước.
 
-![Biểu tượng AZpdf](Assets/AZpdf-icon.png)
+<img width="254" height="254" alt="Generated image 3" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
+
 
 ## Có trong bản đầu
 - Mở, đọc, tìm kiếm và điều hướng PDF
