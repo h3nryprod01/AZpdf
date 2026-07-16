@@ -38,4 +38,6 @@ Manifest tối thiểu:
 
 ## Trạng thái v1
 
-AZpdf hiện chỉ có discovery/validation manifest. IPC, sandbox và thực thi executable chưa được bật; không plugin nào có thể truy cập PDF chỉ bằng cách cài manifest.
+AZpdf hiện có discovery/validation manifest và không tự chạy executable. Không plugin nào có thể truy cập PDF chỉ bằng cách cài manifest.
+
+Trước khi bật thực thi, host sẽ dùng một XPC service App Sandbox riêng, nhận bản sao tạm chỉ-đọc của tài liệu sau khi người dùng đồng ý. Không xem chmod, thư mục tạm hay `runsLocally` là security sandbox; chỉ boundary do macOS enforce mới đủ điều kiện phát hành.

@@ -8,4 +8,4 @@ Mỗi plugin cung cấp một tệp manifest JSON. AZpdf chỉ chấp nhận man
 
 Các capability dự kiến: `ocr`, `translate`, `summarize`.
 
-Xem [protocol](../docs/PLUGIN_PROTOCOL.md) trước khi phát triển plugin. Việc thực thi plugin sẽ được bổ sung sau trên một tiến trình sandbox cục bộ, với yêu cầu cấp quyền rõ ràng cho từng tài liệu.
+Xem [protocol](../docs/PLUGIN_PROTOCOL.md) trước khi phát triển plugin. Việc thực thi plugin chưa được bật: bản phát hành chỉ mở rộng khi có XPC sandbox cục bộ và yêu cầu cấp quyền rõ ràng theo từng tài liệu.
