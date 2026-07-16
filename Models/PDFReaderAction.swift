@@ -6,4 +6,5 @@ enum PDFReaderAction: Equatable {
     case highlightSelection
     case freeText(String)
     case signature([SignatureStroke])
+    case redactSelection
 }

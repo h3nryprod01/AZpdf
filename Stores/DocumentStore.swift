@@ -25,6 +25,7 @@ final class DocumentStore {
     var isPasswordProtectSheetPresented = false
     var isTextAnnotationSheetPresented = false
     var isSignatureSheetPresented = false
+    var isRedactionConfirmationPresented = false
     var searchText = ""
     var searchResultCount = 0
     var searchResultIndex = 0
@@ -56,6 +57,18 @@ final class DocumentStore {
     var canGoToNextPage: Bool { selectedPageIndex + 1 < pageCount }
     var windowTitle: String { isModified ? "\(title) — Đã chỉnh sửa" : title }
     var recentDocumentURLs: [URL] { recentDocumentPaths.map(URL.init(fileURLWithPath:)) }
+    var formFieldCount: Int {
+        guard let document else { return 0 }
+        return (0..<document.pageCount).reduce(into: 0) { count, index in
+            count += document.page(at: index)?.annotations.filter {
+                $0.type?.caseInsensitiveCompare(PDFAnnotationSubtype.widget.rawValue) == .orderedSame
+                    || $0.widgetFieldType == PDFAnnotationWidgetSubtype.text
+                    || $0.widgetFieldType == PDFAnnotationWidgetSubtype.button
+                    || $0.widgetFieldType == PDFAnnotationWidgetSubtype.choice
+                    || $0.widgetFieldType == PDFAnnotationWidgetSubtype.signature
+            }.count ?? 0
+        }
+    }
 
     func open(_ url: URL) {
         guard let pdf = PDFDocument(url: url) else {
@@ -228,6 +241,51 @@ final class DocumentStore {
         isSignatureSheetPresented = false
         draftSignatureStrokes = []
         sendReaderAction(.signature(strokes))
+    }
+
+    func beginRedaction() {
+        guard document != nil else { return }
+        isRedactionConfirmationPresented = true
+    }
+
+    func confirmRedaction() {
+        isRedactionConfirmationPresented = false
+        sendReaderAction(.redactSelection)
+    }
+
+    /// Replaces each affected page with a rasterized copy, so the selected source
+    /// content is no longer present in the resulting PDF's text or drawing stream.
+    func permanentlyRedact(_ regions: [(pageIndex: Int, bounds: CGRect)]) -> Bool {
+        guard let document, !regions.isEmpty else { return false }
+        let regionsByPage = Dictionary(grouping: regions, by: \.pageIndex)
+
+        for (pageIndex, pageRegions) in regionsByPage {
+            guard let page = document.page(at: pageIndex) else { return false }
+            let mediaBox = page.bounds(for: .mediaBox)
+            guard mediaBox.width > 0, mediaBox.height > 0 else { return false }
+
+            let image = NSImage(size: mediaBox.size)
+            image.lockFocus()
+            guard let context = NSGraphicsContext.current?.cgContext else {
+                image.unlockFocus()
+                return false
+            }
+            context.saveGState()
+            page.draw(with: .mediaBox, to: context)
+            context.setFillColor(NSColor.black.cgColor)
+            for region in pageRegions {
+                context.fill(region.bounds.intersection(mediaBox))
+            }
+            context.restoreGState()
+            image.unlockFocus()
+
+            guard let replacement = PDFPage(image: image) else { return false }
+            replacement.rotation = page.rotation
+            document.removePage(at: pageIndex)
+            document.insert(replacement, at: pageIndex)
+        }
+        documentRevision += 1
+        return true
     }
 
     func rotateCurrentPage() {

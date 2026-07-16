@@ -85,6 +85,12 @@ struct ContentView: View {
         } message: {
             Text("Nhập mật khẩu để mở và chỉnh sửa tài liệu này.")
         }
+        .alert("Redact vĩnh viễn?", isPresented: $store.isRedactionConfirmationPresented) {
+            Button("Hủy", role: .cancel) { }
+            Button("Redact", role: .destructive) { store.confirmRedaction() }
+        } message: {
+            Text("AZpdf sẽ raster hóa trang chứa vùng chọn và thay nội dung gốc bằng vùng đen. Không thể khôi phục từ bản đã lưu; hãy dùng Undo nếu cần quay lại trong phiên này.")
+        }
         .sheet(isPresented: $store.isTextAnnotationSheetPresented) {
             TextAnnotationSheet(store: store)
         }
@@ -115,6 +121,7 @@ struct ContentView: View {
             Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }
             Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }
             Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }
+            Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }
             Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }
             Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }
             Button { store.isInsertImporterPresented = true } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }

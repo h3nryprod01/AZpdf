@@ -113,6 +113,38 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertFalse(store.isSignatureSheetPresented)
     }
 
+    func testPermanentRedactionReplacesOriginalPageContent() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let secret = PDFAnnotation(
+            bounds: CGRect(x: 10, y: 10, width: 60, height: 24),
+            forType: .freeText,
+            withProperties: nil
+        )
+        secret.contents = "MẬT"
+        store.document?.page(at: 0)?.addAnnotation(secret)
+
+        let didRedact = store.permanentlyRedact([(pageIndex: 0, bounds: CGRect(x: 8, y: 8, width: 70, height: 30))])
+
+        XCTAssertTrue(didRedact)
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.count, 0)
+        XCTAssertFalse(store.document?.dataRepresentation()?.contains(Data("MẬT".utf8)) ?? true)
+    }
+
+    func testFormFieldCountRecognizesWidgetAnnotations() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let field = PDFAnnotation(
+            bounds: CGRect(x: 20, y: 20, width: 100, height: 30),
+            forType: .widget,
+            withProperties: nil
+        )
+        field.widgetFieldType = .text
+        store.document?.page(at: 0)?.addAnnotation(field)
+
+        XCTAssertEqual(store.formFieldCount, 1)
+    }
+
     func testDocumentTracksUnsavedChanges() {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

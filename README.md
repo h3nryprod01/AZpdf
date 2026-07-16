@@ -21,6 +21,8 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
 - Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
+- Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
+- Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu
 - Undo/redo tối đa 50 thao tác chỉnh sửa trong phiên làm việc
 - Hiển thị rõ trạng thái chỉnh sửa chưa lưu trên tiêu đề và Inspector
 - Danh sách tối đa 8 tài liệu gần đây để mở lại nhanh

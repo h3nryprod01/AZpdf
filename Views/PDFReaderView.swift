@@ -111,6 +111,23 @@ struct PDFReaderView: NSViewRepresentable {
                 annotation.add(path)
             }
             page.addAnnotation(annotation)
+        case .redactSelection:
+            guard let selection = view.currentSelection else {
+                store.lastError = "Hãy chọn nội dung cần redact trước."
+                return
+            }
+            let regions = selection.pages.compactMap { selectionPage -> (pageIndex: Int, bounds: CGRect)? in
+                let bounds = selection.bounds(for: selectionPage)
+                let index = document.index(for: selectionPage)
+                guard index != NSNotFound, !bounds.isNull, !bounds.isEmpty else { return nil }
+                return (index, bounds.insetBy(dx: -1, dy: -1))
+            }
+            guard store.permanentlyRedact(regions) else {
+                store.lastError = "Không thể redact vùng đã chọn."
+                return
+            }
+            view.clearSelection()
+            view.document = store.document
         }
     }
 

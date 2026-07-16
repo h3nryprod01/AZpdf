@@ -36,6 +36,15 @@ struct DocumentInspectorView: View {
                 }
             }
 
+            Section("Biểu mẫu PDF") {
+                LabeledContent("Trường tương tác") { Text("\(store.formFieldCount)") }
+                Text(store.formFieldCount == 0
+                     ? "Tài liệu này không có trường form PDF được phát hiện."
+                     : "Nhấp trực tiếp vào trường form trong tài liệu để nhập hoặc chọn giá trị. Dữ liệu được giữ trên máy.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if let page = store.document?.page(at: store.selectedPageIndex) {
                 Section("Chú thích — \(page.annotations.count)") {
                     if page.annotations.isEmpty {

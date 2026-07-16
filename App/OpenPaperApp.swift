@@ -41,6 +41,8 @@ struct AZpdfApp: App {
                     .keyboardShortcut("s", modifiers: [.command, .shift])
                 Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
+                Button("Redact vùng chọn") { workspace.activeStore.beginRedaction() }
+                    .keyboardShortcut("x", modifiers: [.command, .shift])
                 Divider()
                 Button("Xoay trang sang phải") { workspace.activeStore.rotateCurrentPage() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
