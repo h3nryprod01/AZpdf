@@ -13,5 +13,7 @@ jobs:
         run: swift test
       - name: Audit local-first policy
         run: ./script/audit_local_first.sh
+      - name: Audit portable core boundary
+        run: ./script/audit_portable_core.sh
       - name: Build app bundle
         run: ./script/build_and_run.sh --bundle
