@@ -41,6 +41,10 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 
 AZpdf miễn phí theo AGPL-3.0. Nếu dự án hữu ích, bạn có thể [ủng hộ tác giả qua Ko-fi](https://ko-fi.com/h3nryng).
 
+Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
+
+<img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
+
 ## Phát triển
 Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI.
 

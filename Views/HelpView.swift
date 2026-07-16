@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct HelpView: View {
     var body: some View {
@@ -26,6 +27,20 @@ struct HelpView: View {
                 GroupBox("Chữ ký số và plugin") {
                     Text("Ký bằng certificate xuất tệp CMS/PKCS#7 .p7s tách rời. Plugin chỉ chạy cục bộ sau khi được cấp quyền rõ ràng; bản v1 chưa bật thực thi plugin tùy ý.")
                         .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                GroupBox("Ủng hộ AZpdf") {
+                    VStack(spacing: 10) {
+                        if let qrURL = Bundle.main.url(forResource: "donate-vietqr", withExtension: "jpg"),
+                           let qrImage = NSImage(contentsOf: qrURL) {
+                            Image(nsImage: qrImage)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: 260)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                        }
+                        Link("Ủng hộ online qua Ko-fi", destination: AZpdfLinks.koFi)
+                    }
+                    .frame(maxWidth: .infinity)
                 }
                 Link("Mã nguồn và hướng dẫn phát triển", destination: AZpdfLinks.repository)
             }

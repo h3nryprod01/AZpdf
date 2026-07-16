@@ -16,6 +16,7 @@ mkdir -p "$APP_MACOS"
 cp "$(swift build --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
 mkdir -p "$APP_RESOURCES"
 cp "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
+cp "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
