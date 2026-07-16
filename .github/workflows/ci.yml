@@ -11,5 +11,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Test
         run: swift test
+      - name: Audit local-first policy
+        run: ./script/audit_local_first.sh
       - name: Build app bundle
         run: ./script/build_and_run.sh --bundle
