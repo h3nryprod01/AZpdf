@@ -6,6 +6,6 @@ public enum DocumentPrivacyPolicy {
     public static let supportedPluginProtocolVersion = 1
 
     public static func accepts(_ manifest: PluginManifest) -> Bool {
-        manifest.runsLocally && manifest.protocolVersion == supportedPluginProtocolVersion
+        (try? PluginManifestValidator.validate(manifest)) != nil
     }
 }

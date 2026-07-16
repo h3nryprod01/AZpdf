@@ -26,6 +26,8 @@ Manifest tối thiểu:
 
 `runsLocally` bắt buộc là `true`; AZpdf chỉ load `protocolVersion` mà host hỗ trợ.
 
+`id` phải theo dạng reverse-domain (ví dụ `org.example.azpdf.ocr`). `executable` phải là đường dẫn tương đối nằm trong bundle plugin; đường dẫn tuyệt đối và `..` bị từ chối.
+
 ## Quy tắc an toàn bắt buộc
 
 - Plugin không được mở socket, gọi HTTP hoặc tự gửi tài liệu/telemetry.
