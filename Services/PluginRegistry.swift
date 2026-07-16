@@ -1,10 +1,11 @@
 import Foundation
 import Observation
+import AZpdfCore
 
 /// Discovers opt-in local plugins only. It intentionally has no networking API.
 @Observable
 final class PluginRegistry {
-    static let supportedProtocolVersion = 1
+    static let supportedProtocolVersion = DocumentPrivacyPolicy.supportedPluginProtocolVersion
     private(set) var plugins: [PluginManifest] = []
     let pluginsDirectory: URL
 
@@ -23,7 +24,7 @@ final class PluginRegistry {
             .filter { $0.pathExtension == "json" }
             .compactMap { try? Data(contentsOf: $0) }
             .compactMap { try? JSONDecoder().decode(PluginManifest.self, from: $0) }
-            .filter { $0.runsLocally && $0.protocolVersion == Self.supportedProtocolVersion }
+            .filter(DocumentPrivacyPolicy.accepts)
             .sorted { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
     }
 }

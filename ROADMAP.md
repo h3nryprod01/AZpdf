@@ -15,7 +15,8 @@
 
 ## Windows và Linux
 
-- [ ] Tách portable core khỏi PDFKit
+- [x] Tách portable core Foundation-only (`AZpdfCore`) cho policy, plugin manifest và intent thao tác
+- [ ] Mở rộng portable core để mô hình hóa toàn bộ đọc/lưu/chỉnh sửa độc lập PDFKit
 - [ ] Quyết định engine PDF qua ADR về fidelity, performance và giấy phép
 - [ ] Xây dựng UI adapter và CI theo nền tảng
 - [ ] Chạy cùng fixture và conformance tests với macOS

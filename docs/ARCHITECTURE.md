@@ -13,7 +13,7 @@ AZpdf là trình đọc/chỉnh sửa PDF local-first, miễn phí và AGPL-3.0-
 | Native UI | Tabs, sidebar, phím tắt, panel | SwiftUI + AppKit | UI native hoặc cross-platform adapter |
 | Plugin host | Khám phá manifest, quyền truy cập, IPC local | `PluginRegistry` (discovery) | Cùng protocol v1 |
 
-`DocumentStore` hiện còn là adapter macOS vì dùng `PDFDocument`/`NSImage`. Mọi tính năng mới phải tránh đưa quyết định về quyền riêng tư, mạng hoặc manifest plugin vào lớp này. Khi bắt đầu Windows/Linux, tách contract portable thành `AZpdfCore` và thay phần PDFKit bằng engine adapter tương ứng.
+`AZpdfCore` là module Foundation-only chứa policy local-first, plugin manifest và intent thao tác tài liệu. `DocumentStore` còn là adapter macOS vì dùng `PDFDocument`/`NSImage`; nó ghi nhận `DocumentOperation` từ core, nhưng việc render/persist thuộc về PDFKit. Windows/Linux sẽ thay adapter PDFKit, giữ nguyên core contract và tests.
 
 ## Bất biến local-first
 
@@ -24,7 +24,7 @@ AZpdf là trình đọc/chỉnh sửa PDF local-first, miễn phí và AGPL-3.0-
 
 ## Lộ trình tương thích
 
-1. Hoàn thiện `AZpdfCore` bằng model thao tác trang/annotation độc lập UI.
+1. Mở rộng `AZpdfCore` với model thao tác trang/annotation độc lập UI.
 2. Chọn và triển khai PDF engine adapter cho Windows/Linux qua ADR công khai, sau kiểm tra giấy phép và fidelity PDF.
 3. Dùng cùng fixture PDF và behavioral tests trên cả ba nền tảng.
 4. Chỉ phát hành plugin host khi sandbox, cấp quyền theo tài liệu và audit log cục bộ đã sẵn sàng.

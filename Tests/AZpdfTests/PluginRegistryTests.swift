@@ -1,6 +1,7 @@
 import Foundation
 import XCTest
 @testable import AZpdf
+import AZpdfCore
 
 @MainActor
 final class PluginRegistryTests: XCTestCase {

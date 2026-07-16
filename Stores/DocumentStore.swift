@@ -3,6 +3,7 @@ import Observation
 import PDFKit
 import SwiftUI
 import UniformTypeIdentifiers
+import AZpdfCore
 
 @Observable
 final class DocumentStore {
@@ -44,6 +45,7 @@ final class DocumentStore {
     var recentDocumentPaths: [String]
     private var undoStack: [DocumentSnapshot] = []
     private var redoStack: [DocumentSnapshot] = []
+    private(set) var lastOperation: DocumentOperation?
 
     init() {
         recentDocumentPaths = UserDefaults.standard.stringArray(forKey: recentDocumentsKey) ?? []
@@ -83,6 +85,7 @@ final class DocumentStore {
         documentRevision += 1
         undoStack.removeAll()
         redoStack.removeAll()
+        lastOperation = nil
         isPasswordPromptPresented = pdf.isLocked
         isModified = false
         addToRecentDocuments(url)
@@ -288,12 +291,17 @@ final class DocumentStore {
         return true
     }
 
+    func record(_ operation: DocumentOperation) {
+        lastOperation = operation
+    }
+
     func rotateCurrentPage() {
         guard let page = document?.page(at: selectedPageIndex) else { return }
         registerUndoStep()
         page.rotation = (page.rotation + 90) % 360
         documentRevision += 1
         isModified = true
+        lastOperation = .rotate(page: selectedPageIndex)
     }
 
     func deleteCurrentPage() {
@@ -303,6 +311,7 @@ final class DocumentStore {
         selectedPageIndex = min(selectedPageIndex, document.pageCount - 1)
         documentRevision += 1
         isModified = true
+        lastOperation = .delete(page: selectedPageIndex)
     }
 
     func deleteAnnotation(at index: Int) {
@@ -320,6 +329,7 @@ final class DocumentStore {
         selectedPageIndex += 1
         documentRevision += 1
         isModified = true
+        lastOperation = .duplicate(page: selectedPageIndex - 1)
     }
 
     func insertPages(from url: URL) {
@@ -336,6 +346,7 @@ final class DocumentStore {
         selectedPageIndex = insertionIndex
         documentRevision += 1
         isModified = true
+        lastOperation = .insertPages(count: pages.count, at: insertionIndex)
     }
 
     func insertImage(from url: URL) {
@@ -361,6 +372,7 @@ final class DocumentStore {
         selectedPageIndex = min(adjustedDestination, document.pageCount - 1)
         documentRevision += 1
         isModified = true
+        lastOperation = .movePages(from: offsets.sorted(), destination: adjustedDestination)
     }
 
     private func sendReaderAction(_ action: PDFReaderAction) {

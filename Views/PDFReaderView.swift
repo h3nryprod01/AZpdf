@@ -1,5 +1,6 @@
 import PDFKit
 import SwiftUI
+import AZpdfCore
 
 struct PDFReaderView: NSViewRepresentable {
     @Bindable var store: DocumentStore
@@ -66,6 +67,7 @@ struct PDFReaderView: NSViewRepresentable {
             annotation.contents = "Ghi chú AZpdf"
             annotation.color = .systemYellow
             page.addAnnotation(annotation)
+            store.record(.addAnnotation(kind: .note, page: store.selectedPageIndex))
         case .highlightSelection:
             guard let selection = view.currentSelection else {
                 store.lastError = "Hãy chọn đoạn văn bản trước khi tô sáng."
@@ -79,6 +81,7 @@ struct PDFReaderView: NSViewRepresentable {
                 selectionPage.addAnnotation(annotation)
             }
             view.clearSelection()
+            store.record(.addAnnotation(kind: .highlight, page: store.selectedPageIndex))
         case let .freeText(text):
             let selectedBounds = view.currentSelection?.bounds(for: page)
             let cropBox = page.bounds(for: .cropBox)
@@ -91,6 +94,7 @@ struct PDFReaderView: NSViewRepresentable {
             annotation.color = .clear
             page.addAnnotation(annotation)
             view.clearSelection()
+            store.record(.addAnnotation(kind: .freeText, page: store.selectedPageIndex))
         case let .signature(strokes):
             let cropBox = page.bounds(for: .cropBox)
             let signatureBounds = CGRect(
@@ -111,6 +115,7 @@ struct PDFReaderView: NSViewRepresentable {
                 annotation.add(path)
             }
             page.addAnnotation(annotation)
+            store.record(.addAnnotation(kind: .signature, page: store.selectedPageIndex))
         case .redactSelection:
             guard let selection = view.currentSelection else {
                 store.lastError = "Hãy chọn nội dung cần redact trước."
@@ -128,6 +133,7 @@ struct PDFReaderView: NSViewRepresentable {
             }
             view.clearSelection()
             view.document = store.document
+            store.record(.redact(pages: regions.map(\.pageIndex)))
         }
     }
 
