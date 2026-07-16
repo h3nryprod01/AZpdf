@@ -2,6 +2,7 @@ import AppKit
 import Observation
 import PDFKit
 import SwiftUI
+import UniformTypeIdentifiers
 
 @Observable
 final class DocumentStore {
@@ -16,7 +17,6 @@ final class DocumentStore {
     var selectedPageIndex = 0
     var zoomScale: CGFloat = 1
     var isAutoScale = true
-    var isImporterPresented = false
     var isInsertImporterPresented = false
     var isImageImporterPresented = false
     var isExportPresented = false
@@ -71,6 +71,18 @@ final class DocumentStore {
         isPasswordPromptPresented = pdf.isLocked
         isModified = false
         addToRecentDocuments(url)
+    }
+
+    @MainActor
+    func showOpenPanel() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        open(url)
     }
 
     func unlockDocument() {

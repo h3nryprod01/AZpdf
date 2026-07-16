@@ -49,13 +49,6 @@ struct ContentView: View {
             }
             return true
         }
-        .fileImporter(isPresented: $store.isImporterPresented, allowedContentTypes: [.pdf]) { result in
-            if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else { store.open(url); return }
-                defer { url.stopAccessingSecurityScopedResource() }
-                store.open(url)
-            }
-        }
         .fileImporter(isPresented: $store.isInsertImporterPresented, allowedContentTypes: [.pdf]) { result in
             if case let .success(url) = result {
                 guard url.startAccessingSecurityScopedResource() else { store.insertPages(from: url); return }
@@ -101,7 +94,7 @@ struct ContentView: View {
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            Button { store.isImporterPresented = true } label: { Label("Mở PDF", systemImage: "folder") }
+            Button { store.showOpenPanel() } label: { Label("Mở PDF", systemImage: "folder") }
         }
         if store.document != nil {
             ToolbarItemGroup(placement: .navigation) {

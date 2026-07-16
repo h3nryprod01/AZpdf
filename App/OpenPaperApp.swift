@@ -19,7 +19,7 @@ struct AZpdfApp: App {
                     .disabled(!documentStore.canRedo)
             }
             CommandGroup(replacing: .newItem) {
-                Button("Mở PDF…") { documentStore.isImporterPresented = true }
+                Button("Mở PDF…") { documentStore.showOpenPanel() }
                     .keyboardShortcut("o", modifiers: .command)
             }
             CommandMenu("Điều hướng") {

@@ -9,7 +9,7 @@ struct EmptyDocumentView: View {
             } description: {
                 Text("Đọc, chú thích, sắp xếp trang và xuất PDF — hoàn toàn trên máy của bạn.")
             } actions: {
-                Button("Mở PDF…") { store.isImporterPresented = true }
+                Button("Mở PDF…") { store.showOpenPanel() }
                     .buttonStyle(.borderedProminent)
                 Text("hoặc kéo tệp PDF vào cửa sổ")
                     .font(.caption).foregroundStyle(.secondary)
