@@ -5,6 +5,7 @@
 - [x] Reader/editor local-first: tabs, search, outline, page tools, annotations, signature tay
 - [x] Bảo mật cơ bản: mật khẩu, form widgets, redact phá hủy
 - [x] Plugin discovery cục bộ với protocol versioning
+- [ ] OCR local-first qua Vision framework: chọn vùng/trang, review kết quả, thêm text layer hoặc xuất text
 
 ## Trước v1.0
 

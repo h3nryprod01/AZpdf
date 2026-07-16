@@ -40,6 +40,7 @@ final class DocumentStore {
     var exportPassword = ""
     var draftTextAnnotation = ""
     var draftSignatureStrokes: [SignatureStroke] = []
+    var placementInstruction: String?
     var certificateSigningIdentities: [CertificateIdentity] = []
     var selectedCertificateIdentityID = ""
     var readerAction: PDFReaderAction = .none
@@ -226,7 +227,8 @@ final class DocumentStore {
         guard !text.isEmpty else { return }
         isTextAnnotationSheetPresented = false
         draftTextAnnotation = ""
-        sendReaderAction(.freeText(text))
+        placementInstruction = "Nhấp vào PDF để đặt hộp chữ."
+        sendReaderAction(.freeText(text), recordsUndo: false)
     }
 
     func highlightSelection() {
@@ -247,7 +249,24 @@ final class DocumentStore {
         }
         isSignatureSheetPresented = false
         draftSignatureStrokes = []
-        sendReaderAction(.signature(strokes))
+        placementInstruction = "Nhấp vào PDF để đặt chữ ký."
+        sendReaderAction(.signature(strokes), recordsUndo: false)
+    }
+
+    func cancelPlacement() {
+        placementInstruction = nil
+        readerAction = .none
+        readerActionID += 1
+    }
+
+    func prepareAnnotationPlacement() {
+        registerUndoStep()
+    }
+
+    func finishAnnotationPlacement(_ operation: DocumentOperation) {
+        placementInstruction = nil
+        record(operation)
+        isModified = true
     }
 
     func beginCertificateSigning() {
@@ -409,12 +428,12 @@ final class DocumentStore {
         lastOperation = operation
     }
 
-    private func sendReaderAction(_ action: PDFReaderAction) {
+    private func sendReaderAction(_ action: PDFReaderAction, recordsUndo: Bool = true) {
         guard document != nil else { return }
-        registerUndoStep()
+        if recordsUndo { registerUndoStep() }
         readerAction = action
         readerActionID += 1
-        isModified = true
+        if recordsUndo { isModified = true }
     }
 
     private func apply(_ operation: DocumentOperation, to document: PDFDocument) -> Bool {

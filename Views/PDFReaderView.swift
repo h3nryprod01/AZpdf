@@ -7,17 +7,20 @@ struct PDFReaderView: NSViewRepresentable {
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
-    func makeNSView(context: Context) -> PDFView {
-        let view = PDFView()
+    func makeNSView(context: Context) -> PlacementPDFView {
+        let view = PlacementPDFView()
         view.autoScales = true
         view.displayMode = .singlePageContinuous
         view.displayDirection = .vertical
         view.displaysPageBreaks = true
         view.document = store.document
+        view.onPlace = { action, page, bounds in
+            place(action, on: page, bounds: bounds)
+        }
         return view
     }
 
-    func updateNSView(_ view: PDFView, context: Context) {
+    func updateNSView(_ view: PlacementPDFView, context: Context) {
         if view.document !== store.document { view.document = store.document }
         if store.isAutoScale {
             view.autoScales = true
@@ -50,7 +53,7 @@ struct PDFReaderView: NSViewRepresentable {
         }
     }
 
-    private func perform(_ action: PDFReaderAction, in view: PDFView) {
+    private func perform(_ action: PDFReaderAction, in view: PlacementPDFView) {
         guard let document = view.document else { return }
         let page = view.currentPage ?? document.page(at: store.selectedPageIndex)
         guard let page else { return }
@@ -58,7 +61,7 @@ struct PDFReaderView: NSViewRepresentable {
 
         switch action {
         case .none:
-            break
+            view.clearPlacement()
         case .addNote:
             let selectedBounds = view.currentSelection?.bounds(for: page)
             let bounds = (selectedBounds?.isNull == false ? selectedBounds! : page.bounds(for: .cropBox).applying(CGAffineTransform(translationX: 72, y: -100)))
@@ -82,40 +85,8 @@ struct PDFReaderView: NSViewRepresentable {
             }
             view.clearSelection()
             store.record(.addAnnotation(kind: .highlight, page: store.selectedPageIndex))
-        case let .freeText(text):
-            let selectedBounds = view.currentSelection?.bounds(for: page)
-            let cropBox = page.bounds(for: .cropBox)
-            let anchor = selectedBounds?.isNull == false ? selectedBounds! : CGRect(x: cropBox.minX + 72, y: cropBox.maxY - 140, width: 260, height: 1)
-            let textBounds = CGRect(x: anchor.minX, y: max(cropBox.minY + 20, anchor.minY - 42), width: min(320, cropBox.width - 40), height: 38)
-            let annotation = PDFAnnotation(bounds: textBounds, forType: .freeText, withProperties: nil)
-            annotation.contents = text
-            annotation.font = .systemFont(ofSize: 14)
-            annotation.fontColor = .labelColor
-            annotation.color = .clear
-            page.addAnnotation(annotation)
-            view.clearSelection()
-            store.record(.addAnnotation(kind: .freeText, page: store.selectedPageIndex))
-        case let .signature(strokes):
-            let cropBox = page.bounds(for: .cropBox)
-            let signatureBounds = CGRect(
-                x: cropBox.minX + 54,
-                y: cropBox.minY + 54,
-                width: min(260, cropBox.width - 80),
-                height: min(96, cropBox.height - 80)
-            )
-            let annotation = PDFAnnotation(bounds: signatureBounds, forType: .ink, withProperties: nil)
-            annotation.color = .labelColor
-            for stroke in strokes {
-                guard let first = stroke.points.first else { continue }
-                let path = NSBezierPath()
-                path.move(to: signaturePoint(first, in: signatureBounds))
-                for point in stroke.points.dropFirst() {
-                    path.line(to: signaturePoint(point, in: signatureBounds))
-                }
-                annotation.add(path)
-            }
-            page.addAnnotation(annotation)
-            store.record(.addAnnotation(kind: .signature, page: store.selectedPageIndex))
+        case .freeText, .signature:
+            view.armPlacement(action)
         case .redactSelection:
             guard let selection = view.currentSelection else {
                 store.lastError = "Hãy chọn nội dung cần redact trước."
@@ -137,11 +108,39 @@ struct PDFReaderView: NSViewRepresentable {
         }
     }
 
+    private func place(_ action: PDFReaderAction, on page: PDFPage, bounds: CGRect) {
+        guard let document = store.document else { return }
+        let pageIndex = document.index(for: page)
+        guard pageIndex != NSNotFound else { return }
+        store.prepareAnnotationPlacement()
+        switch action {
+        case let .freeText(text):
+            let annotation = PDFAnnotation(bounds: bounds, forType: .freeText, withProperties: nil)
+            annotation.contents = text
+            annotation.font = .systemFont(ofSize: 14)
+            annotation.fontColor = .labelColor
+            annotation.color = .clear
+            page.addAnnotation(annotation)
+            store.finishAnnotationPlacement(.addAnnotation(kind: .freeText, page: pageIndex))
+        case let .signature(strokes):
+            let annotation = PDFAnnotation(bounds: bounds, forType: .ink, withProperties: nil)
+            annotation.color = .labelColor
+            for stroke in strokes {
+                guard let first = stroke.points.first else { continue }
+                let path = NSBezierPath()
+                path.move(to: signaturePoint(first, in: bounds))
+                for point in stroke.points.dropFirst() { path.line(to: signaturePoint(point, in: bounds)) }
+                annotation.add(path)
+            }
+            page.addAnnotation(annotation)
+            store.finishAnnotationPlacement(.addAnnotation(kind: .signature, page: pageIndex))
+        default:
+            return
+        }
+    }
+
     private func signaturePoint(_ point: CGPoint, in bounds: CGRect) -> CGPoint {
-        CGPoint(
-            x: bounds.minX + point.x / 520 * bounds.width,
-            y: bounds.maxY - point.y / 190 * bounds.height
-        )
+        CGPoint(x: bounds.minX + point.x / 520 * bounds.width, y: bounds.maxY - point.y / 190 * bounds.height)
     }
 
     private func showSearchResult(in view: PDFView, coordinator: Coordinator) {
@@ -160,5 +159,50 @@ struct PDFReaderView: NSViewRepresentable {
         var searchIndex = -1
         var searchNavigationID = 0
         var actionID = -1
+    }
+}
+
+final class PlacementPDFView: PDFView {
+    var onPlace: ((PDFReaderAction, PDFPage, CGRect) -> Void)?
+    private var placementAction: PDFReaderAction?
+
+    func armPlacement(_ action: PDFReaderAction) {
+        placementAction = action
+        window?.invalidateCursorRects(for: self)
+    }
+
+    func clearPlacement() {
+        placementAction = nil
+        window?.invalidateCursorRects(for: self)
+    }
+
+    override func resetCursorRects() {
+        super.resetCursorRects()
+        if placementAction != nil { addCursorRect(bounds, cursor: .crosshair) }
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        guard let action = placementAction else {
+            super.mouseDown(with: event)
+            return
+        }
+        let pointInView = convert(event.locationInWindow, from: nil)
+        guard let page = page(for: pointInView, nearest: true) else { return }
+        let pointOnPage = convert(pointInView, to: page)
+        placementAction = nil
+        window?.invalidateCursorRects(for: self)
+        onPlace?(action, page, placementBounds(for: action, at: pointOnPage, on: page))
+    }
+
+    private func placementBounds(for action: PDFReaderAction, at point: CGPoint, on page: PDFPage) -> CGRect {
+        let cropBox = page.bounds(for: .cropBox)
+        let size: CGSize = switch action {
+        case .freeText: CGSize(width: min(320, max(100, cropBox.width - 32)), height: 52)
+        case .signature: CGSize(width: min(260, max(120, cropBox.width - 32)), height: min(96, max(60, cropBox.height - 32)))
+        default: .zero
+        }
+        let x = min(max(point.x, cropBox.minX + 16), cropBox.maxX - size.width - 16)
+        let y = min(max(point.y - size.height, cropBox.minY + 16), cropBox.maxY - size.height - 16)
+        return CGRect(origin: CGPoint(x: x, y: y), size: size)
     }
 }
