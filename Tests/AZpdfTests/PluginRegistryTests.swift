@@ -10,16 +10,16 @@ final class PluginRegistryTests: XCTestCase {
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
 
-        try manifest(id: "local", runsLocally: true, protocolVersion: 1)
+        try manifest(id: "org.example.local", runsLocally: true, protocolVersion: 1)
             .write(to: directory.appending(path: "local.json"))
-        try manifest(id: "remote", runsLocally: false, protocolVersion: 1)
+        try manifest(id: "org.example.remote", runsLocally: false, protocolVersion: 1)
             .write(to: directory.appending(path: "remote.json"))
-        try manifest(id: "future", runsLocally: true, protocolVersion: 2)
+        try manifest(id: "org.example.future", runsLocally: true, protocolVersion: 2)
             .write(to: directory.appending(path: "future.json"))
 
         let registry = PluginRegistry(directory: directory)
 
-        XCTAssertEqual(registry.plugins.map(\.id), ["local"])
+        XCTAssertEqual(registry.plugins.map(\.id), ["org.example.local"])
     }
 
     private func manifest(id: String, runsLocally: Bool, protocolVersion: Int) throws -> Data {
