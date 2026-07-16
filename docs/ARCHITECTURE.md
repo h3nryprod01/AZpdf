@@ -24,6 +24,8 @@ AZpdf là trình đọc/chỉnh sửa PDF local-first, miễn phí và AGPL-3.0-
 
 CI chạy `script/audit_local_first.sh` để từ chối `URLSession`, socket và WebSocket client trong App/Core/Services/Stores. Link mở trình duyệt do người dùng nhấp (ví dụ Buy Me a Coffee) không phải PDF transmission và không nằm trong gate này.
 
+CI cũng chạy `script/audit_portable_core.sh` để từ chối PDFKit, AppKit, SwiftUI, UIKit và WinSDK trong `Core/`.
+
 ## Lộ trình tương thích
 
 1. Mở rộng `AZpdfCore` với model thao tác trang/annotation độc lập UI.
