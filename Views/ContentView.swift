@@ -4,6 +4,7 @@ import UniformTypeIdentifiers
 
 struct ContentView: View {
     @Bindable var store: DocumentStore
+    let openPDF: () -> Void
     @State private var isInspectorPresented = false
     @State private var isDropTarget = false
 
@@ -15,7 +16,7 @@ struct ContentView: View {
                 if store.document != nil {
                     PDFReaderView(store: store)
                 } else {
-                    EmptyDocumentView(store: store)
+                    EmptyDocumentView(store: store, openPDF: openPDF)
                 }
             }
             .navigationTitle(store.windowTitle)
@@ -87,6 +88,9 @@ struct ContentView: View {
         .sheet(isPresented: $store.isTextAnnotationSheetPresented) {
             TextAnnotationSheet(store: store)
         }
+        .sheet(isPresented: $store.isSignatureSheetPresented) {
+            SignatureSheet(store: store)
+        }
         .sheet(isPresented: $store.isPasswordProtectSheetPresented) {
             PasswordProtectSheet(store: store)
         }
@@ -94,7 +98,7 @@ struct ContentView: View {
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
-            Button { store.showOpenPanel() } label: { Label("Mở PDF", systemImage: "folder") }
+            Button(action: openPDF) { Label("Mở PDF", systemImage: "folder") }
         }
         if store.document != nil {
             ToolbarItemGroup(placement: .navigation) {
@@ -109,6 +113,7 @@ struct ContentView: View {
             ToolbarItemGroup(placement: .principal) {
             Button { store.addNote() } label: { Label("Thêm ghi chú", systemImage: "note.text") }
             Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }
+            Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }
             Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }
             Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }
             Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }

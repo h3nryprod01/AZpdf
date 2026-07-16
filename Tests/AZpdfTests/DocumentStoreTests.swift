@@ -101,6 +101,18 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertFalse(store.isTextAnnotationSheetPresented)
     }
 
+    func testAddingSignatureQueuesReaderAction() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        store.draftSignatureStrokes = [SignatureStroke(points: [CGPoint(x: 4, y: 5), CGPoint(x: 12, y: 18)])]
+
+        store.addSignature()
+
+        XCTAssertEqual(store.readerAction, .signature([SignatureStroke(points: [CGPoint(x: 4, y: 5), CGPoint(x: 12, y: 18)])]))
+        XCTAssertEqual(store.readerActionID, 1)
+        XCTAssertFalse(store.isSignatureSheetPresented)
+    }
+
     func testDocumentTracksUnsavedChanges() {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

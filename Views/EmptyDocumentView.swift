@@ -2,6 +2,7 @@ import SwiftUI
 
 struct EmptyDocumentView: View {
     @Bindable var store: DocumentStore
+    let openPDF: () -> Void
     var body: some View {
         VStack(spacing: 0) {
             ContentUnavailableView {
@@ -9,7 +10,7 @@ struct EmptyDocumentView: View {
             } description: {
                 Text("Đọc, chú thích, sắp xếp trang và xuất PDF — hoàn toàn trên máy của bạn.")
             } actions: {
-                Button("Mở PDF…") { store.showOpenPanel() }
+                Button("Mở PDF…", action: openPDF)
                     .buttonStyle(.borderedProminent)
                 Text("hoặc kéo tệp PDF vào cửa sổ")
                     .font(.caption).foregroundStyle(.secondary)

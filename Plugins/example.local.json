@@ -1,0 +1,8 @@
+{
+  "id": "org.azpdf.local-ocr",
+  "name": "OCR cục bộ mẫu",
+  "version": "0.1.0",
+  "capabilities": ["ocr"],
+  "executable": "./azpdf-local-ocr",
+  "runsLocally": true
+}

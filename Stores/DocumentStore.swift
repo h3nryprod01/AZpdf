@@ -24,6 +24,7 @@ final class DocumentStore {
     var isPasswordPromptPresented = false
     var isPasswordProtectSheetPresented = false
     var isTextAnnotationSheetPresented = false
+    var isSignatureSheetPresented = false
     var searchText = ""
     var searchResultCount = 0
     var searchResultIndex = 0
@@ -34,6 +35,7 @@ final class DocumentStore {
     var password = ""
     var exportPassword = ""
     var draftTextAnnotation = ""
+    var draftSignatureStrokes: [SignatureStroke] = []
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
     var documentRevision = 0
@@ -209,6 +211,23 @@ final class DocumentStore {
 
     func highlightSelection() {
         sendReaderAction(.highlightSelection)
+    }
+
+    func beginSignature() {
+        guard document != nil else { return }
+        draftSignatureStrokes = []
+        isSignatureSheetPresented = true
+    }
+
+    func addSignature() {
+        let strokes = draftSignatureStrokes.filter { $0.points.count > 1 }
+        guard !strokes.isEmpty else {
+            lastError = "Hãy vẽ chữ ký trước khi chèn."
+            return
+        }
+        isSignatureSheetPresented = false
+        draftSignatureStrokes = []
+        sendReaderAction(.signature(strokes))
     }
 
     func rotateCurrentPage() {

@@ -91,7 +91,34 @@ struct PDFReaderView: NSViewRepresentable {
             annotation.color = .clear
             page.addAnnotation(annotation)
             view.clearSelection()
+        case let .signature(strokes):
+            let cropBox = page.bounds(for: .cropBox)
+            let signatureBounds = CGRect(
+                x: cropBox.minX + 54,
+                y: cropBox.minY + 54,
+                width: min(260, cropBox.width - 80),
+                height: min(96, cropBox.height - 80)
+            )
+            let annotation = PDFAnnotation(bounds: signatureBounds, forType: .ink, withProperties: nil)
+            annotation.color = .labelColor
+            for stroke in strokes {
+                guard let first = stroke.points.first else { continue }
+                let path = NSBezierPath()
+                path.move(to: signaturePoint(first, in: signatureBounds))
+                for point in stroke.points.dropFirst() {
+                    path.line(to: signaturePoint(point, in: signatureBounds))
+                }
+                annotation.add(path)
+            }
+            page.addAnnotation(annotation)
         }
+    }
+
+    private func signaturePoint(_ point: CGPoint, in bounds: CGRect) -> CGPoint {
+        CGPoint(
+            x: bounds.minX + point.x / 520 * bounds.width,
+            y: bounds.maxY - point.y / 190 * bounds.height
+        )
     }
 
     private func showSearchResult(in view: PDFView, coordinator: Coordinator) {

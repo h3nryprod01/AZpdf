@@ -2,54 +2,58 @@ import SwiftUI
 
 @main
 struct AZpdfApp: App {
-    @State private var documentStore = DocumentStore()
+    @State private var workspace = DocumentWorkspace()
 
     var body: some Scene {
         WindowGroup("AZpdf") {
-            ContentView(store: documentStore)
+            WorkspaceView(workspace: workspace)
                 .frame(minWidth: 980, minHeight: 640)
         }
         .commands {
             CommandGroup(replacing: .undoRedo) {
-                Button("Hoàn tác") { documentStore.undo() }
+                Button("Hoàn tác") { workspace.activeStore.undo() }
                     .keyboardShortcut("z", modifiers: .command)
-                    .disabled(!documentStore.canUndo)
-                Button("Làm lại") { documentStore.redo() }
+                    .disabled(!workspace.activeStore.canUndo)
+                Button("Làm lại") { workspace.activeStore.redo() }
                     .keyboardShortcut("z", modifiers: [.command, .shift])
-                    .disabled(!documentStore.canRedo)
+                    .disabled(!workspace.activeStore.canRedo)
             }
             CommandGroup(replacing: .newItem) {
-                Button("Mở PDF…") { documentStore.showOpenPanel() }
+                Button("Mở PDF…") { workspace.showOpenPanel() }
                     .keyboardShortcut("o", modifiers: .command)
+                Button("Đóng tab") { workspace.closeTab(workspace.selectedTabID) }
+                    .keyboardShortcut("w", modifiers: .command)
             }
             CommandMenu("Điều hướng") {
-                Button("Trang trước") { documentStore.goToPreviousPage() }
+                Button("Trang trước") { workspace.activeStore.goToPreviousPage() }
                     .keyboardShortcut("[", modifiers: .command)
-                    .disabled(!documentStore.canGoToPreviousPage)
-                Button("Trang sau") { documentStore.goToNextPage() }
+                    .disabled(!workspace.activeStore.canGoToPreviousPage)
+                Button("Trang sau") { workspace.activeStore.goToNextPage() }
                     .keyboardShortcut("]", modifiers: .command)
-                    .disabled(!documentStore.canGoToNextPage)
+                    .disabled(!workspace.activeStore.canGoToNextPage)
             }
             CommandMenu("PDF") {
-                Button("Thêm ghi chú") { documentStore.addNote() }
+                Button("Thêm ghi chú") { workspace.activeStore.addNote() }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                Button("Thêm chữ…") { documentStore.beginTextAnnotation() }
+                Button("Thêm chữ…") { workspace.activeStore.beginTextAnnotation() }
                     .keyboardShortcut("t", modifiers: [.command, .shift])
-                Button("Tô sáng vùng chọn") { documentStore.highlightSelection() }
+                Button("Chèn chữ ký…") { workspace.activeStore.beginSignature() }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
                 Divider()
-                Button("Xoay trang sang phải") { documentStore.rotateCurrentPage() }
+                Button("Xoay trang sang phải") { workspace.activeStore.rotateCurrentPage() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
-                Button("Nhân đôi trang hiện tại") { documentStore.duplicateCurrentPage() }
+                Button("Nhân đôi trang hiện tại") { workspace.activeStore.duplicateCurrentPage() }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
-                Button("Chèn trang từ PDF…") { documentStore.isInsertImporterPresented = true }
+                Button("Chèn trang từ PDF…") { workspace.activeStore.isInsertImporterPresented = true }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
-                Button("Chèn ảnh…") { documentStore.isImageImporterPresented = true }
+                Button("Chèn ảnh…") { workspace.activeStore.isImageImporterPresented = true }
                     .keyboardShortcut("i", modifiers: [.command, .option])
-                Button("Xuất trang hiện tại…") { documentStore.prepareCurrentPageExport() }
+                Button("Xuất trang hiện tại…") { workspace.activeStore.prepareCurrentPageExport() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
-                Button("Xuất bản được bảo vệ…") { documentStore.beginPasswordProtectedExport() }
-                Button("Xóa trang hiện tại") { documentStore.deleteCurrentPage() }
+                Button("Xuất bản được bảo vệ…") { workspace.activeStore.beginPasswordProtectedExport() }
+                Button("Xóa trang hiện tại") { workspace.activeStore.deleteCurrentPage() }
                     .keyboardShortcut(.delete, modifiers: [.command, .shift])
             }
         }
