@@ -8,7 +8,6 @@
 - `MUTOOL_RUNTIME_DIR`: thư mục runtime MuPDF có `mutool` và toàn bộ dylib phụ thuộc, được build/đóng gói để chạy độc lập khỏi Homebrew.
 - `VERAPDF_RUNTIME_DIR`: thư mục veraPDF self-contained có executable `verapdf`, runtime Java và model kiểm tra PDF/A/PDF/UA.
 - `PYHANKO_RUNTIME_DIR`: thư mục pyHanko self-contained có executable `pyhanko` **relocatable** cùng Python interpreter/dependencies của nó; không dùng script có shebang trỏ vào virtualenv build machine.
-- `PDFSIG_RUNTIME_DIR`: thư mục Poppler self-contained có `pdfsig` và toàn bộ dylib phụ thuộc để kiểm tra integrity/certificate chữ ký PDF.
 - `OCRMY_PDF_RUNTIME_DIR`: OCRmyPDF self-contained cùng Tesseract, Ghostscript, qpdf và language data (`eng`, `vie`) để tạo searchable PDF offline.
 
 Identity Apple Development hiện chỉ dùng để phát triển; không đủ để phát hành notarized ra ngoài Mac App Store.
@@ -23,7 +22,7 @@ export PYHANKO_PYTHON='/path/to/pinned-python/bin/python'
 export PYHANKO_RUNTIME_DIR="$PWD/dist/runtime/pyhanko"
 ```
 
-Script chạy `audit_runtime.sh` và `pyhanko --version` sau khi build. Ghi lại phiên bản pyHanko/PyInstaller cùng SBOM trước khi phát hành. pyHanko dùng MIT; PyInstaller có GPL-2.0 kèm ngoại lệ cho phép phân phối executable, nhưng vẫn phải kiểm kê license của toàn bộ dependency Python trong SBOM.
+Script chạy `audit_runtime.sh`, `pyhanko --version` và `pyhanko sign validate --help` sau khi build. Ghi lại phiên bản pyHanko/PyInstaller cùng SBOM trước khi phát hành. pyHanko dùng MIT; PyInstaller có GPL-2.0 kèm ngoại lệ cho phép phân phối executable, nhưng vẫn phải kiểm kê license của toàn bộ dependency Python trong SBOM.
 
 `package_release.sh` gọi `sign_bundle.sh`: script này ký mọi Mach-O nhúng trước, rồi ký app chính với hardened runtime và entitlement. Không thay thế bước notarization.
 
@@ -53,7 +52,6 @@ export SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)'
 export MUTOOL_RUNTIME_DIR='/path/to/redistributable-mupdf-runtime'
 export VERAPDF_RUNTIME_DIR='/path/to/redistributable-verapdf-runtime'
 export PYHANKO_RUNTIME_DIR='/path/to/redistributable-pyhanko-runtime'
-export PDFSIG_RUNTIME_DIR='/path/to/redistributable-pdfsig-runtime'
 export OCRMY_PDF_RUNTIME_DIR='/path/to/redistributable-ocrmypdf-runtime'
 ./script/package_release.sh
 ```

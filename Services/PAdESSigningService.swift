@@ -11,7 +11,7 @@ enum PAdESSigningError: LocalizedError {
         case .signingRuntimeUnavailable:
             "Chưa có PAdES runtime. Bản phát hành AZpdf phải đi kèm pyHanko runtime đã đóng gói."
         case .verificationRuntimeUnavailable:
-            "Chưa có trình xác minh PAdES. Bản phát hành AZpdf phải đi kèm pdfsig runtime đã đóng gói."
+            "Chưa có PAdES runtime. Bản phát hành AZpdf phải đi kèm pyHanko runtime đã đóng gói."
         case let .signingFailed(message):
             "Không thể ký PAdES: \(message)"
         case let .verificationFailed(message):
@@ -102,39 +102,41 @@ enum PAdESSigningService {
         documentData: Data,
         executable explicitExecutable: URL? = nil
     ) throws -> PAdESVerification {
-        guard let executable = explicitExecutable ?? verificationRuntimeURL() else {
+        guard let executable = explicitExecutable ?? signingRuntimeURL() else {
             throw PAdESSigningError.verificationRuntimeUnavailable
         }
         let directory = try temporaryDirectory(named: "AZpdf-PAdES-Verify")
         defer { try? FileManager.default.removeItem(at: directory) }
         let input = directory.appending(path: "input.pdf")
         try documentData.write(to: input, options: .atomic)
-        let result = try run(executable, arguments: [input.path])
+        // pyHanko returns a non-zero exit code for an untrusted certificate,
+        // even when the PDF signature itself is cryptographically sound.
+        let result = try run(executable, arguments: ["sign", "validate", "--pretty-print", "--no-revocation-check", input.path])
         let details = result.message
         guard !details.isEmpty else { throw PAdESSigningError.verificationFailed("Trình xác minh không trả kết quả.") }
         return PAdESVerification(
             integrity: integrity(in: details),
             certificateTrust: trust(in: details),
-            signerName: capture("Signer Certificate Common Name: (.+)", in: details),
+            signerName: capture("Certificate subject: \\\"?(.+?)\\\"?$", in: details),
             details: details
         )
     }
 
     private static func integrity(in output: String) -> PAdESVerification.Integrity {
-        if output.contains("Signature Validation: Signature is Valid") { return .valid }
-        if output.contains("Signature Validation: Signature is Invalid") { return .invalid }
+        if output.localizedCaseInsensitiveContains("signature is cryptographically sound") { return .valid }
+        if output.localizedCaseInsensitiveContains("signature is cryptographically unsound") { return .invalid }
         if output.localizedCaseInsensitiveContains("does not contain any signatures") { return .unsigned }
         return .unknown
     }
 
     private static func trust(in output: String) -> PAdESVerification.CertificateTrust {
-        if output.contains("Certificate Validation: Certificate is Trusted") { return .trusted }
-        if output.contains("Certificate Validation:") { return .untrusted }
+        if output.localizedCaseInsensitiveContains("signer's certificate is trusted") { return .trusted }
+        if output.localizedCaseInsensitiveContains("signer's certificate is untrusted") { return .untrusted }
         return .unknown
     }
 
     private static func capture(_ pattern: String, in value: String) -> String? {
-        guard let expression = try? NSRegularExpression(pattern: pattern),
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.anchorsMatchLines]),
               let match = expression.firstMatch(in: value, range: NSRange(value.startIndex..., in: value)),
               let range = Range(match.range(at: 1), in: value) else { return nil }
         return String(value[range]).trimmingCharacters(in: .whitespacesAndNewlines)
@@ -168,10 +170,6 @@ enum PAdESSigningService {
 
     private static func signingRuntimeURL() -> URL? {
         runtimeURL(bundleSubdirectory: "pyhanko", executable: "pyhanko")
-    }
-
-    private static func verificationRuntimeURL() -> URL? {
-        runtimeURL(bundleSubdirectory: "", executable: "pdfsig")
     }
 
     private static func runtimeURL(bundleSubdirectory: String, executable: String) -> URL? {
