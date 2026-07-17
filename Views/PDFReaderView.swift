@@ -13,6 +13,8 @@ struct PDFReaderView: NSViewRepresentable {
         view.displayMode = .singlePageContinuous
         view.displayDirection = .vertical
         view.displaysPageBreaks = true
+        view.setAccessibilityLabel("Trình đọc PDF")
+        view.setAccessibilityHelp("Chọn văn bản để tô sáng hoặc redact. Chọn chú thích để chỉnh sửa trong bảng Thông tin.")
         view.document = store.document
         view.onPlace = { action, page, bounds in
             place(action, on: page, bounds: bounds)

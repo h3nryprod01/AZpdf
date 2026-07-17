@@ -203,6 +203,26 @@ final class DocumentStore {
         documentRevision += 1
     }
 
+    /// Provides a keyboard and VoiceOver-accessible alternative to dragging an annotation.
+    func moveSelectedAnnotation(horizontal: CGFloat, vertical: CGFloat) {
+        guard let annotation = selectedAnnotation,
+              let document,
+              let pageIndex = selectedAnnotationPageIndex,
+              let page = document.page(at: pageIndex) else { return }
+        registerUndoStep()
+        let cropBox = page.bounds(for: .cropBox)
+        let candidate = annotation.bounds.offsetBy(dx: horizontal, dy: vertical)
+        annotation.bounds = CGRect(
+            x: min(max(candidate.minX, cropBox.minX), cropBox.maxX - candidate.width),
+            y: min(max(candidate.minY, cropBox.minY), cropBox.maxY - candidate.height),
+            width: candidate.width,
+            height: candidate.height
+        )
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
     func openRecentDocument(_ url: URL) {
         open(url)
     }

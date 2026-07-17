@@ -239,6 +239,27 @@ final class DocumentStoreTests: XCTestCase {
         }
     }
 
+    func testSelectedAnnotationCanMoveWithAccessibleControlsAndUndo() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let annotation = PDFAnnotation(
+            bounds: CGRect(x: 20, y: 20, width: 40, height: 24),
+            forType: .freeText,
+            withProperties: nil
+        )
+        store.document?.page(at: 0)?.addAnnotation(annotation)
+        store.selectAnnotation(annotation, pageIndex: 0)
+
+        store.moveSelectedAnnotation(horizontal: 8, vertical: -8)
+
+        XCTAssertEqual(annotation.bounds.origin, CGPoint(x: 28, y: 12))
+        XCTAssertTrue(store.isModified)
+        XCTAssertTrue(store.canUndo)
+
+        store.undo()
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.first?.bounds.origin, CGPoint(x: 20, y: 20))
+    }
+
     func testOCRTextNormalizationRemovesNonBreakingSpaces() {
         XCTAssertEqual(OCRService.normalized("\n  AZpdf\u{00A0}OCR\r\n"), "AZpdf OCR")
     }
