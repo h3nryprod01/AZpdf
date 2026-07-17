@@ -358,6 +358,25 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(signed, Data("%PDF-test".utf8))
     }
 
+    func testPAdESLTRequiresTimestampURL() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-pades-lt-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let executable = directory.appending(path: "pyhanko")
+        try "#!/bin/sh\nexit 0\n".write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        XCTAssertThrowsError(try PAdESSigningService.sign(
+            documentData: Data("%PDF-test".utf8),
+            pkcs12Data: Data("test-p12".utf8),
+            password: "secret",
+            profile: .baselineLT,
+            executable: executable
+        )) { error in
+            XCTAssertEqual(error.localizedDescription, PAdESSigningError.timestampURLRequired.localizedDescription)
+        }
+    }
+
     func testPAdESVerifierSeparatesIntegrityAndCertificateTrust() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-pades-verify-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)

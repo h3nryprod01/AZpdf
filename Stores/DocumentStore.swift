@@ -60,6 +60,8 @@ final class DocumentStore {
     var padesPKCS12Data: Data?
     var padesCertificateName = ""
     var padesPassword = ""
+    var padesProfile: PAdESProfile = .baselineB
+    var padesTimestampURL = ""
     var padesVerificationMessage = ""
     var ocrText = ""
     var ocrReviews: [OCRPageReview] = []
@@ -653,12 +655,16 @@ final class DocumentStore {
             padesPassword = ""
             padesPKCS12Data = nil
             padesCertificateName = ""
+            padesTimestampURL = ""
+            padesProfile = .baselineB
         }
         do {
             let signed = try PAdESSigningService.sign(
                 documentData: documentData,
                 pkcs12Data: pkcs12Data,
-                password: padesPassword
+                password: padesPassword,
+                profile: padesProfile,
+                timestampURL: padesTimestampURL.isEmpty ? nil : padesTimestampURL
             )
             try signed.write(to: url, options: .atomic)
             isPAdESSigningSheetPresented = false

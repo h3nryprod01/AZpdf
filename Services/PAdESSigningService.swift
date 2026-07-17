@@ -5,6 +5,7 @@ enum PAdESSigningError: LocalizedError {
     case verificationRuntimeUnavailable
     case signingFailed(String)
     case verificationFailed(String)
+    case timestampURLRequired
 
     var errorDescription: String? {
         switch self {
@@ -16,8 +17,26 @@ enum PAdESSigningError: LocalizedError {
             "Không thể ký PAdES: \(message)"
         case let .verificationFailed(message):
             "Không thể xác minh PAdES: \(message)"
+        case .timestampURLRequired:
+            "PAdES-LT/LTA cần URL TSA RFC 3161 hợp lệ để lấy timestamp tin cậy."
         }
     }
+}
+
+enum PAdESProfile: String, CaseIterable, Identifiable, Sendable {
+    case baselineB
+    case baselineLT
+    case baselineLTA
+
+    var id: String { rawValue }
+    var displayName: String {
+        switch self {
+        case .baselineB: "PAdES Baseline B (offline)"
+        case .baselineLT: "PAdES Baseline LT"
+        case .baselineLTA: "PAdES Baseline LTA"
+        }
+    }
+    var requiresTimestamp: Bool { self != .baselineB }
 }
 
 struct PAdESVerification: Equatable {
@@ -38,6 +57,8 @@ struct PAdESVerification: Equatable {
     let certificateTrust: CertificateTrust
     let signerName: String?
     let details: String
+    let hasTimestamp: Bool
+    let hasValidationInfo: Bool
 
     var summary: String {
         let integrityMessage = switch integrity {
@@ -51,7 +72,13 @@ struct PAdESVerification: Equatable {
         case .untrusted: "Certificate: chưa được tin cậy trên máy này."
         case .unknown: "Certificate: không xác định được trạng thái tin cậy."
         }
-        return [integrityMessage, trustMessage, signerName.map { "Người ký: \($0)." }]
+        let evidence = hasTimestamp
+            ? "Có timestamp trong tài liệu."
+            : "Chưa phát hiện timestamp trong kết quả validator."
+        let validationInfo = hasValidationInfo
+            ? "Có dữ liệu validation/DSS."
+            : "Chưa phát hiện dữ liệu validation/DSS."
+        return [integrityMessage, trustMessage, evidence, validationInfo, signerName.map { "Người ký: \($0)." }]
             .compactMap { $0 }
             .joined(separator: " ")
     }
@@ -68,6 +95,8 @@ enum PAdESSigningService {
         pkcs12Data: Data,
         password: String,
         fieldSpec: String = defaultFieldSpec,
+        profile: PAdESProfile = .baselineB,
+        timestampURL: String? = nil,
         executable explicitExecutable: URL? = nil
     ) throws -> Data {
         guard let executable = explicitExecutable ?? signingRuntimeURL() else {
@@ -85,13 +114,16 @@ enum PAdESSigningService {
         try secureFile(certificate)
         try secureFile(passwordFile)
 
-        let result = try run(
-            executable,
-            arguments: [
-                "sign", "addsig", "--field", fieldSpec, "--use-pades", "pkcs12",
-                "--passfile", passwordFile.path, input.path, output.path, certificate.path
-            ]
-        )
+        var arguments = ["sign", "addsig", "--field", fieldSpec, "--use-pades"]
+        if profile.requiresTimestamp {
+            guard let timestampURL, URL(string: timestampURL)?.scheme?.hasPrefix("http") == true else {
+                throw PAdESSigningError.timestampURLRequired
+            }
+            arguments += ["--timestamp-url", timestampURL, "--with-validation-info"]
+            if profile == .baselineLTA { arguments.append("--use-pades-lta") }
+        }
+        arguments += ["pkcs12", "--passfile", passwordFile.path, input.path, output.path, certificate.path]
+        let result = try run(executable, arguments: arguments)
         guard result.status == 0, FileManager.default.fileExists(atPath: output.path) else {
             throw PAdESSigningError.signingFailed(result.message)
         }
@@ -118,7 +150,9 @@ enum PAdESSigningService {
             integrity: integrity(in: details),
             certificateTrust: trust(in: details),
             signerName: capture("Certificate subject: \\\"?(.+?)\\\"?$", in: details),
-            details: details
+            details: details,
+            hasTimestamp: details.localizedCaseInsensitiveContains("timestamp"),
+            hasValidationInfo: details.localizedCaseInsensitiveContains("validation info") || details.localizedCaseInsensitiveContains("document security store") || details.localizedCaseInsensitiveContains("dss")
         )
     }
 
