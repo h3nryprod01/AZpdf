@@ -106,6 +106,14 @@ export NOTARY_PROFILE='AZpdf-notary'
 
 Script chờ kết quả notarization và staple ticket vào app. Không đưa Apple ID, app-specific password hay private key vào repository/CI log.
 
+Nếu notarization đã `Accepted` nhưng phiên build bị ngắt trước stapling, không dùng `unzip` để mở ZIP vì nó có thể tạo file `._*` và làm hỏng resource seal. Khôi phục ticket vào artifact bằng:
+
+```bash
+./script/staple_release_zip.sh dist/release/AZpdf-macOS.zip
+```
+
+Lệnh giải nén/đóng lại bằng `ditto`, staple, kiểm tra chữ ký, Gatekeeper và ticket rồi in SHA-256 của ZIP cuối.
+
 ## Plugin và App Sandbox
 
 AZpdf chưa bật App Sandbox cho app chính, vì sandbox đó không cô lập an toàn executable plugin tùy ý. Plugin v1 chỉ discovery/validation; trước khi bật thực thi, cần XPC service sandbox riêng, quyền theo tài liệu và audit capability. `Config/AZpdf.entitlements` được giữ tối thiểu, không cấp network entitlement.
