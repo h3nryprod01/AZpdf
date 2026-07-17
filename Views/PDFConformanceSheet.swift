@@ -8,7 +8,7 @@ struct PDFConformanceSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Kiểm tra chuẩn PDF").font(.title2.weight(.semibold))
-            Text("AZpdf dùng veraPDF chạy cục bộ để kiểm tra PDF/A và PDF/UA. Kết quả không phải lời khẳng định tuân thủ nếu validator không khả dụng.")
+            Text("AZpdf dùng veraPDF chạy cục bộ để kiểm tra PDF/A và PDF/UA. Profile tự động đọc claim XMP; PDF không có claim sẽ được kiểm tra theo fallback PDF/A-1b. Kết quả không phải lời khẳng định tuân thủ nếu validator không khả dụng.")
                 .foregroundStyle(.secondary)
             Picker("Profile", selection: $profile) {
                 ForEach(PDFConformanceProfile.allCases) { profile in

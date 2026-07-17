@@ -9,7 +9,7 @@ enum PDFConformanceProfile: String, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .automatic: "Tự nhận diện claim trong PDF"
+        case .automatic: "Tự nhận diện claim (fallback PDF/A-1b)"
         case .pdfA4: "PDF/A-4"
         case .pdfUA2: "PDF/UA-2"
         }
