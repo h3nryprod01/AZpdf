@@ -24,4 +24,10 @@ jobs:
           cp /usr/bin/true "$runtime/helper"
           chmod +x "$runtime/helper"
           ./script/audit_runtime.sh "$runtime" helper
+          printf '#!/usr/bin/env python3\n' > "$runtime/python-helper"
+          chmod +x "$runtime/python-helper"
+          if ./script/audit_runtime.sh "$runtime" python-helper; then
+            echo "Expected non-self-contained Python helper to fail the audit" >&2
+            exit 1
+          fi
           rm -rf "$runtime"
