@@ -25,10 +25,33 @@ struct PDFConformanceSheet: View {
             }
             if let report = store.conformanceReport {
                 LabeledContent("Kết quả") { Text(report.status.displayName) }
-                TextEditor(text: .constant(report.details))
-                    .font(.system(.caption, design: .monospaced))
-                    .frame(minHeight: 260)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                Text(report.summary).foregroundStyle(.secondary)
+                if !report.findings.isEmpty {
+                    GroupBox("Hạng mục cần xử lý") {
+                        ScrollView {
+                            VStack(alignment: .leading, spacing: 10) {
+                                ForEach(report.findings) { finding in
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Label(finding.severity.displayName, systemImage: finding.severity == .error ? "exclamationmark.triangle.fill" : "info.circle.fill")
+                                            .foregroundStyle(finding.severity == .error ? .orange : .secondary)
+                                        Text(finding.message).font(.callout)
+                                        Text("\(finding.rule) · \(finding.guidance)")
+                                            .font(.caption).foregroundStyle(.secondary)
+                                    }
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    Divider()
+                                }
+                            }
+                        }
+                        .frame(maxHeight: 180)
+                    }
+                }
+                DisclosureGroup("Dữ liệu thô từ veraPDF") {
+                    TextEditor(text: .constant(report.details))
+                        .font(.system(.caption, design: .monospaced))
+                        .frame(minHeight: 160)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                }
             }
             HStack {
                 Button("Kiểm tra") { store.checkConformance(profile) }

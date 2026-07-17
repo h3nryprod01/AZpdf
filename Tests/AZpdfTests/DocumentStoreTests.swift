@@ -395,6 +395,32 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(report.status, .nonCompliant)
     }
 
+    func testConformanceReportExtractsActionableAccessibilityFinding() throws {
+        let json = """
+        {"report":{"isCompliant":false,"testAssertions":[{"ruleId":"UA-7.18","message":"Document structure tags are missing"}]}}
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+
+        let report = PDFConformanceService.parse(data, profile: .pdfUA2)
+
+        XCTAssertEqual(report.findings.count, 1)
+        XCTAssertEqual(report.findings[0].rule, "UA-7.18")
+        XCTAssertTrue(report.findings[0].guidance.contains("semantic tag"))
+    }
+
+    func testOCRReviewFlagsLowConfidenceVisionResult() {
+        let review = OCRPageReview(
+            pageIndex: 1,
+            source: .vision,
+            confidence: 0.73,
+            lineCount: 12,
+            warning: "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất."
+        )
+
+        XCTAssertEqual(review.confidencePercent, 73)
+        XCTAssertTrue(review.needsReview)
+    }
+
     func testConformanceServiceRunsLocalValidatorAndReadsReport() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-verapdf-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
