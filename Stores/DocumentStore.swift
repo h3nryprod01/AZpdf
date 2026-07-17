@@ -62,6 +62,7 @@ final class DocumentStore {
     var padesPassword = ""
     var padesVerificationMessage = ""
     var ocrText = ""
+    var ocrReviews: [OCRPageReview] = []
     var conformanceReport: PDFConformanceReport?
     var conformanceError: String?
     var ocrPageIndex = 0
@@ -377,6 +378,7 @@ final class DocumentStore {
         isOCRSheetPresented = true
         isOCRProcessing = true
         ocrText = ""
+        ocrReviews = []
         ocrPageIndex = pageIndex
         ocrCompletedPages = 0
         ocrTotalPages = 1
@@ -384,16 +386,18 @@ final class DocumentStore {
         do {
             let image = try OCRService.render(page, crop: bounds, scale: 3)
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                let result = Result { try OCRService.recognize(image) }
+                let result = Result { try OCRService.recognizeDetailed(image) }
                 DispatchQueue.main.async {
                     guard let self else { return }
                     self.isOCRProcessing = false
                     self.ocrCompletedPages = 1
                     switch result {
-                    case let .success(text):
-                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n\(text)"
+                    case let .success(recognition):
+                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n\(recognition.text)"
+                        self.ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)]
                     case .failure:
                         self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n[Không nhận dạng được văn bản]"
+                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, warning: "Không nhận dạng được văn bản trong vùng đã chọn.")]
                     }
                 }
             }
@@ -409,6 +413,7 @@ final class DocumentStore {
         isOCRSheetPresented = true
         isOCRProcessing = true
         ocrText = ""
+        ocrReviews = []
         ocrPageIndex = pageIndices.first ?? selectedPageIndex
         ocrCompletedPages = 0
         ocrTotalPages = pageIndices.count
@@ -426,13 +431,19 @@ final class DocumentStore {
                 var pages: [String] = []
                 for (index, textLayer, image) in pageInputs {
                     let pageText: String
+                    let review: OCRPageReview
                     if !textLayer.isEmpty {
                         pageText = "## Trang \(index + 1) · \(OCRService.Source.textLayer.displayName)\n\(textLayer)"
+                        review = Self.makeOCRReview(pageIndex: index, source: .textLayer, confidence: nil, lineCount: textLayer.split(separator: "\n").count)
                     } else {
-                        let result = Result { try OCRService.recognize(image!) }
+                        let result = Result { try OCRService.recognizeDetailed(image!) }
                         switch result {
-                        case let .success(text): pageText = "## Trang \(index + 1) · \(OCRService.Source.vision.displayName)\n\(text)"
-                        case .failure: pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
+                        case let .success(recognition):
+                            pageText = "## Trang \(index + 1) · \(OCRService.Source.vision.displayName)\n\(recognition.text)"
+                            review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)
+                        case .failure:
+                            pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
+                            review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, warning: "Không nhận dạng được văn bản trên trang này.")
                         }
                     }
                     pages.append(pageText)
@@ -441,6 +452,7 @@ final class DocumentStore {
                         guard let self else { return }
                         self.ocrCompletedPages += 1
                         self.ocrText = previewText
+                        self.ocrReviews.append(review)
                     }
                 }
                 DispatchQueue.main.async {
@@ -452,6 +464,18 @@ final class DocumentStore {
             isOCRProcessing = false
             lastError = "OCR thất bại: \(error.localizedDescription)"
         }
+    }
+
+    nonisolated private static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int) -> OCRPageReview {
+        let warning: String?
+        if source == .vision, let confidence, confidence < 0.85 {
+            warning = "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất."
+        } else if lineCount == 0 {
+            warning = "Không tìm thấy dòng văn bản có thể kiểm tra."
+        } else {
+            warning = nil
+        }
+        return OCRPageReview(pageIndex: pageIndex, source: source, confidence: confidence, lineCount: lineCount, warning: warning)
     }
 
     @MainActor

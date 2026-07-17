@@ -30,6 +30,14 @@ enum OCRService {
     struct PageResult: Sendable {
         let text: String
         let source: Source
+        let confidence: Float?
+        let lineCount: Int
+    }
+
+    struct Recognition: Sendable {
+        let text: String
+        let confidence: Float
+        let lineCount: Int
     }
 
     /// Renders locally before Vision receives the pixels; no document data leaves the Mac.
@@ -76,9 +84,10 @@ enum OCRService {
     /// to Vision at high resolution.
     static func recognize(_ page: PDFPage, scale: CGFloat = 3) throws -> PageResult {
         if let text = textLayer(from: page) {
-            return PageResult(text: text, source: .textLayer)
+            return PageResult(text: text, source: .textLayer, confidence: nil, lineCount: text.split(separator: "\n").count)
         }
-        return PageResult(text: try recognize(render(page, scale: scale)), source: .vision)
+        let recognition = try recognizeDetailed(render(page, scale: scale))
+        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)
     }
 
     static func textLayer(from page: PDFPage) -> String? {
@@ -96,6 +105,12 @@ enum OCRService {
     }
 
     static func recognize(_ image: CGImage) throws -> String {
+        try recognizeDetailed(image).text
+    }
+
+    /// Keeps the extracted text and a confidence signal separate so the UI can
+    /// make uncertain pages explicit instead of presenting OCR as definitive.
+    static func recognizeDetailed(_ image: CGImage) throws -> Recognition {
         let request = VNRecognizeTextRequest()
         request.recognitionLevel = .accurate
         request.recognitionLanguages = ["vi-VN", "en-US"]
@@ -104,10 +119,10 @@ enum OCRService {
         request.usesLanguageCorrection = true
         let handler = VNImageRequestHandler(cgImage: image)
         try handler.perform([request])
-        let text = normalized((request.results ?? [])
-            .compactMap { $0.topCandidates(1).first?.string }
-            .joined(separator: "\n"))
+        let candidates = (request.results ?? []).compactMap { $0.topCandidates(1).first }
+        let text = normalized(candidates.map(\.string).joined(separator: "\n"))
         guard !text.isEmpty else { throw OCRServiceError.noTextFound }
-        return text
+        let confidence = candidates.map(\.confidence).reduce(0, +) / Float(candidates.count)
+        return Recognition(text: text, confidence: confidence, lineCount: candidates.count)
     }
 }

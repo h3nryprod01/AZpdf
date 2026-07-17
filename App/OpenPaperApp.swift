@@ -54,10 +54,13 @@ struct AZpdfApp: App {
                 Button("Ký PAdES vào PDF…") { workspace.activeStore.beginPAdESSigning() }
                 Button("Xác minh chữ ký PAdES") { workspace.activeStore.verifyPAdESSignatures() }
                 Button("Kiểm tra PDF/A & PDF/UA…") { workspace.activeStore.beginConformanceCheck() }
+                    .keyboardShortcut("k", modifiers: [.command, .shift])
                 Button("OCR trang hiện tại…") { workspace.activeStore.beginOCRCurrentPage() }
                     .keyboardShortcut("o", modifiers: [.command, .shift])
                 Button("OCR vùng…") { workspace.activeStore.beginOCRRegionSelection() }
+                    .keyboardShortcut("v", modifiers: [.command, .shift])
                 Button("OCR toàn bộ tài liệu…") { workspace.activeStore.beginOCRDocument() }
+                    .keyboardShortcut("a", modifiers: [.command, .shift])
                 Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
                 Button("Redact vùng chọn") { workspace.activeStore.beginRedaction() }

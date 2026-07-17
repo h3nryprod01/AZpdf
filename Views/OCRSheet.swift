@@ -16,6 +16,28 @@ struct OCRSheet: View {
                 }
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {
+                if !store.ocrReviews.isEmpty {
+                    GroupBox("Kiểm tra chất lượng") {
+                        VStack(alignment: .leading, spacing: 8) {
+                            ForEach(store.ocrReviews) { review in
+                                HStack(spacing: 8) {
+                                    Image(systemName: review.needsReview ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
+                                        .foregroundStyle(review.needsReview ? .orange : .green)
+                                    Text("Trang \(review.pageIndex + 1)")
+                                    Text(review.source.displayName).foregroundStyle(.secondary)
+                                    if let confidence = review.confidencePercent {
+                                        Text("\(confidence)%").monospacedDigit().foregroundStyle(.secondary)
+                                    }
+                                    Spacer()
+                                    Text(review.warning ?? "Sẵn sàng review")
+                                        .lineLimit(1)
+                                        .foregroundStyle(review.needsReview ? .orange : .secondary)
+                                }
+                                .accessibilityElement(children: .combine)
+                            }
+                        }
+                    }
+                }
                 TextEditor(text: $store.ocrText)
                     .font(.body)
                     .frame(minHeight: 260)

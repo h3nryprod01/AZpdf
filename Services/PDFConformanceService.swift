@@ -39,9 +39,33 @@ struct PDFConformanceReport: Sendable {
         }
     }
 
+    struct Finding: Identifiable, Sendable {
+        enum Severity: Sendable {
+            case error
+            case warning
+
+            var displayName: String { self == .error ? "Cần sửa" : "Cần kiểm tra" }
+        }
+
+        let rule: String
+        let message: String
+        let guidance: String
+        let severity: Severity
+        var id: String { "\(rule)-\(message)" }
+    }
+
     let profile: PDFConformanceProfile
     let status: Status
     let details: String
+    let findings: [Finding]
+
+    var summary: String {
+        switch status {
+        case .compliant: "Validator không phát hiện lỗi với profile đã chọn."
+        case .nonCompliant: "Validator phát hiện \(findings.count) hạng mục cần xử lý hoặc kiểm tra."
+        case .unknown: "Validator không trả về trạng thái kết luận; xem dữ liệu thô để đối chiếu."
+        }
+    }
 }
 
 enum PDFConformanceError: LocalizedError {
@@ -110,8 +134,57 @@ enum PDFConformanceService {
         } else {
             status = .unknown
         }
-        return PDFConformanceReport(profile: profile, status: status, details: details)
+        return PDFConformanceReport(profile: profile, status: status, details: details, findings: findings(in: object, status: status))
     }
+
+    private static func findings(in object: Any?, status: PDFConformanceReport.Status) -> [PDFConformanceReport.Finding] {
+        var candidates: [(rule: String, message: String)] = []
+        collectFindingCandidates(in: object, inheritedRule: nil, candidates: &candidates)
+        var seen = Set<String>()
+        let findings = candidates.compactMap { candidate -> PDFConformanceReport.Finding? in
+            let message = candidate.message.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard message.count >= 4, seen.insert("\(candidate.rule)|\(message)").inserted else { return nil }
+            return PDFConformanceReport.Finding(
+                rule: candidate.rule.isEmpty ? "veraPDF" : candidate.rule,
+                message: message,
+                guidance: guidance(for: "\(candidate.rule) \(message)"),
+                severity: status == .nonCompliant ? .error : .warning
+            )
+        }
+        if findings.isEmpty, status == .nonCompliant {
+            return [PDFConformanceReport.Finding(
+                rule: "veraPDF",
+                message: "Tài liệu không đạt profile đã chọn.",
+                guidance: "Mở dữ liệu thô để xác định assertion lỗi, sau đó kiểm tra font, metadata, tag và cấu trúc trang.",
+                severity: .error
+            )]
+        }
+        return Array(findings.prefix(24))
+    }
+
+    private static func collectFindingCandidates(in value: Any?, inheritedRule: String?, candidates: inout [(rule: String, message: String)]) {
+        if let dictionary = value as? [String: Any] {
+            let rule = ["ruleId", "ruleID", "test", "specification", "id"]
+                .compactMap { dictionary[$0] as? String }
+                .first ?? inheritedRule ?? "veraPDF"
+            for key in ["message", "description", "errorMessage", "testAssertion"] {
+                if let message = dictionary[key] as? String { candidates.append((rule, message)) }
+            }
+            for nested in dictionary.values { collectFindingCandidates(in: nested, inheritedRule: rule, candidates: &candidates) }
+        } else if let values = value as? [Any] {
+            for nested in values { collectFindingCandidates(in: nested, inheritedRule: inheritedRule, candidates: &candidates) }
+        }
+    }
+
+    private static func guidance(for value: String) -> String {
+        let text = value.lowercased()
+        if text.contains("font") { return "Nhúng toàn bộ font được render và kiểm tra ánh xạ Unicode." }
+        if text.contains("tag") || text.contains("structure") { return "Bổ sung semantic tag và kiểm tra reading order; đây là trọng tâm PDF/UA-2." }
+        if text.contains("alternate") || text.contains("alt") { return "Thêm alternate text có ý nghĩa cho hình, biểu đồ và nội dung không phải text." }
+        if text.contains("metadata") || text.contains("xmp") { return "Bổ sung metadata XMP, tiêu đề và profile/claim phù hợp với chuẩn đích." }
+        if text.contains("language") || text.contains("lang") { return "Khai báo ngôn ngữ tài liệu và ngôn ngữ của từng đoạn khi cần." }
+        if text.contains("encrypt") || text.contains("security") { return "PDF/A không cho phép mã hóa; xuất một bản archival không mật khẩu nếu cần lưu trữ." }
+        return "Đọc assertion từ veraPDF, sửa ở tài liệu nguồn rồi chạy kiểm tra lại profile này." }
 
     private static func findCompliance(in value: Any?) -> Bool? {
         if let dictionary = value as? [String: Any] {
