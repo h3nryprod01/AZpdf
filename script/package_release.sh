@@ -12,7 +12,6 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/AZpdf.app"
 RELEASE_DIR="$ROOT_DIR/dist/release"
-ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
 
 "$ROOT_DIR/script/build_and_run.sh" --bundle
 [[ -x "$APP_BUNDLE/Contents/Helpers/mutool" ]] || {
@@ -40,8 +39,7 @@ ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/pyhanko" "pyhanko"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers" "pdfsig"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/ocrmypdf" "ocrmypdf"
-/usr/bin/codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
-/usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+"$ROOT_DIR/script/sign_bundle.sh" "$APP_BUNDLE" "$SIGNING_IDENTITY"
 /usr/sbin/spctl -a -vv "$APP_BUNDLE"
 
 rm -rf "$RELEASE_DIR"

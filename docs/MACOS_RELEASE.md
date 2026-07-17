@@ -25,6 +25,8 @@ export PYHANKO_RUNTIME_DIR="$PWD/dist/runtime/pyhanko"
 
 Script chạy `audit_runtime.sh` và `pyhanko --version` sau khi build. Ghi lại phiên bản pyHanko/PyInstaller cùng SBOM trước khi phát hành. pyHanko dùng MIT; PyInstaller có GPL-2.0 kèm ngoại lệ cho phép phân phối executable, nhưng vẫn phải kiểm kê license của toàn bộ dependency Python trong SBOM.
 
+`package_release.sh` gọi `sign_bundle.sh`: script này ký mọi Mach-O nhúng trước, rồi ký app chính với hardened runtime và entitlement. Không thay thế bước notarization.
+
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
