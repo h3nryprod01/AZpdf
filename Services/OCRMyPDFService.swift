@@ -52,7 +52,7 @@ enum OCRMyPDFService {
 
     private static func runtimeURL() -> URL? {
         let candidates = [
-            Bundle.main.bundleURL.appending(path: "Contents/Helpers/ocrmypdf/ocrmypdf"),
+            Bundle.main.bundleURL.appending(path: "Contents/Resources/Helpers/ocrmypdf/ocrmypdf"),
             Bundle.main.url(forResource: "ocrmypdf", withExtension: nil, subdirectory: "Tools/ocrmypdf"),
             URL(fileURLWithPath: "/opt/homebrew/opt/ocrmypdf/bin/ocrmypdf"),
             URL(fileURLWithPath: "/usr/local/bin/ocrmypdf")

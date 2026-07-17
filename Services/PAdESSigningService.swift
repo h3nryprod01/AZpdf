@@ -208,7 +208,7 @@ enum PAdESSigningService {
 
     private static func runtimeURL(bundleSubdirectory: String, executable: String) -> URL? {
         let candidates = [
-            Bundle.main.bundleURL.appending(path: "Contents/Helpers/\(bundleSubdirectory)/\(executable)"),
+            Bundle.main.bundleURL.appending(path: "Contents/Resources/Helpers/\(bundleSubdirectory)/\(executable)"),
             Bundle.main.url(forResource: executable, withExtension: nil, subdirectory: "Tools/\(bundleSubdirectory)"),
             URL(fileURLWithPath: "/opt/homebrew/bin/\(executable)"),
             URL(fileURLWithPath: "/usr/local/bin/\(executable)")

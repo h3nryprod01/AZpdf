@@ -27,7 +27,7 @@ while IFS= read -r -d '' candidate; do
   if /usr/bin/file "$candidate" | rg -q 'Mach-O'; then continue; fi
   if [[ "$(head -c 2 "$candidate" 2>/dev/null || true)" == '#!' ]]; then continue; fi
   /bin/chmod a-x "$candidate"
-done < <(/usr/bin/find "$APP_BUNDLE/Contents" -type f -perm -u+x -print0)
+done < <(/usr/bin/find "$APP_BUNDLE/Contents" -type f \( -perm -100 -o -perm -010 -o -perm -001 \) -print0)
 
 # Sign every embedded Mach-O file first.  This includes command-line helpers and
 # their private dylibs, if any.  The bundle itself must be signed last so its
