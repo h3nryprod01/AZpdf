@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AZpdf — Báo cáo UI/UX QA</title>
+  <style>
+    :root { color-scheme: light; --ink:#15243b; --muted:#64748b; --line:#dbe4ee; --pass:#047857; --watch:#b45309; --bg:#f5f8fc; }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; background:var(--bg); color:var(--ink); line-height:1.5; }
+    main { max-width:1120px; margin:auto; padding:48px 24px 80px; }
+    header { background:linear-gradient(135deg,#06255e,#0578de); color:white; padding:36px; border-radius:22px; box-shadow:0 18px 45px #0b3b7640; }
+    h1 { margin:0 0 8px; font-size:32px; } h2 { margin:0 0 14px; font-size:21px; }
+    header p { margin:0; color:#dbeafe; }
+    .summary { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin:24px 0; }
+    .metric,.case { background:white; border:1px solid var(--line); border-radius:16px; padding:20px; box-shadow:0 5px 20px #15325b0b; }
+    .metric b { display:block; font-size:28px; } .metric span { color:var(--muted); font-size:14px; }
+    .case { margin:18px 0 28px; } .case-top { display:flex; gap:12px; align-items:flex-start; justify-content:space-between; }
+    .tag { white-space:nowrap; border-radius:999px; padding:4px 10px; font-size:13px; font-weight:700; }
+    .pass { color:var(--pass); background:#d1fae5; } .watch { color:var(--watch); background:#fef3c7; }
+    .meta, li { color:var(--muted); } .meta { margin:0 0 16px; font-size:14px; }
+    img { width:100%; display:block; border:1px solid var(--line); border-radius:10px; margin-top:16px; }
+    .finding { border-left:4px solid #f59e0b; padding:10px 14px; background:#fffbeb; border-radius:0 8px 8px 0; }
+    footer { color:var(--muted); font-size:13px; padding-top:10px; }
+    @media (max-width:700px) { main{padding:24px 14px 48px}.summary{grid-template-columns:1fr} header{padding:26px}.case-top{display:block}.tag{display:inline-block;margin-top:8px} }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>AZpdf — báo cáo QA UI/UX</h1>
+      <p>Kiểm thử thủ công có hỗ trợ accessibility trên macOS · 17/07/2026 · bản nhánh <code>codex/macos-v1-public</code></p>
+    </header>
+
+    <section class="summary" aria-label="Tóm tắt">
+      <article class="metric"><b>3</b><span>Mẫu PDF khác loại</span></article>
+      <article class="metric"><b>2</b><span>Luồng hoàn thành</span></article>
+      <article class="metric"><b>2</b><span>Điểm cần theo dõi</span></article>
+    </section>
+
+    <section class="case">
+      <div class="case-top"><div><h2>01 · PDF văn bản nhiều trang + ghi chú</h2><p class="meta">Mẫu: Improving Cybersecurity Posture in the Big Data World · 4 trang</p></div><span class="tag pass">ĐẠT</span></div>
+      <ul>
+        <li>Mở tài liệu, sidebar hiển thị thumbnail và điều hướng trang.</li>
+        <li>Tạo ghi chú; Inspector tự mở vùng nhập.</li>
+        <li>Ghi chú được sửa nội dung và kéo đến vị trí mới; trạng thái tài liệu chuyển sang “Đã chỉnh sửa, chưa lưu”.</li>
+      </ul>
+      <img src="screenshots/01-text-note-moved.jpeg" alt="PDF văn bản với ghi chú AZpdf đã được kéo sang vị trí mới">
+    </section>
+
+    <section class="case">
+      <div class="case-top"><div><h2>02 · PDF biểu mẫu tương tác</h2><p class="meta">Mẫu: form.pdf · 3 trang · text field, radio, checkbox, dropdown và nút hành động</p></div><span class="tag pass">ĐẠT CƠ BẢN</span></div>
+      <ul>
+        <li>PDFKit nhận diện và hiển thị đầy đủ widget biểu mẫu; radio button chuyển trạng thái từ <em>off</em> sang <em>on</em>.</li>
+        <li>Thanh công cụ, Save/Save As và điều hướng trang sẵn sàng trong cùng flow.</li>
+      </ul>
+      <p class="finding"><strong>Theo dõi:</strong> công cụ accessibility tự động không thể set trực tiếp text field (AXError.failure). Cần một vòng xác nhận bằng bàn phím/chuột thật trước release để phân biệt giới hạn automation với lỗi nhập liệu của PDFKit.</p>
+      <img src="screenshots/02-interactive-form.jpeg" alt="PDF form với nhiều điều khiển tương tác">
+    </section>
+
+    <section class="case">
+      <div class="case-top"><div><h2>03 · PDF ảnh-only + flow OCR</h2><p class="meta">Fixture nội bộ, tạo từ icon AZpdf để không chứa dữ liệu cá nhân · 1 trang</p></div><span class="tag watch">CẦN TỐI ƯU</span></div>
+      <ul>
+        <li>Mở PDF ảnh-only và khởi chạy sheet OCR thành công.</li>
+        <li>Sheet hiển thị preview, OCR trang/vùng/toàn bộ, sao chép, xuất TXT và xuất PDF có lớp chữ.</li>
+        <li>Vision không nhận dạng được nội dung từ icon — đúng kỳ vọng cho fixture không có chữ đọc được.</li>
+      </ul>
+      <p class="finding"><strong>Theo dõi:</strong> trang image-only chưa render nội dung trực quan trong khung đọc ở fixture này. Cần test thêm với scan văn bản thật (có chữ) và hoàn tất flow xuất PDF OCR trước public v1.</p>
+      <img src="screenshots/03-ocr-review.jpeg" alt="Sheet OCR của AZpdf với preview OCR trang hiện tại">
+    </section>
+
+    <footer>
+      Phạm vi: UI/UX và flow cục bộ; không lưu thay đổi vào các PDF nguồn. Một sao kê có dữ liệu cá nhân được mở nhầm trong quá trình chọn mẫu đã được loại khỏi ảnh và báo cáo.
+    </footer>
+  </main>
+</body>
+</html>
