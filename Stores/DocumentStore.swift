@@ -396,10 +396,10 @@ final class DocumentStore {
                     switch result {
                     case let .success(recognition):
                         self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n\(recognition.text)"
-                        self.ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)]
+                        self.ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
                     case .failure:
                         self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n[Không nhận dạng được văn bản]"
-                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, warning: "Không nhận dạng được văn bản trong vùng đã chọn.")]
+                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: "Không xác định", warning: "Không nhận dạng được văn bản trong vùng đã chọn.")]
                     }
                 }
             }
@@ -436,16 +436,16 @@ final class DocumentStore {
                     let review: OCRPageReview
                     if !textLayer.isEmpty {
                         pageText = "## Trang \(index + 1) · \(OCRService.Source.textLayer.displayName)\n\(textLayer)"
-                        review = Self.makeOCRReview(pageIndex: index, source: .textLayer, confidence: nil, lineCount: textLayer.split(separator: "\n").count)
+                        review = Self.makeOCRReview(pageIndex: index, source: .textLayer, confidence: nil, lineCount: textLayer.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
                     } else {
                         let result = Result { try OCRService.recognizeDetailed(image!) }
                         switch result {
                         case let .success(recognition):
                             pageText = "## Trang \(index + 1) · \(OCRService.Source.vision.displayName)\n\(recognition.text)"
-                            review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)
+                            review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
                         case .failure:
                             pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
-                            review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, warning: "Không nhận dạng được văn bản trên trang này.")
+                            review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: "Không xác định", warning: "Không nhận dạng được văn bản trên trang này.")
                         }
                     }
                     pages.append(pageText)
@@ -468,16 +468,18 @@ final class DocumentStore {
         }
     }
 
-    nonisolated private static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int) -> OCRPageReview {
+    nonisolated private static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
         let warning: String?
-        if source == .vision, let confidence, confidence < 0.85 {
+        if needsLayoutReview {
+            warning = "Nghi vấn nhiều cột; kiểm tra thứ tự đọc trước khi xuất."
+        } else if source == .vision, let confidence, confidence < 0.85 {
             warning = "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất."
         } else if lineCount == 0 {
             warning = "Không tìm thấy dòng văn bản có thể kiểm tra."
         } else {
             warning = nil
         }
-        return OCRPageReview(pageIndex: pageIndex, source: source, confidence: confidence, lineCount: lineCount, warning: warning)
+        return OCRPageReview(pageIndex: pageIndex, source: source, confidence: confidence, lineCount: lineCount, layoutSummary: layoutSummary, warning: warning)
     }
 
     @MainActor

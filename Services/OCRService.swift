@@ -32,12 +32,16 @@ enum OCRService {
         let source: Source
         let confidence: Float?
         let lineCount: Int
+        let layoutSummary: String
+        let needsLayoutReview: Bool
     }
 
     struct Recognition: Sendable {
         let text: String
         let confidence: Float
         let lineCount: Int
+        let layoutSummary: String
+        let needsLayoutReview: Bool
     }
 
     /// Renders locally before Vision receives the pixels; no document data leaves the Mac.
@@ -84,10 +88,10 @@ enum OCRService {
     /// to Vision at high resolution.
     static func recognize(_ page: PDFPage, scale: CGFloat = 3) throws -> PageResult {
         if let text = textLayer(from: page) {
-            return PageResult(text: text, source: .textLayer, confidence: nil, lineCount: text.split(separator: "\n").count)
+            return PageResult(text: text, source: .textLayer, confidence: nil, lineCount: text.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
         }
         let recognition = try recognizeDetailed(render(page, scale: scale))
-        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount)
+        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
     }
 
     static func textLayer(from page: PDFPage) -> String? {
@@ -119,10 +123,15 @@ enum OCRService {
         request.usesLanguageCorrection = true
         let handler = VNImageRequestHandler(cgImage: image)
         try handler.perform([request])
-        let candidates = (request.results ?? []).compactMap { $0.topCandidates(1).first }
+        let observations = request.results ?? []
+        let candidates = observations.compactMap { $0.topCandidates(1).first }
         let text = normalized(candidates.map(\.string).joined(separator: "\n"))
         guard !text.isEmpty else { throw OCRServiceError.noTextFound }
         let confidence = candidates.map(\.confidence).reduce(0, +) / Float(candidates.count)
-        return Recognition(text: text, confidence: confidence, lineCount: candidates.count)
+        let leftColumnLines = observations.filter { $0.boundingBox.midX < 0.45 }.count
+        let rightColumnLines = observations.filter { $0.boundingBox.midX > 0.55 }.count
+        let hasMultipleColumns = leftColumnLines >= 3 && rightColumnLines >= 3
+        let layoutSummary = hasMultipleColumns ? "Nghi vấn bố cục đa cột" : "Bố cục một cột/đơn giản"
+        return Recognition(text: text, confidence: confidence, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
     }
 }

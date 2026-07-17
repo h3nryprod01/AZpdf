@@ -19,6 +19,7 @@ struct OCRPageReview: Identifiable, Sendable {
     let source: Source
     let confidence: Float?
     let lineCount: Int
+    let layoutSummary: String
     let warning: String?
 
     var id: Int { pageIndex }
