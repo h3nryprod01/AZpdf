@@ -11,6 +11,13 @@ APP_RESOURCES="$APP_BUNDLE/Contents/Resources"
 APP_HELPERS="$APP_BUNDLE/Contents/Helpers"
 copy_clean() { /usr/bin/ditto --noextattr --norsrc "$1" "$2"; }
 
+# Development builds must exercise the same self-contained OCR runtime as a
+# release build.  Falling back to Homebrew leaves child tools such as
+# `tesseract` outside the app PATH.
+if [[ -z "${OCRMY_PDF_RUNTIME_DIR:-}" && -x "$ROOT_DIR/dist/runtime/ocrmypdf/ocrmypdf" ]]; then
+  OCRMY_PDF_RUNTIME_DIR="$ROOT_DIR/dist/runtime/ocrmypdf"
+fi
+
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 swift build
 rm -rf "$APP_BUNDLE"

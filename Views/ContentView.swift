@@ -101,6 +101,9 @@ struct ContentView: View {
             DocumentInspectorView(store: store)
                 .inspectorColumnWidth(min: 250, ideal: 290, max: 360)
         }
+        .onChange(of: store.annotationSelectionID) { _, _ in
+            if store.selectedAnnotation != nil { isInspectorPresented = true }
+        }
         .alert("AZpdf", isPresented: Binding(get: { store.lastError != nil }, set: { if !$0 { store.lastError = nil } })) {
             Button("Đóng", role: .cancel) { store.lastError = nil }
         } message: { Text(store.lastError ?? "") }

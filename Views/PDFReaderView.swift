@@ -78,13 +78,17 @@ struct PDFReaderView: NSViewRepresentable {
         case .none:
             view.clearPlacement()
         case .addNote:
-            let selectedBounds = view.currentSelection?.bounds(for: page)
-            let bounds = (selectedBounds?.isNull == false ? selectedBounds! : page.bounds(for: .cropBox).applying(CGAffineTransform(translationX: 72, y: -100)))
-            let noteBounds = CGRect(x: bounds.minX, y: bounds.maxY + 10, width: 32, height: 32)
-            let annotation = PDFAnnotation(bounds: noteBounds, forType: .text, withProperties: nil)
-            annotation.contents = "Ghi chú AZpdf"
-            annotation.color = .systemYellow
+            let cropBox = page.bounds(for: .cropBox)
+            let noteBounds = CGRect(x: cropBox.minX + 40, y: cropBox.maxY - 132, width: 190, height: 76)
+            let annotation = PDFAnnotation(bounds: noteBounds, forType: .freeText, withProperties: nil)
+            annotation.contents = "Nhập ghi chú…"
+            annotation.userName = "AZpdf Note"
+            annotation.font = .systemFont(ofSize: 13)
+            annotation.fontColor = .labelColor
+            annotation.color = NSColor.systemOrange.withAlphaComponent(0.9)
+            annotation.interiorColor = NSColor.systemYellow.withAlphaComponent(0.25)
             page.addAnnotation(annotation)
+            store.selectAnnotation(annotation, pageIndex: store.selectedPageIndex)
             store.record(.addAnnotation(kind: .note, page: store.selectedPageIndex))
         case .highlightSelection:
             guard let selection = view.currentSelection else {
