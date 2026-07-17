@@ -87,11 +87,14 @@ enum PDFConformanceService {
         try process.run()
         process.waitUntilExit()
         let reportData = output.fileHandleForReading.readDataToEndOfFile()
-        guard process.terminationStatus == 0 else {
-            let message = String(data: errors.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "unknown error"
-            throw PDFConformanceError.validationFailed(message)
+        // veraPDF can return a non-zero status for a valid completed validation
+        // whose result is non-compliant. Its JSON report remains authoritative.
+        if !reportData.isEmpty,
+           (try? JSONSerialization.jsonObject(with: reportData)) != nil {
+            return parse(reportData, profile: profile)
         }
-        return parse(reportData, profile: profile)
+        let message = String(data: errors.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? "unknown error"
+        throw PDFConformanceError.validationFailed(message)
     }
 
     static func parse(_ data: Data, profile: PDFConformanceProfile) -> PDFConformanceReport {
