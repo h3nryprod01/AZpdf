@@ -42,6 +42,12 @@ if [[ -n "${PDFSIG_RUNTIME_DIR:-}" ]]; then
   cp -R "$PDFSIG_RUNTIME_DIR/." "$APP_RESOURCES/Tools/"
   chmod +x "$APP_RESOURCES/Tools/pdfsig"
 fi
+if [[ -n "${OCRMY_PDF_RUNTIME_DIR:-}" ]]; then
+  [[ -x "$OCRMY_PDF_RUNTIME_DIR/ocrmypdf" ]] || { echo "OCRMY_PDF_RUNTIME_DIR must contain a self-contained executable ocrmypdf" >&2; exit 2; }
+  mkdir -p "$APP_RESOURCES/Tools/ocrmypdf"
+  cp -R "$OCRMY_PDF_RUNTIME_DIR/." "$APP_RESOURCES/Tools/ocrmypdf/"
+  chmod +x "$APP_RESOURCES/Tools/ocrmypdf/ocrmypdf"
+fi
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST

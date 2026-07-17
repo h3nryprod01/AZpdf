@@ -37,6 +37,7 @@ final class DocumentStore {
     var isConformanceSheetPresented = false
     var isConformanceChecking = false
     var isOCRProcessing = false
+    var isSearchablePDFExporting = false
     var ocrCompletedPages = 0
     var ocrTotalPages = 0
     var isRedactionConfirmationPresented = false
@@ -396,6 +397,35 @@ final class DocumentStore {
             try ocrText.write(to: url, atomically: true, encoding: .utf8)
         } catch {
             lastError = "Không thể xuất văn bản OCR: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    func exportSearchablePDF() {
+        guard let documentData = document?.dataRepresentation(), !ocrText.isEmpty, !isSearchablePDFExporting else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = "\(title)-searchable.pdf"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        isSearchablePDFExporting = true
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = Result { try OCRMyPDFService.createSearchablePDF(documentData: documentData) }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isSearchablePDFExporting = false
+                switch result {
+                case let .success(data):
+                    do {
+                        try data.write(to: url, options: .atomic)
+                        self.isOCRSheetPresented = false
+                        self.open(url)
+                    } catch {
+                        self.lastError = "Không thể lưu PDF có lớp chữ: \(error.localizedDescription)"
+                    }
+                case let .failure(error):
+                    self.lastError = error.localizedDescription
+                }
+            }
         }
     }
 

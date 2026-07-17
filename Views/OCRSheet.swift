@@ -20,6 +20,9 @@ struct OCRSheet: View {
                     .font(.body)
                     .frame(minHeight: 260)
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
+                Text("Preview dùng để review trước khi xuất. Chỉnh sửa tại đây áp dụng cho file .txt; PDF có lớp chữ được OCRmyPDF tạo lại cục bộ để giữ cấu trúc PDF chuẩn.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             HStack {
                 Button("OCR trang này") { store.beginOCRCurrentPage() }
@@ -31,6 +34,8 @@ struct OCRSheet: View {
                     .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
                 Button("Xuất .txt") { store.exportOCRText() }
                     .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
+                Button(store.isSearchablePDFExporting ? "Đang tạo PDF…" : "Xuất PDF có lớp chữ…") { store.exportSearchablePDF() }
+                    .disabled(store.ocrText.isEmpty || store.isOCRProcessing || store.isSearchablePDFExporting)
                 Button("Đóng") { dismiss() }
             }
         }

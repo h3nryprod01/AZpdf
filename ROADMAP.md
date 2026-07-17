@@ -6,7 +6,8 @@
 - [x] Bảo mật cơ bản: mật khẩu, form widgets, redact phá hủy
 - [x] Plugin discovery cục bộ với protocol versioning
 - [x] OCR local-first trang hiện tại qua Vision framework: review, sao chép và xuất text
-- [ ] OCR chọn vùng/trang hàng loạt và thêm searchable text layer sau review
+- [x] OCR toàn bộ và xuất PDF mới có searchable text layer sau review (OCRmyPDF local; runtime release cần language data)
+- [ ] OCR chọn vùng trực tiếp trên trang và hiệu chỉnh bounding boxes trước khi xuất
 
 ## Trước v1.0
 

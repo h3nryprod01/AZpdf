@@ -7,6 +7,7 @@ set -euo pipefail
 : "${VERAPDF_RUNTIME_DIR:?Set VERAPDF_RUNTIME_DIR to a self-contained veraPDF runtime directory.}"
 : "${PYHANKO_RUNTIME_DIR:?Set PYHANKO_RUNTIME_DIR to a self-contained, redistributable pyHanko runtime directory.}"
 : "${PDFSIG_RUNTIME_DIR:?Set PDFSIG_RUNTIME_DIR to a self-contained, redistributable pdfsig runtime directory.}"
+: "${OCRMY_PDF_RUNTIME_DIR:?Set OCRMY_PDF_RUNTIME_DIR to a self-contained, redistributable OCRmyPDF runtime directory.}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/AZpdf.app"
@@ -28,6 +29,10 @@ ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
 }
 [[ -x "$APP_BUNDLE/Contents/Resources/Tools/pdfsig" ]] || {
   echo "Release packaging failed: bundled pdfsig runtime is missing." >&2
+  exit 1
+}
+[[ -x "$APP_BUNDLE/Contents/Resources/Tools/ocrmypdf/ocrmypdf" ]] || {
+  echo "Release packaging failed: bundled OCRmyPDF runtime is missing." >&2
   exit 1
 }
 /usr/bin/codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
