@@ -52,6 +52,7 @@ enum OCRMyPDFService {
 
     private static func runtimeURL() -> URL? {
         let candidates = [
+            Bundle.main.bundleURL.appending(path: "Contents/Helpers/ocrmypdf/ocrmypdf"),
             Bundle.main.url(forResource: "ocrmypdf", withExtension: nil, subdirectory: "Tools/ocrmypdf"),
             URL(fileURLWithPath: "/opt/homebrew/opt/ocrmypdf/bin/ocrmypdf"),
             URL(fileURLWithPath: "/usr/local/bin/ocrmypdf")
@@ -61,7 +62,7 @@ enum OCRMyPDFService {
 
     private static func runtimeEnvironment(for executable: URL) -> [String: String] {
         var environment = ProcessInfo.processInfo.environment
-        guard executable.path.contains("/Tools/ocrmypdf/") else { return environment }
+        guard executable.path.contains("/Helpers/ocrmypdf/") || executable.path.contains("/Tools/ocrmypdf/") else { return environment }
         let runtime = executable.deletingLastPathComponent()
         let tools = runtime.deletingLastPathComponent()
         environment["PATH"] = [runtime.appending(path: "bin").path, runtime.path, tools.path, environment["PATH"]]

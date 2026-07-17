@@ -167,16 +167,17 @@ enum PAdESSigningService {
     }
 
     private static func signingRuntimeURL() -> URL? {
-        runtimeURL(bundleSubdirectory: "Tools/pyhanko", executable: "pyhanko")
+        runtimeURL(bundleSubdirectory: "pyhanko", executable: "pyhanko")
     }
 
     private static func verificationRuntimeURL() -> URL? {
-        runtimeURL(bundleSubdirectory: "Tools", executable: "pdfsig")
+        runtimeURL(bundleSubdirectory: "", executable: "pdfsig")
     }
 
     private static func runtimeURL(bundleSubdirectory: String, executable: String) -> URL? {
         let candidates = [
-            Bundle.main.url(forResource: executable, withExtension: nil, subdirectory: bundleSubdirectory),
+            Bundle.main.bundleURL.appending(path: "Contents/Helpers/\(bundleSubdirectory)/\(executable)"),
+            Bundle.main.url(forResource: executable, withExtension: nil, subdirectory: "Tools/\(bundleSubdirectory)"),
             URL(fileURLWithPath: "/opt/homebrew/bin/\(executable)"),
             URL(fileURLWithPath: "/usr/local/bin/\(executable)")
         ].compactMap { $0 }

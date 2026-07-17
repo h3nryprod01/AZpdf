@@ -132,6 +132,7 @@ enum PDFConformanceService {
 
     private static func runtimeURL() -> URL? {
         let candidates = [
+            Bundle.main.bundleURL.appending(path: "Contents/Helpers/veraPDF/verapdf"),
             Bundle.main.url(forResource: "verapdf", withExtension: nil, subdirectory: "Tools"),
             Bundle.main.url(forResource: "verapdf", withExtension: nil, subdirectory: "Tools/veraPDF"),
             URL(fileURLWithPath: "/opt/homebrew/bin/verapdf"),
