@@ -265,6 +265,20 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(report.profile, .pdfA4)
     }
 
+    func testConformanceServiceRunsLocalValidatorAndReadsReport() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-verapdf-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let executable = directory.appending(path: "verapdf")
+        try "#!/bin/sh\necho '{\"report\":{\"isCompliant\":false}}'\n".write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        let report = try PDFConformanceService.validate(Data("%PDF".utf8), profile: .pdfUA2, executable: executable)
+
+        XCTAssertEqual(report.status, .nonCompliant)
+        XCTAssertEqual(report.profile, .pdfUA2)
+    }
+
     func testProtectedCopyRequiresPasswordToUnlock() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

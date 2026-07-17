@@ -64,8 +64,12 @@ enum PDFConformanceError: LocalizedError {
 /// Delegates standards conformance to veraPDF rather than inferring it from metadata.
 /// The temporary PDF is only written locally and is removed immediately after validation.
 enum PDFConformanceService {
-    static func validate(_ documentData: Data, profile: PDFConformanceProfile) throws -> PDFConformanceReport {
-        guard let executable = runtimeURL() else { throw PDFConformanceError.runtimeUnavailable }
+    static func validate(
+        _ documentData: Data,
+        profile: PDFConformanceProfile,
+        executable explicitExecutable: URL? = nil
+    ) throws -> PDFConformanceReport {
+        guard let executable = explicitExecutable ?? runtimeURL() else { throw PDFConformanceError.runtimeUnavailable }
         let directory = FileManager.default.temporaryDirectory.appending(path: "AZpdf-Conformance-\(UUID().uuidString)", directoryHint: .isDirectory)
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
