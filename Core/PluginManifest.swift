@@ -2,7 +2,7 @@ import Foundation
 
 /// Portable plugin metadata. It deliberately contains no network endpoint.
 public struct PluginManifest: Codable, Identifiable, Equatable, Sendable {
-    public enum Capability: String, Codable, CaseIterable, Sendable {
+    public enum Capability: String, Codable, CaseIterable, Sendable, Hashable {
         case ocr
         case translate
         case summarize

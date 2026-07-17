@@ -30,6 +30,10 @@ Manifest tối thiểu:
 
 Host còn resolve symlink của manifest và executable trước khi hiển thị plugin; cả hai phải còn nằm trong thư mục `Plugins`. Plugin trỏ ra ngoài qua symlink bị từ chối.
 
+## Grant theo tài liệu
+
+Trước khi XPC host chạy plugin, AZpdf tạo `PluginDocumentGrant` **chỉ trong bộ nhớ** cho một `documentScopeID`, plugin ID và các capability đã yêu cầu. Grant không lưu URL/Bookmark của PDF, không được lưu qua lần mở app và không thể dùng cho PDF/plugin/capability khác. XPC host sau này phải kiểm tra grant này trước khi tạo bản sao chỉ-đọc cục bộ.
+
 ## Quy tắc an toàn bắt buộc
 
 - Plugin không được mở socket, gọi HTTP hoặc tự gửi tài liệu/telemetry.
