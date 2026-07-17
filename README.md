@@ -37,7 +37,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - **Local-first:** AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.
 - CI kiểm tra source để chặn API client mạng trong app/core.
 - **Plugin-ready:** OCR, dịch và tóm tắt sẽ là plugin cài đặt tùy chọn; bản thân AZpdf không phụ thuộc dịch vụ cloud.
-- Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md).
+- Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md) và [mô hình sandbox](docs/PLUGIN_PROTOCOL.md). Bản v1 không thực thi executable bên thứ ba.
 
 ## Ủng hộ
 
