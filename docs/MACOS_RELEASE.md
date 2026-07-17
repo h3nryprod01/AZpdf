@@ -39,6 +39,19 @@ export VERAPDF_RUNTIME_DIR="$PWD/dist/runtime/veraPDF"
 
 Builder chạy veraPDF từ bundle vừa tạo. Đọc kỹ license GPL-3.0-or-later hoặc MPL-2.0 của veraPDF và GPLv2+Classpath Exception của OpenJDK, rồi ghi chúng trong SBOM/notices trước phát hành.
 
+## Build runtime MuPDF
+
+Build MuPDF từ source chính thức với thư viện bundled; helper chỉ gồm `mutool` static cho chèn ảnh. Crypto và OpenGL viewer được tắt vì AZpdf không dùng chúng:
+
+```bash
+export MUPDF_SOURCE_DIR='/path/to/mupdf-source'
+export MUPDF_ARCHFLAGS='-arch arm64'
+./script/build_mupdf_runtime.sh
+export MUTOOL_RUNTIME_DIR="$PWD/dist/runtime/mutool"
+```
+
+MuPDF mang AGPL-3.0-or-later, phù hợp với license AGPL-3.0-only của AZpdf. Ghi lại source SHA-256, version và toàn bộ third-party notices của archive vào SBOM trước phát hành.
+
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.

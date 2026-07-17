@@ -19,7 +19,7 @@ jobs:
         run: ./script/build_and_run.sh --bundle
       - name: Validate release scripts
         run: |
-          bash -n script/build_and_run.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh
+          bash -n script/build_and_run.sh script/build_mupdf_runtime.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh
           runtime="$(mktemp -d)"
           cp /usr/bin/true "$runtime/helper"
           chmod +x "$runtime/helper"
