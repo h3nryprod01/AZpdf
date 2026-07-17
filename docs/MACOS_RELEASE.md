@@ -33,7 +33,7 @@ export OCRMY_PDF_RUNTIME_DIR='/path/to/redistributable-ocrmypdf-runtime'
 
 Lệnh tạo `dist/release/AZpdf-macOS.zip`, ký Hardened Runtime và kiểm tra bằng `codesign`/`spctl`.
 
-Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime phải được chuẩn bị self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, thay vì phát hành bản có tính năng không chạy được.
+Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime được đặt tại `AZpdf.app/Contents/Helpers/`, phải self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, và `codesign --verify --deep --strict` chặn nested helper không hợp lệ.
 
 ## Notarization
 

@@ -49,6 +49,7 @@ enum MuPDFImageOverlayService {
 
     private static func runtimeURL() -> URL? {
         let candidates = [
+            Bundle.main.bundleURL.appending(path: "Contents/Helpers/mutool"),
             Bundle.main.url(forResource: "mutool", withExtension: nil, subdirectory: "Tools"),
             URL(fileURLWithPath: "/opt/homebrew/bin/mutool"),
             URL(fileURLWithPath: "/usr/local/bin/mutool")

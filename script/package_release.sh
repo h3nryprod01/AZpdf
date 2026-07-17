@@ -15,23 +15,23 @@ RELEASE_DIR="$ROOT_DIR/dist/release"
 ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
 
 "$ROOT_DIR/script/build_and_run.sh" --bundle
-[[ -x "$APP_BUNDLE/Contents/Resources/Tools/mutool" ]] || {
+[[ -x "$APP_BUNDLE/Contents/Helpers/mutool" ]] || {
   echo "Release packaging failed: bundled MuPDF runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Tools/veraPDF/verapdf" ]] || {
+[[ -x "$APP_BUNDLE/Contents/Helpers/veraPDF/verapdf" ]] || {
   echo "Release packaging failed: bundled veraPDF runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Tools/pyhanko/pyhanko" ]] || {
+[[ -x "$APP_BUNDLE/Contents/Helpers/pyhanko/pyhanko" ]] || {
   echo "Release packaging failed: bundled pyHanko runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Tools/pdfsig" ]] || {
+[[ -x "$APP_BUNDLE/Contents/Helpers/pdfsig" ]] || {
   echo "Release packaging failed: bundled pdfsig runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Tools/ocrmypdf/ocrmypdf" ]] || {
+[[ -x "$APP_BUNDLE/Contents/Helpers/ocrmypdf/ocrmypdf" ]] || {
   echo "Release packaging failed: bundled OCRmyPDF runtime is missing." >&2
   exit 1
 }
