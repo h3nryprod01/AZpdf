@@ -13,6 +13,18 @@
 
 Identity Apple Development hiện chỉ dùng để phát triển; không đủ để phát hành notarized ra ngoài Mac App Store.
 
+## Build runtime PAdES
+
+Tạo environment Python đã pin `pyhanko-cli` và `PyInstaller`, rồi build executable một file:
+
+```bash
+export PYHANKO_PYTHON='/path/to/pinned-python/bin/python'
+./script/build_pyhanko_runtime.sh
+export PYHANKO_RUNTIME_DIR="$PWD/dist/runtime/pyhanko"
+```
+
+Script chạy `audit_runtime.sh` và `pyhanko --version` sau khi build. Ghi lại phiên bản pyHanko/PyInstaller cùng SBOM trước khi phát hành. pyHanko dùng MIT; PyInstaller có GPL-2.0 kèm ngoại lệ cho phép phân phối executable, nhưng vẫn phải kiểm kê license của toàn bộ dependency Python trong SBOM.
+
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
