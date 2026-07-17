@@ -33,11 +33,14 @@ RELEASE_DIR="$ROOT_DIR/dist/release"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/veraPDF" "verapdf"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/pyhanko" "pyhanko"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/ocrmypdf" "ocrmypdf"
+cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$APP_BUNDLE/Contents/Resources/THIRD_PARTY_NOTICES.md"
+"$ROOT_DIR/script/generate_sbom.sh" "$APP_BUNDLE" "$APP_BUNDLE/Contents/Resources/SBOM.spdx"
 "$ROOT_DIR/script/sign_bundle.sh" "$APP_BUNDLE" "$SIGNING_IDENTITY"
 /usr/sbin/spctl -a -vv "$APP_BUNDLE"
 
 rm -rf "$RELEASE_DIR"
 mkdir -p "$RELEASE_DIR"
+cp "$APP_BUNDLE/Contents/Resources/SBOM.spdx" "$RELEASE_DIR/AZpdf-macOS.spdx"
 /usr/bin/ditto -c -k --keepParent "$APP_BUNDLE" "$RELEASE_DIR/AZpdf-macOS.zip"
 
 if [[ -n "${NOTARY_PROFILE:-}" ]]; then

@@ -53,6 +53,8 @@ Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng 
 
 Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). AZpdf hỗ trợ chữ ký CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain và ký nhúng **PAdES Baseline B** từ PKCS#12 (`.p12`/`.pfx`) cục bộ. PAdES-LT/LTA, TSA và revocation data chưa được bật mặc định.
 
+Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) và SBOM SPDX theo đúng runtime đã đóng gói.
+
 Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
 Định hướng OCR local-first: [docs/OCR_PLAN.md](docs/OCR_PLAN.md).
