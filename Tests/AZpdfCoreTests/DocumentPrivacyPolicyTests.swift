@@ -61,4 +61,41 @@ final class DocumentPrivacyPolicyTests: XCTestCase {
             XCTAssertEqual(error as? PluginManifestValidationError, .remoteExecutionNotAllowed)
         }
     }
+
+    func testDocumentGrantIsScopedToPluginCapabilityAndDocument() throws {
+        let manifest = PluginManifest(
+            id: "org.example.local",
+            name: "Local",
+            version: "1.0.0",
+            protocolVersion: 1,
+            capabilities: [.ocr],
+            executable: "./local",
+            runsLocally: true
+        )
+        let documentID = UUID()
+        let grant = try PluginAccessPolicy.issue(for: manifest, documentScopeID: documentID, capabilities: [.ocr])
+
+        XCTAssertTrue(PluginAccessPolicy.permits(grant, pluginID: manifest.id, documentScopeID: documentID, capability: .ocr))
+        XCTAssertFalse(PluginAccessPolicy.permits(grant, pluginID: manifest.id, documentScopeID: UUID(), capability: .ocr))
+        XCTAssertFalse(PluginAccessPolicy.permits(grant, pluginID: "org.example.other", documentScopeID: documentID, capability: .ocr))
+    }
+
+    func testDocumentGrantRejectsUndeclaredCapability() {
+        let manifest = PluginManifest(
+            id: "org.example.local",
+            name: "Local",
+            version: "1.0.0",
+            protocolVersion: 1,
+            capabilities: [.ocr],
+            executable: "./local",
+            runsLocally: true
+        )
+        XCTAssertThrowsError(try PluginAccessPolicy.issue(
+            for: manifest,
+            documentScopeID: UUID(),
+            capabilities: [.summarize]
+        )) { error in
+            XCTAssertEqual(error as? PluginGrantError, .unsupportedCapability)
+        }
+    }
 }
