@@ -5,6 +5,7 @@
 - Apple Developer Program và **Developer ID Application** certificate có private key trong Keychain.
 - Xcode command-line tools.
 - Keychain profile cho `notarytool` nếu muốn notarize.
+- `MUTOOL_RUNTIME_DIR`: thư mục runtime MuPDF có `mutool` và toàn bộ dylib phụ thuộc, được build/đóng gói để chạy độc lập khỏi Homebrew.
 
 Identity Apple Development hiện chỉ dùng để phát triển; không đủ để phát hành notarized ra ngoài Mac App Store.
 
@@ -18,10 +19,13 @@ Identity Apple Development hiện chỉ dùng để phát triển; không đủ 
 
 ```bash
 export SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)'
+export MUTOOL_RUNTIME_DIR='/path/to/redistributable-mupdf-runtime'
 ./script/package_release.sh
 ```
 
 Lệnh tạo `dist/release/AZpdf-macOS.zip`, ký Hardened Runtime và kiểm tra bằng `codesign`/`spctl`.
+
+Không copy trực tiếp `/opt/homebrew/bin/mutool`: binary Homebrew thường liên kết tới dylib ngoài app. Runtime phải được chuẩn bị self-contained, kiểm tra giấy phép AGPL-3.0 của MuPDF và được ký cùng app trước notarization. `package_release.sh` dừng nếu runtime này không có, thay vì phát hành bản có nút Chèn ảnh không chạy được.
 
 ## Notarization
 

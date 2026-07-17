@@ -47,7 +47,7 @@ Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
 <img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
 
 ## Phát triển
-Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh; bản phát hành sẽ đóng gói runtime này.
+Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` chứa MuPDF self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
 
 Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). Bản v1 hỗ trợ chữ ký số CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain; PDF gốc không bị sửa.
 
