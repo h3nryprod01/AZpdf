@@ -82,6 +82,17 @@ struct DocumentInspectorView: View {
                 }
             }
 
+            if let annotation = store.selectedAnnotation,
+               annotation.type == PDFAnnotationSubtype.stamp.rawValue {
+                Section("Chỉnh sửa ảnh") {
+                    Text("Kéo trực tiếp ảnh trên PDF để di chuyển. Đổi kích thước rồi nhấn Áp dụng.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    Stepper("Rộng: \(Int(store.selectedAnnotationWidth)) pt", value: $store.selectedAnnotationWidth, in: 24...1_200, step: 4)
+                    Stepper("Cao: \(Int(store.selectedAnnotationHeight)) pt", value: $store.selectedAnnotationHeight, in: 24...1_200, step: 4)
+                    Button("Áp dụng kích thước") { store.updateSelectedImageSize() }
+                }
+            }
+
             Section("Ủng hộ AZpdf") {
                 Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
             }
@@ -102,6 +113,7 @@ struct DocumentInspectorView: View {
         case PDFAnnotationSubtype.highlight.rawValue: "highlighter"
         case PDFAnnotationSubtype.text.rawValue: "note.text"
         case PDFAnnotationSubtype.freeText.rawValue: "text.cursor"
+        case PDFAnnotationSubtype.stamp.rawValue: "photo"
         default: "pencil.and.outline"
         }
     }

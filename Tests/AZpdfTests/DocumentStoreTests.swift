@@ -210,7 +210,7 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(store.searchNavigationID, 1)
     }
 
-    func testInsertImageAddsPageAndCanBeUndone() throws {
+    func testInsertImageArmsOverlayPlacement() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)
         let representation = NSBitmapImageRep(
@@ -231,10 +231,12 @@ final class DocumentStoreTests: XCTestCase {
         defer { try? FileManager.default.removeItem(at: url) }
 
         store.insertImage(from: url)
-        XCTAssertEqual(store.pageCount, 2)
-
-        store.undo()
         XCTAssertEqual(store.pageCount, 1)
+        if case .image = store.readerAction {
+            XCTAssertTrue(true)
+        } else {
+            XCTFail("Expected image placement action")
+        }
     }
 
     func testProtectedCopyRequiresPasswordToUnlock() throws {

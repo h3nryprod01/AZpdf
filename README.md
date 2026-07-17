@@ -18,7 +18,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Vẽ và chèn chữ ký tay thành ink annotation PDF
 - Quản lý và xóa các chú thích trên trang qua Inspector, hỗ trợ undo
 - Chèn toàn bộ trang từ PDF khác để ghép tài liệu, có thể hoàn tác
-- Chèn ảnh thành một trang PDF mới, hỗ trợ undo
+- Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, đổi kích thước qua Inspector và lưu thành stamp annotation bền vững
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
 - OCR trang hiện tại hoặc toàn bộ tài liệu bằng Vision framework trên macOS, xử lý local-first; xem, sửa, sao chép hoặc xuất kết quả `.txt`
@@ -47,7 +47,7 @@ Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
 <img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
 
 ## Phát triển
-Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI.
+Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh; bản phát hành sẽ đóng gói runtime này.
 
 Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). Bản v1 hỗ trợ chữ ký số CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain; PDF gốc không bị sửa.
 

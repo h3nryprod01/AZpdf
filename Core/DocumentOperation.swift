@@ -8,6 +8,7 @@ public enum DocumentOperation: Equatable, Sendable {
         case highlight
         case freeText
         case signature
+        case image
     }
 
     case rotate(page: Int)

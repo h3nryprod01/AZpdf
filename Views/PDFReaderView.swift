@@ -91,7 +91,7 @@ struct PDFReaderView: NSViewRepresentable {
             }
             view.clearSelection()
             store.record(.addAnnotation(kind: .highlight, page: store.selectedPageIndex))
-        case .freeText, .signature:
+        case .freeText, .signature, .image:
             view.armPlacement(action)
         case .redactSelection:
             guard let selection = view.currentSelection else {
@@ -118,9 +118,9 @@ struct PDFReaderView: NSViewRepresentable {
         guard let document = store.document else { return }
         let pageIndex = document.index(for: page)
         guard pageIndex != NSNotFound else { return }
-        store.prepareAnnotationPlacement()
         switch action {
         case let .freeText(text):
+            store.prepareAnnotationPlacement()
             let annotation = PDFAnnotation(bounds: bounds, forType: .freeText, withProperties: nil)
             annotation.contents = text
             annotation.font = .systemFont(ofSize: 14)
@@ -129,6 +129,7 @@ struct PDFReaderView: NSViewRepresentable {
             page.addAnnotation(annotation)
             store.finishAnnotationPlacement(.addAnnotation(kind: .freeText, page: pageIndex))
         case let .signature(strokes):
+            store.prepareAnnotationPlacement()
             let annotation = PDFAnnotation(bounds: bounds, forType: .ink, withProperties: nil)
             annotation.color = .labelColor
             for stroke in strokes {
@@ -140,6 +141,8 @@ struct PDFReaderView: NSViewRepresentable {
             }
             page.addAnnotation(annotation)
             store.finishAnnotationPlacement(.addAnnotation(kind: .signature, page: pageIndex))
+        case let .image(url):
+            store.insertImageOverlay(from: url, pageIndex: pageIndex, bounds: bounds)
         default:
             return
         }
@@ -255,7 +258,9 @@ final class PlacementPDFView: PDFView {
     }
 
     private func isMovable(_ annotation: PDFAnnotation) -> Bool {
-        annotation.type == PDFAnnotationSubtype.freeText.rawValue || annotation.type == PDFAnnotationSubtype.ink.rawValue
+        annotation.type == PDFAnnotationSubtype.freeText.rawValue
+            || annotation.type == PDFAnnotationSubtype.ink.rawValue
+            || annotation.type == PDFAnnotationSubtype.stamp.rawValue
     }
 
     private func placementBounds(for action: PDFReaderAction, at point: CGPoint, on page: PDFPage) -> CGRect {
@@ -263,6 +268,7 @@ final class PlacementPDFView: PDFView {
         let size: CGSize = switch action {
         case .freeText: CGSize(width: min(320, max(100, cropBox.width - 32)), height: 52)
         case .signature: CGSize(width: min(260, max(120, cropBox.width - 32)), height: min(96, max(60, cropBox.height - 32)))
+        case .image: CGSize(width: min(180, max(80, cropBox.width - 32)), height: min(180, max(80, cropBox.height - 32)))
         default: .zero
         }
         let x = min(max(point.x, cropBox.minX + 16), cropBox.maxX - size.width - 16)

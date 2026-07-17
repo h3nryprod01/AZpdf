@@ -58,6 +58,8 @@ final class DocumentStore {
     var selectedAnnotationText = ""
     var selectedAnnotationFontSize: Double = 14
     var selectedAnnotationColor = NSColor.labelColor
+    var selectedAnnotationWidth: Double = 0
+    var selectedAnnotationHeight: Double = 0
     var recentDocumentPaths: [String]
     private var undoStack: [DocumentSnapshot] = []
     private var redoStack: [DocumentSnapshot] = []
@@ -155,6 +157,8 @@ final class DocumentStore {
         selectedAnnotationText = annotation?.contents ?? ""
         selectedAnnotationFontSize = Double(annotation?.font?.pointSize ?? 14)
         selectedAnnotationColor = annotation?.fontColor ?? annotation?.color ?? .labelColor
+        selectedAnnotationWidth = Double(annotation?.bounds.width ?? 0)
+        selectedAnnotationHeight = Double(annotation?.bounds.height ?? 0)
     }
 
     func beginAnnotationMove() {
@@ -174,6 +178,19 @@ final class DocumentStore {
         annotation.font = .systemFont(ofSize: selectedAnnotationFontSize)
         annotation.fontColor = selectedAnnotationColor
         annotation.color = .clear
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
+    func updateSelectedImageSize() {
+        guard let annotation = selectedAnnotation,
+              annotation.type == PDFAnnotationSubtype.stamp.rawValue else { return }
+        registerUndoStep()
+        annotation.bounds.size = CGSize(
+            width: max(24, selectedAnnotationWidth),
+            height: max(24, selectedAnnotationHeight)
+        )
         annotation.modificationDate = Date()
         isModified = true
         documentRevision += 1
@@ -532,16 +549,38 @@ final class DocumentStore {
     }
 
     func insertImage(from url: URL) {
-        guard let document, let image = NSImage(contentsOf: url), let page = PDFPage(image: image) else {
+        guard document != nil, NSImage(contentsOf: url) != nil else {
             lastError = "Không thể đọc ảnh để chèn."
             return
         }
-        registerUndoStep()
-        let insertionIndex = min(selectedPageIndex + 1, document.pageCount)
-        document.insert(page, at: insertionIndex)
-        selectedPageIndex = insertionIndex
-        documentRevision += 1
-        isModified = true
+        do {
+            let imageURL = try cachedImageURL(from: url)
+            placementInstruction = "Nhấp vào PDF để đặt ảnh. Sau đó kéo ảnh để di chuyển hoặc chọn ảnh để đổi kích thước."
+            sendReaderAction(.image(imageURL), recordsUndo: false)
+        } catch {
+            lastError = "Không thể chuẩn bị ảnh để chèn: \(error.localizedDescription)"
+        }
+    }
+
+    func insertImageOverlay(from imageURL: URL, pageIndex: Int, bounds: CGRect) {
+        guard let document, let page = document.page(at: pageIndex) else { return }
+        let mupdfBounds = CGRect(
+            x: bounds.minX,
+            y: page.bounds(for: .cropBox).height - bounds.maxY,
+            width: bounds.width,
+            height: bounds.height
+        )
+        do {
+            registerUndoStep()
+            self.document = try MuPDFImageOverlayService.insertImage(imageURL, into: document, pageIndex: pageIndex, bounds: mupdfBounds)
+            selectedPageIndex = pageIndex
+            documentRevision += 1
+            placementInstruction = nil
+            isModified = true
+            lastOperation = .addAnnotation(kind: .image, page: pageIndex)
+        } catch {
+            lastError = error.localizedDescription
+        }
     }
 
     func movePages(from offsets: IndexSet, to destination: Int) {
@@ -562,6 +601,15 @@ final class DocumentStore {
         readerAction = action
         readerActionID += 1
         if recordsUndo { isModified = true }
+    }
+
+    private func cachedImageURL(from url: URL) throws -> URL {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "AZpdf-Images", directoryHint: .isDirectory)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        let ext = url.pathExtension.isEmpty ? "img" : url.pathExtension
+        let destination = directory.appending(path: "\(UUID().uuidString).\(ext)")
+        try FileManager.default.copyItem(at: url, to: destination)
+        return destination
     }
 
     private func apply(_ operation: DocumentOperation, to document: PDFDocument) -> Bool {
