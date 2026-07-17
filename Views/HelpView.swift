@@ -28,6 +28,10 @@ struct HelpView: View {
                     Text("Ký bằng certificate xuất tệp CMS/PKCS#7 .p7s tách rời. Plugin chỉ chạy cục bộ sau khi được cấp quyền rõ ràng; bản v1 chưa bật thực thi plugin tùy ý.")
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                GroupBox("OCR local-first") {
+                    Text("Chọn OCR trang hiện tại để Vision nhận dạng tiếng Việt và tiếng Anh trên máy. Bạn có thể sửa, sao chép hoặc xuất kết quả .txt; AZpdf không tự sửa PDF.")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
                 GroupBox("Ủng hộ AZpdf") {
                     VStack(spacing: 10) {
                         if let qrURL = Bundle.main.url(forResource: "donate-vietqr", withExtension: "jpg"),

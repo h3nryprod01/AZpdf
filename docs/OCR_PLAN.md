@@ -1,5 +1,9 @@
 # Brainstorm OCR local-first cho AZpdf
 
+## Đã có trong macOS v1
+
+OCR trang hiện tại dùng Vision framework, nhận dạng Việt/Anh local-first. Người dùng review, sửa, sao chép hoặc xuất `.txt`; AZpdf không tự ghi text layer vào PDF.
+
 ## Mục tiêu v1.1
 
 OCR hoàn toàn trên máy, không tải PDF hay ảnh lên cloud. Người dùng chọn trang hoặc vùng cần nhận dạng, xem trước văn bản, rồi mới quyết định thêm text layer hoặc xuất `.txt`/`.md`.

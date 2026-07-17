@@ -21,6 +21,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Chèn ảnh thành một trang PDF mới, hỗ trợ undo
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
+- OCR trang hiện tại bằng Vision framework trên macOS, xử lý local-first; xem, sửa, sao chép hoặc xuất kết quả `.txt`
 - Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
 - Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
 - Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu

@@ -5,7 +5,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AZpdfCore
 
-@Observable
+@MainActor @Observable
 final class DocumentStore {
     private let engine = PDFKitDocumentEngine()
     private let recentDocumentsKey = "recentDocumentPaths"
@@ -28,6 +28,8 @@ final class DocumentStore {
     var isTextAnnotationSheetPresented = false
     var isSignatureSheetPresented = false
     var isCertificateSigningSheetPresented = false
+    var isOCRSheetPresented = false
+    var isOCRProcessing = false
     var isRedactionConfirmationPresented = false
     var searchText = ""
     var searchResultCount = 0
@@ -43,6 +45,8 @@ final class DocumentStore {
     var placementInstruction: String?
     var certificateSigningIdentities: [CertificateIdentity] = []
     var selectedCertificateIdentityID = ""
+    var ocrText = ""
+    var ocrPageIndex = 0
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
     var documentRevision = 0
@@ -210,6 +214,52 @@ final class DocumentStore {
         extracted.insert(copy, at: 0)
         currentPageExportData = extracted.dataRepresentation()
         isCurrentPageExporterPresented = currentPageExportData != nil
+    }
+
+    @MainActor
+    func beginOCRCurrentPage() {
+        guard let page = document?.page(at: selectedPageIndex) else { return }
+        isOCRSheetPresented = true
+        isOCRProcessing = true
+        ocrText = ""
+        ocrPageIndex = selectedPageIndex
+        do {
+            let image = try OCRService.render(page)
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                let result = Result { try OCRService.recognize(image) }
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.isOCRProcessing = false
+                    switch result {
+                    case let .success(text): self.ocrText = text
+                    case let .failure(error): self.lastError = "OCR thất bại: \(error.localizedDescription)"
+                    }
+                }
+            }
+        } catch {
+            isOCRProcessing = false
+            lastError = "OCR thất bại: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    func copyOCRText() {
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(ocrText, forType: .string)
+    }
+
+    @MainActor
+    func exportOCRText() {
+        guard !ocrText.isEmpty else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.plainText]
+        panel.nameFieldStringValue = "\(title)-trang-\(ocrPageIndex + 1)-ocr.txt"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        do {
+            try ocrText.write(to: url, atomically: true, encoding: .utf8)
+        } catch {
+            lastError = "Không thể xuất văn bản OCR: \(error.localizedDescription)"
+        }
     }
 
     func addNote() {
