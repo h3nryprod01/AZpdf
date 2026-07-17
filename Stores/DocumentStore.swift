@@ -28,6 +28,8 @@ final class DocumentStore {
     var isTextAnnotationSheetPresented = false
     var isSignatureSheetPresented = false
     var isCertificateSigningSheetPresented = false
+    var isCertificateSignatureImporterPresented = false
+    var isCertificateVerificationResultPresented = false
     var isOCRSheetPresented = false
     var isOCRProcessing = false
     var ocrCompletedPages = 0
@@ -47,6 +49,7 @@ final class DocumentStore {
     var placementInstruction: String?
     var certificateSigningIdentities: [CertificateIdentity] = []
     var selectedCertificateIdentityID = ""
+    var certificateVerificationMessage = ""
     var ocrText = ""
     var ocrPageIndex = 0
     var readerAction: PDFReaderAction = .none
@@ -431,6 +434,24 @@ final class DocumentStore {
         } catch {
             lastError = error.localizedDescription
         }
+    }
+
+    func beginCertificateSignatureVerification() {
+        guard document != nil else { return }
+        isCertificateSignatureImporterPresented = true
+    }
+
+    func verifyDetachedCertificateSignature(at url: URL) {
+        guard let documentData = document?.dataRepresentation() else { return }
+        do {
+            let signature = try Data(contentsOf: url)
+            certificateVerificationMessage = try CertificateSigningService
+                .verifyDetachedSignature(signature, documentData: documentData)
+                .summary
+        } catch {
+            certificateVerificationMessage = "Không thể xác minh chữ ký: \(error.localizedDescription)"
+        }
+        isCertificateVerificationResultPresented = true
     }
 
     @MainActor

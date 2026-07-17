@@ -15,6 +15,10 @@ struct CertificateSignatureSheet: View {
                 }
             }
             HStack {
+                Button("Xác minh .p7s…") {
+                    store.isCertificateSigningSheetPresented = false
+                    store.beginCertificateSignatureVerification()
+                }
                 Spacer()
                 Button("Hủy", role: .cancel) { store.isCertificateSigningSheetPresented = false }
                 Button("Xuất chữ ký .p7s") { store.exportDetachedCertificateSignature() }
