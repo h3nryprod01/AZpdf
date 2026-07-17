@@ -87,7 +87,7 @@ struct DocumentInspectorView: View {
             if let annotation = store.selectedAnnotation,
                annotation.isAZpdfNote {
                 Section("Chỉnh sửa ghi chú") {
-                    Text("Kéo trực tiếp ghi chú trên PDF để di chuyển.")
+                    Text("Nhấp ghi chú để sửa nội dung, kéo trực tiếp để di chuyển.")
                         .font(.caption).foregroundStyle(.secondary)
                     TextEditor(text: $store.selectedAnnotationText)
                         .frame(minHeight: 72)

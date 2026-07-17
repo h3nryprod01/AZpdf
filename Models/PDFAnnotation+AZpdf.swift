@@ -9,8 +9,9 @@ extension PDFAnnotation {
             .lowercased()
     }
 
-    var isAZpdfFreeText: Bool { azpdfSubtype == "freetext" }
-    var isAZpdfNote: Bool { azpdfSubtype == "text" }
+    // `text` keeps notes created by versions before the editable note card.
+    var isAZpdfNote: Bool { userName == "AZpdf Note" || azpdfSubtype == "text" }
+    var isAZpdfFreeText: Bool { azpdfSubtype == "freetext" && !isAZpdfNote }
     var isAZpdfImage: Bool { azpdfSubtype == "stamp" }
     var isAZpdfPopup: Bool { azpdfSubtype == "popup" }
     var isAZpdfMovable: Bool { ["freetext", "ink", "stamp", "text"].contains(azpdfSubtype) }

@@ -76,6 +76,7 @@ final class DocumentStore {
     var selectedAnnotationColor = NSColor.labelColor
     var selectedAnnotationWidth: Double = 0
     var selectedAnnotationHeight: Double = 0
+    var annotationSelectionID = 0
     var recentDocumentPaths: [String]
     private var undoStack: [DocumentSnapshot] = []
     private var redoStack: [DocumentSnapshot] = []
@@ -175,6 +176,7 @@ final class DocumentStore {
         selectedAnnotationColor = annotation?.fontColor ?? annotation?.color ?? .labelColor
         selectedAnnotationWidth = Double(annotation?.bounds.width ?? 0)
         selectedAnnotationHeight = Double(annotation?.bounds.height ?? 0)
+        annotationSelectionID += 1
     }
 
     func beginAnnotationMove() {
