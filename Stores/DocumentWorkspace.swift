@@ -2,13 +2,13 @@ import AppKit
 import Observation
 import UniformTypeIdentifiers
 
-@Observable
+@MainActor @Observable
 final class DocumentWorkspace {
     struct Tab: Identifiable {
         let id: UUID
         let store: DocumentStore
 
-        init(id: UUID = UUID(), store: DocumentStore = DocumentStore()) {
+        @MainActor init(id: UUID = UUID(), store: DocumentStore = DocumentStore()) {
             self.id = id
             self.store = store
         }
