@@ -182,6 +182,7 @@ struct ContentView: View {
             Button { store.beginPAdESSigning() } label: { Label("Ký PAdES", systemImage: "signature") }.help("Nhúng chữ ký số PAdES vào PDF")
             Button { store.verifyPAdESSignatures() } label: { Label("Xác minh PAdES", systemImage: "checkmark.shield") }.help("Kiểm tra tính toàn vẹn chữ ký nhúng")
             Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }.help("Nhận dạng chữ trên trang hiện tại")
+            Button { store.beginOCRRegionSelection() } label: { Label("OCR vùng", systemImage: "viewfinder.rectangular") }.help("Kéo để chọn vùng cần nhận dạng chữ")
             Button { store.beginOCRDocument() } label: { Label("OCR toàn bộ", systemImage: "doc.text.magnifyingglass") }.help("Nhận dạng chữ trên toàn bộ tài liệu")
             Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }.help("Tô sáng đoạn văn bản đã chọn")
             Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }.help("Xóa vĩnh viễn nội dung đã chọn")

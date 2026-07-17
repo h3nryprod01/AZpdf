@@ -329,6 +329,43 @@ final class DocumentStore {
         beginOCR(pageIndices: Array(0..<document.pageCount))
     }
 
+    func beginOCRRegionSelection() {
+        guard document != nil else { return }
+        placementInstruction = "Kéo trên PDF để chọn vùng cần OCR."
+        sendReaderAction(.ocrRegion, recordsUndo: false)
+    }
+
+    func beginOCRRegion(pageIndex: Int, bounds: CGRect) {
+        guard let page = document?.page(at: pageIndex), !isOCRProcessing else { return }
+        isOCRSheetPresented = true
+        isOCRProcessing = true
+        ocrText = ""
+        ocrPageIndex = pageIndex
+        ocrCompletedPages = 0
+        ocrTotalPages = 1
+        placementInstruction = nil
+        do {
+            let image = try OCRService.render(page, crop: bounds, scale: 3)
+            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+                let result = Result { try OCRService.recognize(image) }
+                DispatchQueue.main.async {
+                    guard let self else { return }
+                    self.isOCRProcessing = false
+                    self.ocrCompletedPages = 1
+                    switch result {
+                    case let .success(text):
+                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n\(text)"
+                    case .failure:
+                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n[Không nhận dạng được văn bản]"
+                    }
+                }
+            }
+        } catch {
+            isOCRProcessing = false
+            lastError = "OCR vùng thất bại: \(error.localizedDescription)"
+        }
+    }
+
     @MainActor
     private func beginOCR(pageIndices: [Int]) {
         guard let document, !pageIndices.isEmpty else { return }

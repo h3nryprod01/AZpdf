@@ -21,7 +21,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, đổi kích thước qua Inspector và lưu thành stamp annotation bền vững
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
-- OCR trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
+- OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
 - Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
 - Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
 - Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu

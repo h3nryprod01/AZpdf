@@ -27,6 +27,8 @@ struct OCRSheet: View {
             HStack {
                 Button("OCR trang này") { store.beginOCRCurrentPage() }
                     .disabled(store.isOCRProcessing)
+                Button("OCR vùng…") { store.beginOCRRegionSelection() }
+                    .disabled(store.isOCRProcessing)
                 Button("OCR toàn bộ") { store.beginOCRDocument() }
                     .disabled(store.isOCRProcessing)
                 Spacer()

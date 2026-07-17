@@ -103,6 +103,17 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertFalse(store.isModified)
     }
 
+    func testOCRRegionArmsSelectionWithoutChangingDocument() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+
+        store.beginOCRRegionSelection()
+
+        XCTAssertEqual(store.readerAction, .ocrRegion)
+        XCTAssertEqual(store.placementInstruction, "Kéo trên PDF để chọn vùng cần OCR.")
+        XCTAssertFalse(store.isModified)
+    }
+
     func testAddingSignatureQueuesReaderAction() {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)
