@@ -75,6 +75,16 @@ struct ContentView: View {
                 store.insertImage(from: url)
             }
         }
+        .fileImporter(isPresented: $store.isCertificateSignatureImporterPresented, allowedContentTypes: [.data]) { result in
+            if case let .success(url) = result {
+                guard url.startAccessingSecurityScopedResource() else {
+                    store.verifyDetachedCertificateSignature(at: url)
+                    return
+                }
+                defer { url.stopAccessingSecurityScopedResource() }
+                store.verifyDetachedCertificateSignature(at: url)
+            }
+        }
         .fileExporter(isPresented: $store.isExportPresented, document: PDFExportDocument(data: store.document?.dataRepresentation()), contentType: .pdf, defaultFilename: store.title) { _ in }
         .fileExporter(
             isPresented: $store.isCurrentPageExporterPresented,
@@ -110,6 +120,11 @@ struct ContentView: View {
         }
         .sheet(isPresented: $store.isCertificateSigningSheetPresented) {
             CertificateSignatureSheet(store: store)
+        }
+        .alert("Xác minh chữ ký số", isPresented: $store.isCertificateVerificationResultPresented) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(store.certificateVerificationMessage)
         }
         .sheet(isPresented: $store.isOCRSheetPresented) {
             OCRSheet(store: store)

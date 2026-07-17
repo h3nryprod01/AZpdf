@@ -243,6 +243,21 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(OCRService.normalized("\n  AZpdf\u{00A0}OCR\r\n"), "AZpdf OCR")
     }
 
+    func testDetachedSignatureVerificationSummaryIsExplicit() {
+        let verification = CertificateSignatureVerification(status: .invalidSignature, signerName: "AZpdf Test")
+        XCTAssertTrue(verification.summary.contains("không khớp"))
+        XCTAssertTrue(verification.summary.contains("AZpdf Test"))
+    }
+
+    func testDetachedSignatureVerificationOpensImporterForOpenPDF() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+
+        store.beginCertificateSignatureVerification()
+
+        XCTAssertTrue(store.isCertificateSignatureImporterPresented)
+    }
+
     func testProtectedCopyRequiresPasswordToUnlock() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)
