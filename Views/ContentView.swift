@@ -70,13 +70,6 @@ struct ContentView: View {
                 store.insertPages(from: url)
             }
         }
-        .fileImporter(isPresented: $store.isImageImporterPresented, allowedContentTypes: [.image]) { result in
-            if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else { store.importImage(from: url); return }
-                defer { url.stopAccessingSecurityScopedResource() }
-                store.importImage(from: url)
-            }
-        }
         .fileImporter(isPresented: $store.isCertificateSignatureImporterPresented, allowedContentTypes: [.data]) { result in
             if case let .success(url) = result {
                 guard url.startAccessingSecurityScopedResource() else {

@@ -188,7 +188,7 @@ final class DocumentStore {
 
     func updateSelectedFreeText() {
         guard let annotation = selectedAnnotation,
-              annotation.type == PDFAnnotationSubtype.freeText.rawValue else { return }
+              annotation.isAZpdfFreeText else { return }
         registerUndoStep()
         annotation.contents = selectedAnnotationText
         annotation.font = .systemFont(ofSize: selectedAnnotationFontSize)
@@ -210,7 +210,7 @@ final class DocumentStore {
 
     func updateSelectedImageSize() {
         guard let annotation = selectedAnnotation,
-              annotation.type == PDFAnnotationSubtype.stamp.rawValue else { return }
+              annotation.isAZpdfImage else { return }
         registerUndoStep()
         annotation.bounds.size = CGSize(
             width: max(24, selectedAnnotationWidth),
@@ -223,13 +223,27 @@ final class DocumentStore {
 
     func beginImageInsertion() {
         isReplacingSelectedImage = false
-        isImageImporterPresented = true
+        showImageOpenPanel()
     }
 
     func beginReplaceSelectedImage() {
         guard selectedAnnotation is EditableImageAnnotation else { return }
         isReplacingSelectedImage = true
-        isImageImporterPresented = true
+        showImageOpenPanel()
+    }
+
+    @MainActor
+    private func showImageOpenPanel() {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = [.image]
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        guard panel.runModal() == .OK, let url = panel.url else {
+            isReplacingSelectedImage = false
+            return
+        }
+        importImage(from: url)
     }
 
     /// Provides a keyboard and VoiceOver-accessible alternative to dragging an annotation.
