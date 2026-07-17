@@ -28,6 +28,7 @@ struct OCRSheet: View {
                                     if let confidence = review.confidencePercent {
                                         Text("\(confidence)%").monospacedDigit().foregroundStyle(.secondary)
                                     }
+                                    Text(review.layoutSummary).foregroundStyle(.secondary)
                                     Spacer()
                                     Text(review.warning ?? "Sẵn sàng review")
                                         .lineLimit(1)

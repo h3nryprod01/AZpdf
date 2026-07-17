@@ -433,6 +433,7 @@ final class DocumentStoreTests: XCTestCase {
             source: .vision,
             confidence: 0.73,
             lineCount: 12,
+            layoutSummary: "Bố cục một cột/đơn giản",
             warning: "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất."
         )
 
