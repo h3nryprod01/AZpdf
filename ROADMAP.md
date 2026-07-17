@@ -11,7 +11,8 @@
 ## Trước v1.0
 
 - [x] Chữ ký CMS/PKCS#7 tách rời dựa trên certificate trong Keychain (PDF gốc không bị sửa)
-- [ ] Nhúng chữ ký số PDF (ByteRange) và xác minh trong app
+- [x] Nhúng PAdES Baseline B vào PDF từ PKCS#12 và kiểm tra integrity/certificate trong app
+- [ ] PAdES-LT/LTA: TSA, OCSP/CRL, trust store và long-term validation
 - [ ] Wasm plugin worker local, cấp quyền theo tài liệu; XPC App-Sandbox chỉ cho worker do AZpdf phát hành (discovery/validation đã có; chưa thực thi plugin)
 - [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
 - [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào

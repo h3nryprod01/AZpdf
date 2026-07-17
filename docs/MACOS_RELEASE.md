@@ -7,6 +7,8 @@
 - Keychain profile cho `notarytool` nếu muốn notarize.
 - `MUTOOL_RUNTIME_DIR`: thư mục runtime MuPDF có `mutool` và toàn bộ dylib phụ thuộc, được build/đóng gói để chạy độc lập khỏi Homebrew.
 - `VERAPDF_RUNTIME_DIR`: thư mục veraPDF self-contained có executable `verapdf`, runtime Java và model kiểm tra PDF/A/PDF/UA.
+- `PYHANKO_RUNTIME_DIR`: thư mục pyHanko self-contained có executable `pyhanko` **relocatable** cùng Python interpreter/dependencies của nó; không dùng script có shebang trỏ vào virtualenv build machine.
+- `PDFSIG_RUNTIME_DIR`: thư mục Poppler self-contained có `pdfsig` và toàn bộ dylib phụ thuộc để kiểm tra integrity/certificate chữ ký PDF.
 
 Identity Apple Development hiện chỉ dùng để phát triển; không đủ để phát hành notarized ra ngoài Mac App Store.
 
@@ -22,12 +24,14 @@ Identity Apple Development hiện chỉ dùng để phát triển; không đủ 
 export SIGNING_IDENTITY='Developer ID Application: Your Name (TEAMID)'
 export MUTOOL_RUNTIME_DIR='/path/to/redistributable-mupdf-runtime'
 export VERAPDF_RUNTIME_DIR='/path/to/redistributable-verapdf-runtime'
+export PYHANKO_RUNTIME_DIR='/path/to/redistributable-pyhanko-runtime'
+export PDFSIG_RUNTIME_DIR='/path/to/redistributable-pdfsig-runtime'
 ./script/package_release.sh
 ```
 
 Lệnh tạo `dist/release/AZpdf-macOS.zip`, ký Hardened Runtime và kiểm tra bằng `codesign`/`spctl`.
 
-Không copy trực tiếp `/opt/homebrew/bin/mutool`: binary Homebrew thường liên kết tới dylib ngoài app. Runtime phải được chuẩn bị self-contained, kiểm tra giấy phép AGPL-3.0 của MuPDF và được ký cùng app trước notarization. Tương tự, veraPDF phải đi kèm Java runtime/model của chính nó, không phụ thuộc Homebrew trên máy người dùng. `package_release.sh` dừng nếu một trong hai runtime không có, thay vì phát hành bản có tính năng không chạy được.
+Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime phải được chuẩn bị self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, thay vì phát hành bản có tính năng không chạy được.
 
 ## Notarization
 

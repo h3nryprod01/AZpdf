@@ -51,6 +51,8 @@ struct AZpdfApp: App {
                     .keyboardShortcut("s", modifiers: [.command, .shift])
                 Button("Ký bằng certificate…") { workspace.activeStore.beginCertificateSigning() }
                 Button("Xác minh chữ ký .p7s…") { workspace.activeStore.beginCertificateSignatureVerification() }
+                Button("Ký PAdES vào PDF…") { workspace.activeStore.beginPAdESSigning() }
+                Button("Xác minh chữ ký PAdES") { workspace.activeStore.verifyPAdESSignatures() }
                 Button("Kiểm tra PDF/A & PDF/UA…") { workspace.activeStore.beginConformanceCheck() }
                 Button("OCR trang hiện tại…") { workspace.activeStore.beginOCRCurrentPage() }
                     .keyboardShortcut("o", modifiers: [.command, .shift])

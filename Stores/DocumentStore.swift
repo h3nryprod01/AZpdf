@@ -30,6 +30,9 @@ final class DocumentStore {
     var isCertificateSigningSheetPresented = false
     var isCertificateSignatureImporterPresented = false
     var isCertificateVerificationResultPresented = false
+    var isPAdESSigningSheetPresented = false
+    var isPAdESCertificateImporterPresented = false
+    var isPAdESVerificationResultPresented = false
     var isOCRSheetPresented = false
     var isConformanceSheetPresented = false
     var isConformanceChecking = false
@@ -52,6 +55,10 @@ final class DocumentStore {
     var certificateSigningIdentities: [CertificateIdentity] = []
     var selectedCertificateIdentityID = ""
     var certificateVerificationMessage = ""
+    var padesPKCS12Data: Data?
+    var padesCertificateName = ""
+    var padesPassword = ""
+    var padesVerificationMessage = ""
     var ocrText = ""
     var conformanceReport: PDFConformanceReport?
     var conformanceError: String?
@@ -487,6 +494,60 @@ final class DocumentStore {
     func beginCertificateSignatureVerification() {
         guard document != nil else { return }
         isCertificateSignatureImporterPresented = true
+    }
+
+    func beginPAdESSigning() {
+        guard document != nil else { return }
+        isPAdESSigningSheetPresented = true
+    }
+
+    func choosePAdESCertificate() {
+        isPAdESCertificateImporterPresented = true
+    }
+
+    func selectPAdESCertificate(at url: URL) {
+        do {
+            padesPKCS12Data = try Data(contentsOf: url)
+            padesCertificateName = url.lastPathComponent
+        } catch {
+            lastError = "Không thể đọc PKCS#12: \(error.localizedDescription)"
+        }
+    }
+
+    @MainActor
+    func exportPAdESSignedPDF() {
+        guard let documentData = document?.dataRepresentation(), let pkcs12Data = padesPKCS12Data else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = "\(title)-signed.pdf"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        defer {
+            padesPassword = ""
+            padesPKCS12Data = nil
+            padesCertificateName = ""
+        }
+        do {
+            let signed = try PAdESSigningService.sign(
+                documentData: documentData,
+                pkcs12Data: pkcs12Data,
+                password: padesPassword
+            )
+            try signed.write(to: url, options: .atomic)
+            isPAdESSigningSheetPresented = false
+            open(url)
+        } catch {
+            lastError = error.localizedDescription
+        }
+    }
+
+    func verifyPAdESSignatures() {
+        guard let documentData = document?.dataRepresentation() else { return }
+        do {
+            padesVerificationMessage = try PAdESSigningService.verify(documentData: documentData).summary
+        } catch {
+            padesVerificationMessage = "Không thể xác minh PAdES: \(error.localizedDescription)"
+        }
+        isPAdESVerificationResultPresented = true
     }
 
     func verifyDetachedCertificateSignature(at url: URL) {

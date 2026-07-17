@@ -279,6 +279,45 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertTrue(store.isCertificateSignatureImporterPresented)
     }
 
+    func testPAdESSigningServiceUsesPassfileAndReturnsEmbeddedPDF() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-pades-sign-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let executable = directory.appending(path: "pyhanko")
+        try "#!/bin/sh\ncp \"${9}\" \"${10}\"\n".write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        let signed = try PAdESSigningService.sign(
+            documentData: Data("%PDF-test".utf8),
+            pkcs12Data: Data("test-p12".utf8),
+            password: "secret",
+            executable: executable
+        )
+
+        XCTAssertEqual(signed, Data("%PDF-test".utf8))
+    }
+
+    func testPAdESVerifierSeparatesIntegrityAndCertificateTrust() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-pades-verify-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let executable = directory.appending(path: "pdfsig")
+        try """
+        #!/bin/sh
+        echo "Signature #1:"
+        echo "  - Signer Certificate Common Name: AZpdf Test"
+        echo "  - Signature Validation: Signature is Valid."
+        echo "  - Certificate Validation: Certificate issuer isn't Trusted."
+        """.write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        let verification = try PAdESSigningService.verify(documentData: Data("%PDF-test".utf8), executable: executable)
+
+        XCTAssertEqual(verification.integrity, .valid)
+        XCTAssertEqual(verification.certificateTrust, .untrusted)
+        XCTAssertEqual(verification.signerName, "AZpdf Test")
+    }
+
     func testConformanceReportParsesComplianceResult() throws {
         let data = try XCTUnwrap("{\"report\":{\"isCompliant\":true}}".data(using: .utf8))
         let report = PDFConformanceService.parse(data, profile: .pdfA4)

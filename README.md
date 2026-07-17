@@ -50,7 +50,7 @@ Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
 ## Phát triển
 Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh và veraPDF (`brew install verapdf`) để kiểm tra chuẩn. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` và `VERAPDF_RUNTIME_DIR` chứa runtime self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
 
-Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). Bản v1 hỗ trợ tạo và xác minh chữ ký số CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain; PDF gốc không bị sửa. Đây chưa phải chữ ký PAdES nhúng trong PDF.
+Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). AZpdf hỗ trợ chữ ký CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain và ký nhúng **PAdES Baseline B** từ PKCS#12 (`.p12`/`.pfx`) cục bộ. PAdES-LT/LTA, TSA và revocation data chưa được bật mặc định.
 
 Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
