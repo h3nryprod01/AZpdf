@@ -68,7 +68,7 @@ struct DocumentInspectorView: View {
             }
 
             if let annotation = store.selectedAnnotation,
-               annotation.type == PDFAnnotationSubtype.freeText.rawValue {
+               annotation.isAZpdfFreeText {
                 Section("Chỉnh sửa hộp chữ") {
                     Text("Kéo trực tiếp hộp chữ trên PDF để di chuyển.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -85,8 +85,7 @@ struct DocumentInspectorView: View {
             }
 
             if let annotation = store.selectedAnnotation,
-               annotation.type != PDFAnnotationSubtype.freeText.rawValue,
-               annotation.type != PDFAnnotationSubtype.stamp.rawValue {
+               annotation.isAZpdfNote {
                 Section("Chỉnh sửa ghi chú") {
                     Text("Kéo trực tiếp ghi chú trên PDF để di chuyển.")
                         .font(.caption).foregroundStyle(.secondary)
@@ -98,7 +97,7 @@ struct DocumentInspectorView: View {
             }
 
             if let annotation = store.selectedAnnotation,
-               annotation.type == PDFAnnotationSubtype.stamp.rawValue {
+               annotation.isAZpdfImage {
                 Section("Chỉnh sửa ảnh") {
                     Text("Kéo trực tiếp ảnh trên PDF để di chuyển. Đổi kích thước rồi nhấn Áp dụng.")
                         .font(.caption).foregroundStyle(.secondary)

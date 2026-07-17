@@ -233,7 +233,9 @@ final class PlacementPDFView: PDFView {
             let pointInView = convert(event.locationInWindow, from: nil)
             if let page = page(for: pointInView, nearest: true) {
                 let pointOnPage = convert(pointInView, to: page)
-                let annotation = page.annotations.reversed().first { $0.bounds.contains(pointOnPage) }
+                let annotation = page.annotations.reversed().first {
+                    !$0.isAZpdfPopup && $0.bounds.contains(pointOnPage)
+                }
                 onSelectAnnotation?(annotation, page)
                 if let annotation, isMovable(annotation) {
                     window?.makeFirstResponder(self)
@@ -314,10 +316,7 @@ final class PlacementPDFView: PDFView {
     }
 
     private func isMovable(_ annotation: PDFAnnotation) -> Bool {
-        annotation.type == PDFAnnotationSubtype.freeText.rawValue
-            || annotation.type == PDFAnnotationSubtype.ink.rawValue
-            || annotation.type == PDFAnnotationSubtype.stamp.rawValue
-            || annotation.type == PDFAnnotationSubtype.text.rawValue
+        annotation.isAZpdfMovable
     }
 
     override func draw(_ dirtyRect: NSRect) {
