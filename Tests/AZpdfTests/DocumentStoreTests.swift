@@ -258,6 +258,13 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertTrue(store.isCertificateSignatureImporterPresented)
     }
 
+    func testConformanceReportParsesComplianceResult() throws {
+        let data = try XCTUnwrap("{\"report\":{\"isCompliant\":true}}".data(using: .utf8))
+        let report = PDFConformanceService.parse(data, profile: .pdfA4)
+        XCTAssertEqual(report.status, .compliant)
+        XCTAssertEqual(report.profile, .pdfA4)
+    }
+
     func testProtectedCopyRequiresPasswordToUnlock() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

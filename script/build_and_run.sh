@@ -24,6 +24,12 @@ if [[ -n "${MUTOOL_RUNTIME_DIR:-}" ]]; then
   cp -R "$MUTOOL_RUNTIME_DIR/." "$APP_RESOURCES/Tools/"
   chmod +x "$APP_RESOURCES/Tools/mutool"
 fi
+if [[ -n "${VERAPDF_RUNTIME_DIR:-}" ]]; then
+  [[ -x "$VERAPDF_RUNTIME_DIR/verapdf" ]] || { echo "VERAPDF_RUNTIME_DIR must contain executable verapdf" >&2; exit 2; }
+  mkdir -p "$APP_RESOURCES/Tools/veraPDF"
+  cp -R "$VERAPDF_RUNTIME_DIR/." "$APP_RESOURCES/Tools/veraPDF/"
+  chmod +x "$APP_RESOURCES/Tools/veraPDF/verapdf"
+fi
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
