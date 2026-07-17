@@ -22,6 +22,12 @@ struct AZpdfApp: App {
             CommandGroup(replacing: .newItem) {
                 Button("Mở PDF…") { workspace.showOpenPanel() }
                     .keyboardShortcut("o", modifiers: .command)
+                Button("Lưu") { workspace.activeStore.save() }
+                    .keyboardShortcut("s", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil || !workspace.activeStore.isModified)
+                Button("Lưu thành…") { workspace.activeStore.saveAs() }
+                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .disabled(workspace.activeStore.document == nil)
                 Button("Đóng tab") { workspace.closeTab(workspace.selectedTabID) }
                     .keyboardShortcut("w", modifiers: .command)
             }

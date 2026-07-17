@@ -127,26 +127,31 @@ struct ContentView: View {
             ToolbarItemGroup(placement: .navigation) {
             Button { store.undo() } label: { Label("Hoàn tác", systemImage: "arrow.uturn.backward") }
                 .disabled(!store.canUndo)
+                .help("Hoàn tác (⌘Z)")
             Button { store.redo() } label: { Label("Làm lại", systemImage: "arrow.uturn.forward") }
                 .disabled(!store.canRedo)
             Button { store.save() } label: { Label(store.isModified ? "Lưu thay đổi" : "Lưu", systemImage: "square.and.arrow.down") }
                 .disabled(store.document == nil)
+                .help("Lưu (⌘S)")
+            Button { store.saveAs() } label: { Label("Lưu thành", systemImage: "square.and.arrow.down.on.square") }
+                .help("Lưu thành bản PDF mới (⇧⌘S)")
             Button { store.isExportPresented = true } label: { Label("Xuất", systemImage: "square.and.arrow.up") }
+                .help("Xuất bản sao PDF")
             }
             ToolbarItemGroup(placement: .principal) {
-            Button { store.addNote() } label: { Label("Thêm ghi chú", systemImage: "note.text") }
-            Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }
-            Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }
-            Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }
-            Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }
-            Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }
-            Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }
-            Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }
-            Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }
-            Button { store.isInsertImporterPresented = true } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }
-            Button { store.isImageImporterPresented = true } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }
-            Button { store.prepareCurrentPageExport() } label: { Label("Xuất trang", systemImage: "doc.badge.arrow.up") }
-            Button { store.beginPasswordProtectedExport() } label: { Label("Xuất bảo vệ", systemImage: "lock.doc") }
+            Button { store.addNote() } label: { Label("Thêm ghi chú", systemImage: "note.text") }.help("Thêm ghi chú")
+            Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }.help("Chèn và định dạng chữ")
+            Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }.help("Vẽ và chèn chữ ký")
+            Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }.help("Xuất chữ ký số .p7s")
+            Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }.help("Nhận dạng chữ trên trang hiện tại")
+            Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }.help("Tô sáng đoạn văn bản đã chọn")
+            Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }.help("Xóa vĩnh viễn nội dung đã chọn")
+            Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }.help("Xoay trang hiện tại")
+            Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }.help("Nhân đôi trang hiện tại")
+            Button { store.isInsertImporterPresented = true } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }.help("Chèn trang từ PDF khác")
+            Button { store.isImageImporterPresented = true } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }.help("Chèn ảnh thành trang mới")
+            Button { store.prepareCurrentPageExport() } label: { Label("Xuất trang", systemImage: "doc.badge.arrow.up") }.help("Xuất trang hiện tại")
+            Button { store.beginPasswordProtectedExport() } label: { Label("Xuất bảo vệ", systemImage: "lock.doc") }.help("Xuất PDF có mật khẩu")
             }
             ToolbarItemGroup(placement: .automatic) {
             Button { store.goToPreviousPage() } label: { Label("Trang trước", systemImage: "chevron.left") }

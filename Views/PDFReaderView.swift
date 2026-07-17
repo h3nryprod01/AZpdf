@@ -17,6 +17,12 @@ struct PDFReaderView: NSViewRepresentable {
         view.onPlace = { action, page, bounds in
             place(action, on: page, bounds: bounds)
         }
+        view.onSelectAnnotation = { annotation, page in
+            let index = store.document?.index(for: page)
+            store.selectAnnotation(annotation, pageIndex: index == NSNotFound ? nil : index)
+        }
+        view.onBeginMoveAnnotation = { store.beginAnnotationMove() }
+        view.onFinishMoveAnnotation = { store.finishAnnotationMove() }
         return view
     }
 
@@ -164,7 +170,14 @@ struct PDFReaderView: NSViewRepresentable {
 
 final class PlacementPDFView: PDFView {
     var onPlace: ((PDFReaderAction, PDFPage, CGRect) -> Void)?
+    var onSelectAnnotation: ((PDFAnnotation?, PDFPage) -> Void)?
+    var onBeginMoveAnnotation: (() -> Void)?
+    var onFinishMoveAnnotation: (() -> Void)?
     private var placementAction: PDFReaderAction?
+    private var draggedAnnotation: PDFAnnotation?
+    private var dragPage: PDFPage?
+    private var dragStartPoint: CGPoint?
+    private var dragStartBounds: CGRect?
 
     func armPlacement(_ action: PDFReaderAction) {
         placementAction = action
@@ -183,6 +196,20 @@ final class PlacementPDFView: PDFView {
 
     override func mouseDown(with event: NSEvent) {
         guard let action = placementAction else {
+            let pointInView = convert(event.locationInWindow, from: nil)
+            if let page = page(for: pointInView, nearest: true) {
+                let pointOnPage = convert(pointInView, to: page)
+                let annotation = page.annotations.reversed().first { $0.bounds.contains(pointOnPage) }
+                onSelectAnnotation?(annotation, page)
+                if let annotation, isMovable(annotation) {
+                    draggedAnnotation = annotation
+                    dragPage = page
+                    dragStartPoint = pointOnPage
+                    dragStartBounds = annotation.bounds
+                    onBeginMoveAnnotation?()
+                    return
+                }
+            }
             super.mouseDown(with: event)
             return
         }
@@ -192,6 +219,43 @@ final class PlacementPDFView: PDFView {
         placementAction = nil
         window?.invalidateCursorRects(for: self)
         onPlace?(action, page, placementBounds(for: action, at: pointOnPage, on: page))
+    }
+
+    override func mouseDragged(with event: NSEvent) {
+        guard let annotation = draggedAnnotation,
+              let page = dragPage,
+              let startPoint = dragStartPoint,
+              let startBounds = dragStartBounds else {
+            super.mouseDragged(with: event)
+            return
+        }
+        let pointInView = convert(event.locationInWindow, from: nil)
+        let pointOnPage = convert(pointInView, to: page)
+        let cropBox = page.bounds(for: .cropBox)
+        let candidate = startBounds.offsetBy(dx: pointOnPage.x - startPoint.x, dy: pointOnPage.y - startPoint.y)
+        annotation.bounds = CGRect(
+            x: min(max(candidate.minX, cropBox.minX), cropBox.maxX - candidate.width),
+            y: min(max(candidate.minY, cropBox.minY), cropBox.maxY - candidate.height),
+            width: candidate.width,
+            height: candidate.height
+        )
+        needsDisplay = true
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        if draggedAnnotation != nil {
+            draggedAnnotation = nil
+            dragPage = nil
+            dragStartPoint = nil
+            dragStartBounds = nil
+            onFinishMoveAnnotation?()
+            return
+        }
+        super.mouseUp(with: event)
+    }
+
+    private func isMovable(_ annotation: PDFAnnotation) -> Bool {
+        annotation.type == PDFAnnotationSubtype.freeText.rawValue || annotation.type == PDFAnnotationSubtype.ink.rawValue
     }
 
     private func placementBounds(for action: PDFReaderAction, at point: CGPoint, on page: PDFPage) -> CGRect {

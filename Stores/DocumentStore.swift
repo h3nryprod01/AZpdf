@@ -51,6 +51,11 @@ final class DocumentStore {
     var readerActionID = 0
     var documentRevision = 0
     var isModified = false
+    var selectedAnnotation: PDFAnnotation?
+    var selectedAnnotationPageIndex: Int?
+    var selectedAnnotationText = ""
+    var selectedAnnotationFontSize: Double = 14
+    var selectedAnnotationColor = NSColor.labelColor
     var recentDocumentPaths: [String]
     private var undoStack: [DocumentSnapshot] = []
     private var redoStack: [DocumentSnapshot] = []
@@ -127,6 +132,49 @@ final class DocumentStore {
         guard let document, let fileURL else { return }
         guard document.write(to: fileURL) else { lastError = "Không thể lưu thay đổi."; return }
         isModified = false
+    }
+
+    @MainActor
+    func saveAs() {
+        guard let document else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = "\(title).pdf"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        guard document.write(to: url) else { lastError = "Không thể lưu bản sao PDF."; return }
+        fileURL = url
+        isModified = false
+        addToRecentDocuments(url)
+    }
+
+    func selectAnnotation(_ annotation: PDFAnnotation?, pageIndex: Int?) {
+        selectedAnnotation = annotation
+        selectedAnnotationPageIndex = pageIndex
+        selectedAnnotationText = annotation?.contents ?? ""
+        selectedAnnotationFontSize = Double(annotation?.font?.pointSize ?? 14)
+        selectedAnnotationColor = annotation?.fontColor ?? annotation?.color ?? .labelColor
+    }
+
+    func beginAnnotationMove() {
+        registerUndoStep()
+    }
+
+    func finishAnnotationMove() {
+        guard selectedAnnotation != nil else { return }
+        isModified = true
+    }
+
+    func updateSelectedFreeText() {
+        guard let annotation = selectedAnnotation,
+              annotation.type == PDFAnnotationSubtype.freeText.rawValue else { return }
+        registerUndoStep()
+        annotation.contents = selectedAnnotationText
+        annotation.font = .systemFont(ofSize: selectedAnnotationFontSize)
+        annotation.fontColor = selectedAnnotationColor
+        annotation.color = .clear
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
     }
 
     func openRecentDocument(_ url: URL) {

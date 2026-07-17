@@ -66,6 +66,22 @@ struct DocumentInspectorView: View {
                 }
             }
 
+            if let annotation = store.selectedAnnotation,
+               annotation.type == PDFAnnotationSubtype.freeText.rawValue {
+                Section("Chỉnh sửa hộp chữ") {
+                    Text("Kéo trực tiếp hộp chữ trên PDF để di chuyển.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    TextEditor(text: $store.selectedAnnotationText)
+                        .frame(minHeight: 80)
+                    Stepper("Cỡ chữ: \(Int(store.selectedAnnotationFontSize)) pt", value: $store.selectedAnnotationFontSize, in: 8...72, step: 1)
+                    ColorPicker("Màu chữ", selection: Binding(
+                        get: { Color(nsColor: store.selectedAnnotationColor) },
+                        set: { store.selectedAnnotationColor = NSColor($0) }
+                    ))
+                    Button("Áp dụng định dạng") { store.updateSelectedFreeText() }
+                }
+            }
+
             Section("Ủng hộ AZpdf") {
                 Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
             }
