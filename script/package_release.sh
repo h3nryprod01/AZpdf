@@ -35,6 +35,11 @@ ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
   echo "Release packaging failed: bundled OCRmyPDF runtime is missing." >&2
   exit 1
 }
+"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers" "mutool"
+"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/veraPDF" "verapdf"
+"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/pyhanko" "pyhanko"
+"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers" "pdfsig"
+"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/ocrmypdf" "ocrmypdf"
 /usr/bin/codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
 /usr/bin/codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
 /usr/sbin/spctl -a -vv "$APP_BUNDLE"
