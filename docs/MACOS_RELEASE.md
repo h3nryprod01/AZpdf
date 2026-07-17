@@ -52,6 +52,26 @@ export MUTOOL_RUNTIME_DIR="$PWD/dist/runtime/mutool"
 
 MuPDF mang AGPL-3.0-or-later, phù hợp với license AGPL-3.0-only của AZpdf. Ghi lại source SHA-256, version và toàn bộ third-party notices của archive vào SBOM trước phát hành.
 
+### Build runtime OCRmyPDF
+
+OCR được freeze bằng PyInstaller; cần Tesseract, Ghostscript, qpdf,
+Ghostscript `Resource/` và tessdata gồm `eng.traineddata`, `vie.traineddata`,
+`configs/hocr`.
+`DYLIB_SEARCH_DIRS` chỉ các prefix dependency từ source build để script copy và
+đổi dylib thành `@loader_path`; không dùng Homebrew trong bản phát hành.
+
+```bash
+export OCRMY_PDF_PYTHON='/path/to/venv/bin/python' # có ocrmypdf + PyInstaller
+export TESSERACT_BIN='/path/to/tesseract'
+export GHOSTSCRIPT_BIN='/path/to/gs'
+export QPDF_BIN='/path/to/qpdf'
+export TESSDATA_DIR='/path/to/tessdata'             # eng + vie + configs/hocr
+export GHOSTSCRIPT_RESOURCE_DIR='/path/to/Resource'
+export DYLIB_SEARCH_DIRS='/path/to/dependency-prefixes'
+./script/build_ocrmypdf_runtime.sh
+export OCRMY_PDF_RUNTIME_DIR="$PWD/dist/runtime/ocrmypdf"
+```
+
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
