@@ -14,11 +14,13 @@
 
 - [x] Chữ ký CMS/PKCS#7 tách rời dựa trên certificate trong Keychain (PDF gốc không bị sửa)
 - [x] Nhúng PAdES Baseline B vào PDF từ PKCS#12 và kiểm tra integrity/certificate trong app
-- [ ] PAdES-LT/LTA: TSA, OCSP/CRL, trust store và long-term validation
+- [x] Chọn profile PAdES Baseline B/LT/LTA; LT/LTA yêu cầu TSA URL và nhúng validation info qua pyHanko
+- [ ] Kiểm thử PAdES-LT/LTA với TSA, OCSP/CRL và trust store production; không tuyên bố long-term validation nếu provider chưa xác minh
 - [ ] Wasm plugin worker local, cấp quyền theo tài liệu; XPC App-Sandbox chỉ cho worker do AZpdf phát hành (discovery/validation đã có; chưa thực thi plugin)
 - [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
 - [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào
-- [ ] Ký/notarize bản phát hành chính thức bằng Developer ID Application certificate
+- [x] Ký Developer ID, notarize và staple ZIP macOS; Gatekeeper đã xác minh `Notarized Developer ID`
+- [ ] Tạo GitHub Release public và upload ZIP notarized (chờ xác nhận xuất bản)
 
 ## Windows và Linux
 
