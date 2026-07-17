@@ -18,6 +18,12 @@ mkdir -p "$APP_RESOURCES"
 cp "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
 cp "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
 cp "$ROOT_DIR/Assets/mupdf_add_image.js" "$APP_RESOURCES/mupdf_add_image.js"
+if [[ -n "${MUTOOL_RUNTIME_DIR:-}" ]]; then
+  [[ -x "$MUTOOL_RUNTIME_DIR/mutool" ]] || { echo "MUTOOL_RUNTIME_DIR must contain executable mutool" >&2; exit 2; }
+  mkdir -p "$APP_RESOURCES/Tools"
+  cp -R "$MUTOOL_RUNTIME_DIR/." "$APP_RESOURCES/Tools/"
+  chmod +x "$APP_RESOURCES/Tools/mutool"
+fi
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
