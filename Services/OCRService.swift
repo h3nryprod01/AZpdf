@@ -51,6 +51,26 @@ enum OCRService {
         return cgImage
     }
 
+    static func render(_ page: PDFPage, crop: CGRect, scale: CGFloat = 2) throws -> CGImage {
+        let pageBounds = page.bounds(for: .cropBox)
+        let bounds = crop.intersection(pageBounds)
+        guard !bounds.isNull, !bounds.isEmpty else { throw OCRServiceError.unableToRenderPage }
+        let image = NSImage(size: CGSize(width: bounds.width * scale, height: bounds.height * scale))
+        image.lockFocus()
+        guard let context = NSGraphicsContext.current?.cgContext else {
+            image.unlockFocus()
+            throw OCRServiceError.unableToRenderPage
+        }
+        context.scaleBy(x: scale, y: scale)
+        context.translateBy(x: -bounds.minX, y: -bounds.minY)
+        page.draw(with: .cropBox, to: context)
+        image.unlockFocus()
+        guard let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            throw OCRServiceError.unableToRenderPage
+        }
+        return cgImage
+    }
+
     /// Uses an existing PDF text layer whenever it is meaningful. This preserves
     /// reading order and avoids losing content on born-digital PDFs; scans fall back
     /// to Vision at high resolution.

@@ -25,6 +25,11 @@ struct PDFReaderView: NSViewRepresentable {
         }
         view.onBeginMoveAnnotation = { store.beginAnnotationMove() }
         view.onFinishMoveAnnotation = { store.finishAnnotationMove() }
+        view.onOCRRegion = { page, bounds in
+            guard let index = store.document?.index(for: page) else { return }
+            guard index != NSNotFound else { return }
+            store.beginOCRRegion(pageIndex: index, bounds: bounds)
+        }
         return view
     }
 
@@ -95,6 +100,8 @@ struct PDFReaderView: NSViewRepresentable {
             store.record(.addAnnotation(kind: .highlight, page: store.selectedPageIndex))
         case .freeText, .signature, .image:
             view.armPlacement(action)
+        case .ocrRegion:
+            view.armOCRRegionSelection()
         case .redactSelection:
             guard let selection = view.currentSelection else {
                 store.lastError = "Hãy chọn nội dung cần redact trước."
@@ -178,11 +185,15 @@ final class PlacementPDFView: PDFView {
     var onSelectAnnotation: ((PDFAnnotation?, PDFPage) -> Void)?
     var onBeginMoveAnnotation: (() -> Void)?
     var onFinishMoveAnnotation: (() -> Void)?
+    var onOCRRegion: ((PDFPage, CGRect) -> Void)?
     private var placementAction: PDFReaderAction?
     private var draggedAnnotation: PDFAnnotation?
     private var dragPage: PDFPage?
     private var dragStartPoint: CGPoint?
     private var dragStartBounds: CGRect?
+    private var ocrRegionPage: PDFPage?
+    private var ocrRegionStartInView: CGPoint?
+    private var ocrRegionCurrentInView: CGPoint?
 
     func armPlacement(_ action: PDFReaderAction) {
         placementAction = action
@@ -191,6 +202,13 @@ final class PlacementPDFView: PDFView {
 
     func clearPlacement() {
         placementAction = nil
+        clearOCRRegionSelection()
+        window?.invalidateCursorRects(for: self)
+    }
+
+    func armOCRRegionSelection() {
+        placementAction = .ocrRegion
+        clearOCRRegionSelection()
         window?.invalidateCursorRects(for: self)
     }
 
@@ -200,6 +218,15 @@ final class PlacementPDFView: PDFView {
     }
 
     override func mouseDown(with event: NSEvent) {
+        if placementAction == .ocrRegion {
+            let pointInView = convert(event.locationInWindow, from: nil)
+            guard let page = page(for: pointInView, nearest: true) else { return }
+            ocrRegionPage = page
+            ocrRegionStartInView = pointInView
+            ocrRegionCurrentInView = pointInView
+            needsDisplay = true
+            return
+        }
         guard let action = placementAction else {
             let pointInView = convert(event.locationInWindow, from: nil)
             if let page = page(for: pointInView, nearest: true) {
@@ -227,6 +254,11 @@ final class PlacementPDFView: PDFView {
     }
 
     override func mouseDragged(with event: NSEvent) {
+        if placementAction == .ocrRegion, ocrRegionPage != nil {
+            ocrRegionCurrentInView = convert(event.locationInWindow, from: nil)
+            needsDisplay = true
+            return
+        }
         guard let annotation = draggedAnnotation,
               let page = dragPage,
               let startPoint = dragStartPoint,
@@ -248,6 +280,24 @@ final class PlacementPDFView: PDFView {
     }
 
     override func mouseUp(with event: NSEvent) {
+        if placementAction == .ocrRegion,
+           let page = ocrRegionPage,
+           let start = ocrRegionStartInView {
+            let end = convert(event.locationInWindow, from: nil)
+            let startOnPage = convert(start, to: page)
+            let endOnPage = convert(end, to: page)
+            let bounds = CGRect(
+                x: min(startOnPage.x, endOnPage.x),
+                y: min(startOnPage.y, endOnPage.y),
+                width: abs(endOnPage.x - startOnPage.x),
+                height: abs(endOnPage.y - startOnPage.y)
+            ).intersection(page.bounds(for: .cropBox))
+            placementAction = nil
+            clearOCRRegionSelection()
+            window?.invalidateCursorRects(for: self)
+            if bounds.width >= 8, bounds.height >= 8 { onOCRRegion?(page, bounds) }
+            return
+        }
         if draggedAnnotation != nil {
             draggedAnnotation = nil
             dragPage = nil
@@ -263,6 +313,28 @@ final class PlacementPDFView: PDFView {
         annotation.type == PDFAnnotationSubtype.freeText.rawValue
             || annotation.type == PDFAnnotationSubtype.ink.rawValue
             || annotation.type == PDFAnnotationSubtype.stamp.rawValue
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        super.draw(dirtyRect)
+        guard let start = ocrRegionStartInView, let current = ocrRegionCurrentInView else { return }
+        let rect = CGRect(
+            x: min(start.x, current.x), y: min(start.y, current.y),
+            width: abs(current.x - start.x), height: abs(current.y - start.y)
+        )
+        NSColor.controlAccentColor.withAlphaComponent(0.18).setFill()
+        NSBezierPath(rect: rect).fill()
+        NSColor.controlAccentColor.setStroke()
+        let path = NSBezierPath(rect: rect)
+        path.lineWidth = 2
+        path.stroke()
+    }
+
+    private func clearOCRRegionSelection() {
+        ocrRegionPage = nil
+        ocrRegionStartInView = nil
+        ocrRegionCurrentInView = nil
+        needsDisplay = true
     }
 
     private func placementBounds(for action: PDFReaderAction, at point: CGPoint, on page: PDFPage) -> CGRect {

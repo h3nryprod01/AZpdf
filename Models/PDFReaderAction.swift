@@ -8,4 +8,5 @@ enum PDFReaderAction: Equatable {
     case signature([SignatureStroke])
     case image(URL)
     case redactSelection
+    case ocrRegion
 }
