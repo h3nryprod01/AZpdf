@@ -289,6 +289,33 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(report.profile, .pdfUA2)
     }
 
+    func testConformanceServiceReadsNonCompliantReportDespiteValidatorExitStatus() throws {
+        let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-verapdf-exit-test-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        let executable = directory.appending(path: "verapdf")
+        try "#!/bin/sh\necho '{\"report\":{\"isCompliant\":false}}'\nexit 1\n".write(to: executable, atomically: true, encoding: .utf8)
+        try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
+
+        let report = try PDFConformanceService.validate(Data("%PDF".utf8), profile: .pdfA4, executable: executable)
+
+        XCTAssertEqual(report.status, .nonCompliant)
+    }
+
+    func testConformanceServiceWithInstalledVeraPDF() throws {
+        let environment = ProcessInfo.processInfo.environment
+        guard environment["AZPDF_RUN_EXTERNAL_INTEGRATION"] == "1",
+              let path = environment["AZPDF_EXTERNAL_PDF"] else {
+            throw XCTSkip("Set AZPDF_RUN_EXTERNAL_INTEGRATION=1 and AZPDF_EXTERNAL_PDF=/path/to/test.pdf to run veraPDF locally.")
+        }
+        let data = try Data(contentsOf: URL(fileURLWithPath: path))
+
+        let report = try PDFConformanceService.validate(data, profile: .pdfA4)
+
+        XCTAssertNotEqual(report.status, .unknown)
+        XCTAssertFalse(report.details.isEmpty)
+    }
+
     func testProtectedCopyRequiresPasswordToUnlock() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)
