@@ -17,3 +17,11 @@ jobs:
         run: ./script/audit_portable_core.sh
       - name: Build app bundle
         run: ./script/build_and_run.sh --bundle
+      - name: Validate release scripts
+        run: |
+          bash -n script/build_and_run.sh script/package_release.sh script/audit_runtime.sh
+          runtime="$(mktemp -d)"
+          cp /usr/bin/true "$runtime/helper"
+          chmod +x "$runtime/helper"
+          ./script/audit_runtime.sh "$runtime" helper
+          rm -rf "$runtime"
