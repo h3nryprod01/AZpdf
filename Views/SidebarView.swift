@@ -7,9 +7,12 @@ struct SidebarView: View {
     var body: some View {
         let _ = store.documentRevision
         List(selection: $store.selectedPageIndex) {
-            Section("Tài liệu") {
-                Label(store.title, systemImage: "doc.richtext")
+            Section("Tóm tắt") {
+                Label(store.title, systemImage: store.isModified ? "doc.badge.gearshape" : "doc.richtext")
                     .lineLimit(1)
+                Label("\(store.pageCount) trang · \(store.isModified ? "Chưa lưu" : "Đã lưu")", systemImage: "info.circle")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
             }
             if let document = store.document {
                 let outlineItems = PDFOutlineItem.makeItems(from: document.outlineRoot, in: document)

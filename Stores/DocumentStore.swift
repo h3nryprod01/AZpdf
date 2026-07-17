@@ -21,6 +21,7 @@ final class DocumentStore {
     var isAutoScale = true
     var isInsertImporterPresented = false
     var isImageImporterPresented = false
+    private var isReplacingSelectedImage = false
     var isExportPresented = false
     var isCurrentPageExporterPresented = false
     var isPasswordPromptPresented = false
@@ -198,6 +199,15 @@ final class DocumentStore {
         documentRevision += 1
     }
 
+    func updateSelectedNote() {
+        guard let annotation = selectedAnnotation else { return }
+        registerUndoStep()
+        annotation.contents = selectedAnnotationText
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
     func updateSelectedImageSize() {
         guard let annotation = selectedAnnotation,
               annotation.type == PDFAnnotationSubtype.stamp.rawValue else { return }
@@ -209,6 +219,17 @@ final class DocumentStore {
         annotation.modificationDate = Date()
         isModified = true
         documentRevision += 1
+    }
+
+    func beginImageInsertion() {
+        isReplacingSelectedImage = false
+        isImageImporterPresented = true
+    }
+
+    func beginReplaceSelectedImage() {
+        guard selectedAnnotation is EditableImageAnnotation else { return }
+        isReplacingSelectedImage = true
+        isImageImporterPresented = true
     }
 
     /// Provides a keyboard and VoiceOver-accessible alternative to dragging an annotation.
@@ -753,6 +774,15 @@ final class DocumentStore {
         lastOperation = .insertPages(count: pages.count, at: insertionIndex)
     }
 
+    func importImage(from url: URL) {
+        if isReplacingSelectedImage {
+            isReplacingSelectedImage = false
+            replaceSelectedImage(from: url)
+        } else {
+            insertImage(from: url)
+        }
+    }
+
     func insertImage(from url: URL) {
         guard document != nil, NSImage(contentsOf: url) != nil else {
             lastError = "Không thể đọc ảnh để chèn."
@@ -768,24 +798,30 @@ final class DocumentStore {
     }
 
     func insertImageOverlay(from imageURL: URL, pageIndex: Int, bounds: CGRect) {
-        guard let document, let page = document.page(at: pageIndex) else { return }
-        let mupdfBounds = CGRect(
-            x: bounds.minX,
-            y: page.bounds(for: .cropBox).height - bounds.maxY,
-            width: bounds.width,
-            height: bounds.height
-        )
-        do {
-            registerUndoStep()
-            self.document = try MuPDFImageOverlayService.insertImage(imageURL, into: document, pageIndex: pageIndex, bounds: mupdfBounds)
-            selectedPageIndex = pageIndex
-            documentRevision += 1
-            placementInstruction = nil
-            isModified = true
-            lastOperation = .addAnnotation(kind: .image, page: pageIndex)
-        } catch {
-            lastError = error.localizedDescription
+        guard let page = document?.page(at: pageIndex), let image = NSImage(contentsOf: imageURL) else {
+            lastError = "Không thể đọc ảnh để chèn."
+            return
         }
+        registerUndoStep()
+        let annotation = EditableImageAnnotation(image: image, bounds: bounds)
+        page.addAnnotation(annotation)
+        selectAnnotation(annotation, pageIndex: pageIndex)
+        documentRevision += 1
+        placementInstruction = nil
+        isModified = true
+        lastOperation = .addAnnotation(kind: .image, page: pageIndex)
+    }
+
+    private func replaceSelectedImage(from url: URL) {
+        guard let annotation = selectedAnnotation as? EditableImageAnnotation,
+              let image = NSImage(contentsOf: url) else {
+            lastError = "Không thể đọc ảnh thay thế."
+            return
+        }
+        registerUndoStep()
+        annotation.replaceImage(image)
+        documentRevision += 1
+        isModified = true
     }
 
     func movePages(from offsets: IndexSet, to destination: Int) {

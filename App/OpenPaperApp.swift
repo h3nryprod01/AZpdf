@@ -48,7 +48,7 @@ struct AZpdfApp: App {
                 Button("Thêm chữ…") { workspace.activeStore.beginTextAnnotation() }
                     .keyboardShortcut("t", modifiers: [.command, .shift])
                 Button("Chèn chữ ký…") { workspace.activeStore.beginSignature() }
-                    .keyboardShortcut("s", modifiers: [.command, .shift])
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
                 Button("Ký bằng certificate…") { workspace.activeStore.beginCertificateSigning() }
                 Button("Xác minh chữ ký .p7s…") { workspace.activeStore.beginCertificateSignatureVerification() }
                 Button("Ký PAdES vào PDF…") { workspace.activeStore.beginPAdESSigning() }
@@ -69,7 +69,7 @@ struct AZpdfApp: App {
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 Button("Chèn trang từ PDF…") { workspace.activeStore.isInsertImporterPresented = true }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
-                Button("Chèn ảnh…") { workspace.activeStore.isImageImporterPresented = true }
+                Button("Chèn ảnh…") { workspace.activeStore.beginImageInsertion() }
                     .keyboardShortcut("i", modifiers: [.command, .option])
                 Button("Xuất trang hiện tại…") { workspace.activeStore.prepareCurrentPageExport() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
