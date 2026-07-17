@@ -52,6 +52,7 @@ struct AZpdfApp: App {
                 Button("Ký bằng certificate…") { workspace.activeStore.beginCertificateSigning() }
                 Button("OCR trang hiện tại…") { workspace.activeStore.beginOCRCurrentPage() }
                     .keyboardShortcut("o", modifiers: [.command, .shift])
+                Button("OCR toàn bộ tài liệu…") { workspace.activeStore.beginOCRDocument() }
                 Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
                 Button("Redact vùng chọn") { workspace.activeStore.beginRedaction() }

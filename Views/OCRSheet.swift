@@ -6,13 +6,13 @@ struct OCRSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("OCR trang hiện tại").font(.title2.weight(.semibold))
-            Text("Vision xử lý ảnh của trang hoàn toàn trên máy. Hãy kiểm tra kết quả trước khi sử dụng.")
+            Text(store.ocrTotalPages > 1 ? "OCR toàn bộ tài liệu" : "OCR trang hiện tại").font(.title2.weight(.semibold))
+            Text("Vision xử lý ảnh trang ở 3× resolution hoàn toàn trên máy. Hãy kiểm tra kết quả trước khi sử dụng.")
                 .foregroundStyle(.secondary)
             if store.isOCRProcessing {
                 HStack(spacing: 10) {
                     ProgressView()
-                    Text("Đang nhận dạng tiếng Việt và tiếng Anh…")
+                    Text("Đang nhận dạng tiếng Việt và tiếng Anh — \(store.ocrCompletedPages)/\(store.ocrTotalPages) trang…")
                 }
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {
@@ -22,7 +22,9 @@ struct OCRSheet: View {
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
             }
             HStack {
-                Button("Chạy lại") { store.beginOCRCurrentPage() }
+                Button("OCR trang này") { store.beginOCRCurrentPage() }
+                    .disabled(store.isOCRProcessing)
+                Button("OCR toàn bộ") { store.beginOCRDocument() }
                     .disabled(store.isOCRProcessing)
                 Spacer()
                 Button("Sao chép") { store.copyOCRText() }

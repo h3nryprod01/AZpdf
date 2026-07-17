@@ -30,6 +30,8 @@ final class DocumentStore {
     var isCertificateSigningSheetPresented = false
     var isOCRSheetPresented = false
     var isOCRProcessing = false
+    var ocrCompletedPages = 0
+    var ocrTotalPages = 0
     var isRedactionConfirmationPresented = false
     var searchText = ""
     var searchResultCount = 0
@@ -266,22 +268,50 @@ final class DocumentStore {
 
     @MainActor
     func beginOCRCurrentPage() {
-        guard let page = document?.page(at: selectedPageIndex) else { return }
+        beginOCR(pageIndices: [selectedPageIndex])
+    }
+
+    @MainActor
+    func beginOCRDocument() {
+        guard let document else { return }
+        beginOCR(pageIndices: Array(0..<document.pageCount))
+    }
+
+    @MainActor
+    private func beginOCR(pageIndices: [Int]) {
+        guard let document, !pageIndices.isEmpty else { return }
         isOCRSheetPresented = true
         isOCRProcessing = true
         ocrText = ""
-        ocrPageIndex = selectedPageIndex
+        ocrPageIndex = pageIndices.first ?? selectedPageIndex
+        ocrCompletedPages = 0
+        ocrTotalPages = pageIndices.count
         do {
-            let image = try OCRService.render(page)
+            let renderedPages = try pageIndices.compactMap { index -> (Int, CGImage)? in
+                guard let page = document.page(at: index) else { return nil }
+                return (index, try OCRService.render(page, scale: 3))
+            }
+            guard !renderedPages.isEmpty else { return }
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                let result = Result { try OCRService.recognize(image) }
+                var pages: [String] = []
+                for (index, image) in renderedPages {
+                    let result = Result { try OCRService.recognize(image) }
+                    let pageText: String
+                    switch result {
+                    case let .success(text): pageText = "## Trang \(index + 1)\n\(text)"
+                    case .failure: pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
+                    }
+                    pages.append(pageText)
+                    let previewText = pages.joined(separator: "\n\n")
+                    DispatchQueue.main.async {
+                        guard let self else { return }
+                        self.ocrCompletedPages += 1
+                        self.ocrText = previewText
+                    }
+                }
                 DispatchQueue.main.async {
                     guard let self else { return }
                     self.isOCRProcessing = false
-                    switch result {
-                    case let .success(text): self.ocrText = text
-                    case let .failure(error): self.lastError = "OCR thất bại: \(error.localizedDescription)"
-                    }
                 }
             }
         } catch {

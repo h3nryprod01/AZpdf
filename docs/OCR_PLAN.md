@@ -2,7 +2,7 @@
 
 ## Đã có trong macOS v1
 
-OCR trang hiện tại dùng Vision framework, nhận dạng Việt/Anh local-first. Người dùng review, sửa, sao chép hoặc xuất `.txt`; AZpdf không tự ghi text layer vào PDF.
+OCR trang hiện tại hoặc toàn bộ tài liệu dùng Vision framework, nhận dạng Việt/Anh local-first ở 3× resolution, có tiến độ theo trang. Người dùng review, sửa, sao chép hoặc xuất `.txt`; AZpdf không tự ghi text layer vào PDF.
 
 ## Mục tiêu v1.1
 
