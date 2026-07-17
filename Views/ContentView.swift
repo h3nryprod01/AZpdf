@@ -14,7 +14,9 @@ struct ContentView: View {
         } detail: {
             Group {
                 if store.document != nil {
-                    PDFReaderView(store: store)
+                    PDFReaderView(store: store) { hasSelection in
+                        if hasSelection { isInspectorPresented = true }
+                    }
                 } else {
                     EmptyDocumentView(store: store, openPDF: openPDF)
                 }
@@ -70,9 +72,9 @@ struct ContentView: View {
         }
         .fileImporter(isPresented: $store.isImageImporterPresented, allowedContentTypes: [.image]) { result in
             if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else { store.insertImage(from: url); return }
+                guard url.startAccessingSecurityScopedResource() else { store.importImage(from: url); return }
                 defer { url.stopAccessingSecurityScopedResource() }
-                store.insertImage(from: url)
+                store.importImage(from: url)
             }
         }
         .fileImporter(isPresented: $store.isCertificateSignatureImporterPresented, allowedContentTypes: [.data]) { result in
@@ -189,7 +191,7 @@ struct ContentView: View {
             Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }.help("Xoay trang hiện tại")
             Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }.help("Nhân đôi trang hiện tại")
             Button { store.isInsertImporterPresented = true } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }.help("Chèn trang từ PDF khác")
-            Button { store.isImageImporterPresented = true } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }.help("Chèn ảnh thành trang mới")
+            Button { store.beginImageInsertion() } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }.help("Chèn ảnh có thể kéo, đổi cỡ và thay thế")
             Button { store.prepareCurrentPageExport() } label: { Label("Xuất trang", systemImage: "doc.badge.arrow.up") }.help("Xuất trang hiện tại")
             Button { store.beginPasswordProtectedExport() } label: { Label("Xuất bảo vệ", systemImage: "lock.doc") }.help("Xuất PDF có mật khẩu")
             }

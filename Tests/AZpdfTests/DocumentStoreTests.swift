@@ -103,6 +103,40 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertFalse(store.isModified)
     }
 
+    func testSelectedNoteCanBeEdited() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let note = PDFAnnotation(bounds: CGRect(x: 20, y: 20, width: 32, height: 32), forType: .text, withProperties: nil)
+        note.contents = "Cũ"
+        store.document?.page(at: 0)?.addAnnotation(note)
+        store.selectAnnotation(note, pageIndex: 0)
+        store.selectedAnnotationText = "Mới"
+
+        store.updateSelectedNote()
+
+        XCTAssertEqual(note.contents, "Mới")
+        XCTAssertTrue(store.isModified)
+    }
+
+    func testImageInsertionUsesEditableAnnotation() throws {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let image = NSImage(size: CGSize(width: 20, height: 20))
+        image.lockFocus()
+        NSColor.systemBlue.setFill()
+        NSBezierPath(rect: CGRect(x: 0, y: 0, width: 20, height: 20)).fill()
+        image.unlockFocus()
+        let url = FileManager.default.temporaryDirectory.appendingPathComponent("azpdf-editable-image.png")
+        let bitmap = NSBitmapImageRep(data: image.tiffRepresentation ?? Data())
+        try XCTUnwrap(bitmap?.representation(using: .png, properties: [:])).write(to: url)
+        defer { try? FileManager.default.removeItem(at: url) }
+
+        store.insertImageOverlay(from: url, pageIndex: 0, bounds: CGRect(x: 24, y: 24, width: 80, height: 60))
+
+        XCTAssertTrue(store.document?.page(at: 0)?.annotations.last is EditableImageAnnotation)
+        XCTAssertTrue(store.isModified)
+    }
+
     func testOCRRegionArmsSelectionWithoutChangingDocument() {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

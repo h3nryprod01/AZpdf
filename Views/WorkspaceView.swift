@@ -59,7 +59,11 @@ private struct WorkspaceTabItem: View {
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 6)
-        .background(isSelected ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.clear), in: RoundedRectangle(cornerRadius: 6))
+        .background(isSelected ? AnyShapeStyle(.quaternary) : AnyShapeStyle(.background), in: RoundedRectangle(cornerRadius: 7))
+        .overlay {
+            RoundedRectangle(cornerRadius: 7)
+                .strokeBorder(isSelected ? Color.accentColor.opacity(0.55) : Color.secondary.opacity(0.22), lineWidth: 1)
+        }
         .contextMenu { Button("Đóng tab", action: close) }
     }
 }

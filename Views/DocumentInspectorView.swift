@@ -85,6 +85,19 @@ struct DocumentInspectorView: View {
             }
 
             if let annotation = store.selectedAnnotation,
+               annotation.type != PDFAnnotationSubtype.freeText.rawValue,
+               annotation.type != PDFAnnotationSubtype.stamp.rawValue {
+                Section("Chỉnh sửa ghi chú") {
+                    Text("Kéo trực tiếp ghi chú trên PDF để di chuyển.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    TextEditor(text: $store.selectedAnnotationText)
+                        .frame(minHeight: 72)
+                    annotationPositionControls
+                    Button("Áp dụng ghi chú") { store.updateSelectedNote() }
+                }
+            }
+
+            if let annotation = store.selectedAnnotation,
                annotation.type == PDFAnnotationSubtype.stamp.rawValue {
                 Section("Chỉnh sửa ảnh") {
                     Text("Kéo trực tiếp ảnh trên PDF để di chuyển. Đổi kích thước rồi nhấn Áp dụng.")
@@ -93,6 +106,7 @@ struct DocumentInspectorView: View {
                     Stepper("Cao: \(Int(store.selectedAnnotationHeight)) pt", value: $store.selectedAnnotationHeight, in: 24...1_200, step: 4)
                     annotationPositionControls
                     Button("Áp dụng kích thước") { store.updateSelectedImageSize() }
+                    Button("Thay ảnh…") { store.beginReplaceSelectedImage() }
                 }
             }
 

@@ -4,6 +4,7 @@ import AZpdfCore
 
 struct PDFReaderView: NSViewRepresentable {
     @Bindable var store: DocumentStore
+    var onAnnotationSelected: (Bool) -> Void = { _ in }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -22,6 +23,7 @@ struct PDFReaderView: NSViewRepresentable {
         view.onSelectAnnotation = { annotation, page in
             let index = store.document?.index(for: page)
             store.selectAnnotation(annotation, pageIndex: index == NSNotFound ? nil : index)
+            onAnnotationSelected(annotation != nil)
         }
         view.onBeginMoveAnnotation = { store.beginAnnotationMove() }
         view.onFinishMoveAnnotation = { store.finishAnnotationMove() }
@@ -234,6 +236,8 @@ final class PlacementPDFView: PDFView {
                 let annotation = page.annotations.reversed().first { $0.bounds.contains(pointOnPage) }
                 onSelectAnnotation?(annotation, page)
                 if let annotation, isMovable(annotation) {
+                    window?.makeFirstResponder(self)
+                    clearSelection()
                     draggedAnnotation = annotation
                     dragPage = page
                     dragStartPoint = pointOnPage
@@ -313,6 +317,7 @@ final class PlacementPDFView: PDFView {
         annotation.type == PDFAnnotationSubtype.freeText.rawValue
             || annotation.type == PDFAnnotationSubtype.ink.rawValue
             || annotation.type == PDFAnnotationSubtype.stamp.rawValue
+            || annotation.type == PDFAnnotationSubtype.text.rawValue
     }
 
     override func draw(_ dirtyRect: NSRect) {
