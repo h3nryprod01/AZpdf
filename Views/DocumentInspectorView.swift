@@ -34,6 +34,7 @@ struct DocumentInspectorView: View {
                 if store.document?.isLocked == true {
                     Button("Mở khóa tài liệu") { store.isPasswordPromptPresented = true }
                 }
+                Button("Kiểm tra PDF/A & PDF/UA…") { store.beginConformanceCheck() }
             }
 
             Section("Biểu mẫu PDF") {

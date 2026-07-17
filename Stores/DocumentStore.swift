@@ -31,6 +31,8 @@ final class DocumentStore {
     var isCertificateSignatureImporterPresented = false
     var isCertificateVerificationResultPresented = false
     var isOCRSheetPresented = false
+    var isConformanceSheetPresented = false
+    var isConformanceChecking = false
     var isOCRProcessing = false
     var ocrCompletedPages = 0
     var ocrTotalPages = 0
@@ -51,6 +53,7 @@ final class DocumentStore {
     var selectedCertificateIdentityID = ""
     var certificateVerificationMessage = ""
     var ocrText = ""
+    var conformanceReport: PDFConformanceReport?
     var ocrPageIndex = 0
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
@@ -365,6 +368,28 @@ final class DocumentStore {
             try ocrText.write(to: url, atomically: true, encoding: .utf8)
         } catch {
             lastError = "Không thể xuất văn bản OCR: \(error.localizedDescription)"
+        }
+    }
+
+    func beginConformanceCheck() {
+        guard document != nil else { return }
+        conformanceReport = nil
+        isConformanceSheetPresented = true
+    }
+
+    func checkConformance(_ profile: PDFConformanceProfile) {
+        guard let data = document?.dataRepresentation(), !isConformanceChecking else { return }
+        isConformanceChecking = true
+        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            let result = Result { try PDFConformanceService.validate(data, profile: profile) }
+            DispatchQueue.main.async {
+                guard let self else { return }
+                self.isConformanceChecking = false
+                switch result {
+                case let .success(report): self.conformanceReport = report
+                case let .failure(error): self.lastError = error.localizedDescription
+                }
+            }
         }
     }
 

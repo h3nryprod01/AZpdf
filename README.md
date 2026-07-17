@@ -25,6 +25,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
 - Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
 - Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu
+- Kiểm tra PDF/A và PDF/UA bằng veraPDF cục bộ khi runtime validator có sẵn; hiển thị báo cáo gốc, không tự tuyên bố tài liệu compliant
 - Undo/redo tối đa 50 thao tác chỉnh sửa trong phiên làm việc
 - Hiển thị rõ trạng thái chỉnh sửa chưa lưu trên tiêu đề và Inspector
 - Danh sách tối đa 8 tài liệu gần đây để mở lại nhanh
@@ -47,7 +48,7 @@ Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
 <img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
 
 ## Phát triển
-Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` chứa MuPDF self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
+Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh và veraPDF (`brew install verapdf`) để kiểm tra chuẩn. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` và `VERAPDF_RUNTIME_DIR` chứa runtime self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
 
 Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). Bản v1 hỗ trợ tạo và xác minh chữ ký số CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain; PDF gốc không bị sửa. Đây chưa phải chữ ký PAdES nhúng trong PDF.
 

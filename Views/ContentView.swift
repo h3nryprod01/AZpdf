@@ -129,6 +129,9 @@ struct ContentView: View {
         .sheet(isPresented: $store.isOCRSheetPresented) {
             OCRSheet(store: store)
         }
+        .sheet(isPresented: $store.isConformanceSheetPresented) {
+            PDFConformanceSheet(store: store)
+        }
         .sheet(isPresented: $store.isPasswordProtectSheetPresented) {
             PasswordProtectSheet(store: store)
         }
