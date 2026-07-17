@@ -9,38 +9,36 @@ APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 APP_MACOS="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES="$APP_BUNDLE/Contents/Resources"
 APP_HELPERS="$APP_BUNDLE/Contents/Helpers"
+copy_clean() { /usr/bin/ditto --noextattr --norsrc "$1" "$2"; }
 
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
 swift build
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS"
-cp "$(swift build --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
+copy_clean "$(swift build --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
 mkdir -p "$APP_RESOURCES"
-cp "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
-cp "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
-cp "$ROOT_DIR/Assets/mupdf_add_image.js" "$APP_RESOURCES/mupdf_add_image.js"
+copy_clean "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
+copy_clean "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
+copy_clean "$ROOT_DIR/Assets/mupdf_add_image.js" "$APP_RESOURCES/mupdf_add_image.js"
 if [[ -n "${MUTOOL_RUNTIME_DIR:-}" ]]; then
   [[ -x "$MUTOOL_RUNTIME_DIR/mutool" ]] || { echo "MUTOOL_RUNTIME_DIR must contain executable mutool" >&2; exit 2; }
   mkdir -p "$APP_HELPERS"
-  cp -R "$MUTOOL_RUNTIME_DIR/." "$APP_HELPERS/"
+  copy_clean "$MUTOOL_RUNTIME_DIR/mutool" "$APP_HELPERS/mutool"
   chmod +x "$APP_HELPERS/mutool"
 fi
 if [[ -n "${VERAPDF_RUNTIME_DIR:-}" ]]; then
   [[ -x "$VERAPDF_RUNTIME_DIR/verapdf" ]] || { echo "VERAPDF_RUNTIME_DIR must contain executable verapdf" >&2; exit 2; }
-  mkdir -p "$APP_HELPERS/veraPDF"
-  cp -R "$VERAPDF_RUNTIME_DIR/." "$APP_HELPERS/veraPDF/"
+  copy_clean "$VERAPDF_RUNTIME_DIR" "$APP_HELPERS/veraPDF"
   chmod +x "$APP_HELPERS/veraPDF/verapdf"
 fi
 if [[ -n "${PYHANKO_RUNTIME_DIR:-}" ]]; then
   [[ -x "$PYHANKO_RUNTIME_DIR/pyhanko" ]] || { echo "PYHANKO_RUNTIME_DIR must contain a self-contained executable pyhanko" >&2; exit 2; }
-  mkdir -p "$APP_HELPERS/pyhanko"
-  cp -R "$PYHANKO_RUNTIME_DIR/." "$APP_HELPERS/pyhanko/"
+  copy_clean "$PYHANKO_RUNTIME_DIR" "$APP_HELPERS/pyhanko"
   chmod +x "$APP_HELPERS/pyhanko/pyhanko"
 fi
 if [[ -n "${OCRMY_PDF_RUNTIME_DIR:-}" ]]; then
   [[ -x "$OCRMY_PDF_RUNTIME_DIR/ocrmypdf" ]] || { echo "OCRMY_PDF_RUNTIME_DIR must contain a self-contained executable ocrmypdf" >&2; exit 2; }
-  mkdir -p "$APP_HELPERS/ocrmypdf"
-  cp -R "$OCRMY_PDF_RUNTIME_DIR/." "$APP_HELPERS/ocrmypdf/"
+  copy_clean "$OCRMY_PDF_RUNTIME_DIR" "$APP_HELPERS/ocrmypdf"
   chmod +x "$APP_HELPERS/ocrmypdf/ocrmypdf"
 fi
 chmod +x "$APP_MACOS/$APP_NAME"
