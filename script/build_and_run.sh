@@ -8,7 +8,10 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 APP_MACOS="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES="$APP_BUNDLE/Contents/Resources"
-APP_HELPERS="$APP_BUNDLE/Contents/Helpers"
+# Command runtimes include OCR data, JRE files and scripts; Resources keeps
+# that data in the app resource seal instead of treating every file as nested
+# code (which is what Contents/Helpers does during Developer ID signing).
+APP_HELPERS="$APP_RESOURCES/Helpers"
 copy_clean() { /usr/bin/ditto --noextattr --norsrc "$1" "$2"; }
 
 # Development builds must exercise the same self-contained OCR runtime as a

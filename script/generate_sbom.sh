@@ -6,7 +6,7 @@ set -euo pipefail
 # a runtime has many native transitive libraries.
 APP_BUNDLE="${1:?Usage: generate_sbom.sh /path/to/AZpdf.app /path/to/SBOM.spdx}"
 OUTPUT="${2:?Usage: generate_sbom.sh /path/to/AZpdf.app /path/to/SBOM.spdx}"
-HELPERS="$APP_BUNDLE/Contents/Helpers"
+HELPERS="$APP_BUNDLE/Contents/Resources/Helpers"
 [[ -x "$HELPERS/mutool" && -x "$HELPERS/veraPDF/verapdf" && -x "$HELPERS/pyhanko/pyhanko" && -x "$HELPERS/ocrmypdf/ocrmypdf" ]] || {
   echo "All four release helpers must be bundled before generating the SBOM" >&2; exit 2;
 }
