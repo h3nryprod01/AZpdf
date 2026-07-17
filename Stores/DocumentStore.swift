@@ -304,19 +304,27 @@ final class DocumentStore {
         ocrCompletedPages = 0
         ocrTotalPages = pageIndices.count
         do {
-            let renderedPages = try pageIndices.compactMap { index -> (Int, CGImage)? in
+            let pageInputs = try pageIndices.compactMap { index -> (Int, String, CGImage?)? in
                 guard let page = document.page(at: index) else { return nil }
-                return (index, try OCRService.render(page, scale: 3))
+                if let text = OCRService.textLayer(from: page) { return (index, text, nil) }
+                return (index, "", try OCRService.render(page, scale: 3))
             }
-            guard !renderedPages.isEmpty else { return }
+            guard !pageInputs.isEmpty else {
+                isOCRProcessing = false
+                return
+            }
             DispatchQueue.global(qos: .userInitiated).async { [weak self] in
                 var pages: [String] = []
-                for (index, image) in renderedPages {
-                    let result = Result { try OCRService.recognize(image) }
+                for (index, textLayer, image) in pageInputs {
                     let pageText: String
-                    switch result {
-                    case let .success(text): pageText = "## Trang \(index + 1)\n\(text)"
-                    case .failure: pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
+                    if !textLayer.isEmpty {
+                        pageText = "## Trang \(index + 1) · \(OCRService.Source.textLayer.displayName)\n\(textLayer)"
+                    } else {
+                        let result = Result { try OCRService.recognize(image!) }
+                        switch result {
+                        case let .success(text): pageText = "## Trang \(index + 1) · \(OCRService.Source.vision.displayName)\n\(text)"
+                        case .failure: pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
+                        }
                     }
                     pages.append(pageText)
                     let previewText = pages.joined(separator: "\n\n")

@@ -239,6 +239,10 @@ final class DocumentStoreTests: XCTestCase {
         }
     }
 
+    func testOCRTextNormalizationRemovesNonBreakingSpaces() {
+        XCTAssertEqual(OCRService.normalized("\n  AZpdf\u{00A0}OCR\r\n"), "AZpdf OCR")
+    }
+
     func testProtectedCopyRequiresPasswordToUnlock() throws {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 1)

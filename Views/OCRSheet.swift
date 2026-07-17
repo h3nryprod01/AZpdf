@@ -7,7 +7,7 @@ struct OCRSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(store.ocrTotalPages > 1 ? "OCR toàn bộ tài liệu" : "OCR trang hiện tại").font(.title2.weight(.semibold))
-            Text("Vision xử lý ảnh trang ở 3× resolution hoàn toàn trên máy. Hãy kiểm tra kết quả trước khi sử dụng.")
+            Text("AZpdf ưu tiên text layer sẵn có của PDF; trang scan dùng Vision ở 3× resolution. Mọi xử lý diễn ra trên máy — hãy kiểm tra kết quả trước khi sử dụng.")
                 .foregroundStyle(.secondary)
             if store.isOCRProcessing {
                 HStack(spacing: 10) {
