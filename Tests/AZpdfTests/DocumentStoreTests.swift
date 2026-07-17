@@ -265,6 +265,16 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(report.profile, .pdfA4)
     }
 
+    func testConformanceReportParsesActualVeraPDFResultShape() throws {
+        let json = """
+        {"report":{"jobs":[{"validationResult":[{"profileName":"PDF/A-1b validation profile","compliant":false}]}]}}
+        """
+        let data = try XCTUnwrap(json.data(using: .utf8))
+        let report = PDFConformanceService.parse(data, profile: .automatic)
+
+        XCTAssertEqual(report.status, .nonCompliant)
+    }
+
     func testConformanceServiceRunsLocalValidatorAndReadsReport() throws {
         let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-verapdf-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
