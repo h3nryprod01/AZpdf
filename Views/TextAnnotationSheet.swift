@@ -7,7 +7,7 @@ struct TextAnnotationSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Thêm chữ vào PDF").font(.title3.weight(.semibold))
-            Text("Hộp chữ sẽ được đặt tại phần văn bản đang chọn, hoặc ở đầu trang hiện tại nếu chưa chọn gì.")
+            Text("Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt hộp chữ tại vị trí mong muốn.")
                 .foregroundStyle(.secondary)
             TextEditor(text: $store.draftTextAnnotation)
                 .font(.body)

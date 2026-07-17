@@ -7,7 +7,7 @@ struct SignatureSheet: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Chữ ký tay")
                 .font(.title2.weight(.semibold))
-            Text("Vẽ chữ ký bằng chuột hoặc trackpad. Chữ ký sẽ được thêm vào trang đang mở và luôn được xử lý trên máy.")
+            Text("Vẽ chữ ký bằng chuột hoặc trackpad. Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt chữ ký; toàn bộ dữ liệu được xử lý trên máy.")
                 .foregroundStyle(.secondary)
             SignatureCanvas(strokes: $store.draftSignatureStrokes)
                 .frame(width: 520, height: 190)
