@@ -18,6 +18,11 @@ struct PDFConformanceSheet: View {
             if store.isConformanceChecking {
                 HStack { ProgressView(); Text("Đang kiểm tra trên máy…") }
             }
+            if let error = store.conformanceError {
+                Label(error, systemImage: "exclamationmark.triangle")
+                    .foregroundStyle(.red)
+                    .font(.callout)
+            }
             if let report = store.conformanceReport {
                 LabeledContent("Kết quả") { Text(report.status.displayName) }
                 TextEditor(text: .constant(report.details))

@@ -54,6 +54,7 @@ final class DocumentStore {
     var certificateVerificationMessage = ""
     var ocrText = ""
     var conformanceReport: PDFConformanceReport?
+    var conformanceError: String?
     var ocrPageIndex = 0
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
@@ -374,12 +375,14 @@ final class DocumentStore {
     func beginConformanceCheck() {
         guard document != nil else { return }
         conformanceReport = nil
+        conformanceError = nil
         isConformanceSheetPresented = true
     }
 
     func checkConformance(_ profile: PDFConformanceProfile) {
         guard let data = document?.dataRepresentation(), !isConformanceChecking else { return }
         isConformanceChecking = true
+        conformanceError = nil
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = Result { try PDFConformanceService.validate(data, profile: profile) }
             DispatchQueue.main.async {
@@ -387,7 +390,7 @@ final class DocumentStore {
                 self.isConformanceChecking = false
                 switch result {
                 case let .success(report): self.conformanceReport = report
-                case let .failure(error): self.lastError = error.localizedDescription
+                case let .failure(error): self.conformanceError = error.localizedDescription
                 }
             }
         }
