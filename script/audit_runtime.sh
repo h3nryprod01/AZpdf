@@ -13,10 +13,22 @@ EXECUTABLE="$RUNTIME_DIR/$2"
 [[ -x "$EXECUTABLE" ]] || { echo "Runtime audit failed: expected executable is missing: $EXECUTABLE" >&2; exit 1; }
 [[ ! -L "$EXECUTABLE" ]] || { echo "Runtime audit failed: executable must not be a symlink: $EXECUTABLE" >&2; exit 1; }
 
-if find "$RUNTIME_DIR" -type l -print -quit | rg -q .; then
-  echo "Runtime audit failed: release runtimes must not contain symlinks." >&2
-  exit 1
-fi
+while IFS= read -r link; do
+  target="$(readlink "$link")"
+  if [[ "$target" == /* ]]; then
+    resolved="$target"
+  else
+    resolved_dir="$(cd "$(dirname "$link")/$(dirname "$target")" && pwd -P)"
+    resolved="$resolved_dir/$(basename "$target")"
+  fi
+  case "$resolved" in
+    "$RUNTIME_DIR"/*) ;;
+    *)
+      echo "Runtime audit failed: symlink escapes the runtime: $link -> $target" >&2
+      exit 1
+      ;;
+  esac
+done < <(find "$RUNTIME_DIR" -type l -print)
 
 while IFS= read -r -d '' candidate; do
   candidate_type="$(file -b "$candidate")"
@@ -36,11 +48,20 @@ while IFS= read -r -d '' candidate; do
   fi
 
   if [[ "$candidate_type" == *Mach-O* ]]; then
-    dependencies="$(otool -L "$candidate" | tail -n +2 | awk '{print $1}')"
-    if rg -q '/opt/homebrew|/usr/local/Cellar|/usr/local/opt|^@rpath/' <<<"$dependencies"; then
+    library_id="$(otool -D "$candidate" 2>/dev/null | tail -n +2 | head -n 1 || true)"
+    dependencies="$(otool -L "$candidate" | tail -n +2 | awk '{print $1}' | { if [[ -n "$library_id" ]]; then grep -Fvx "$library_id" || true; else cat; fi; })"
+    if rg -q '/opt/homebrew|/usr/local/Cellar|/usr/local/opt' <<<"$dependencies"; then
       echo "Runtime audit failed: non-relocatable dependency remains in $candidate" >&2
       otool -L "$candidate" >&2
       exit 1
+    fi
+    if rg -q '^@rpath/' <<<"$dependencies"; then
+      rpaths="$(otool -l "$candidate" | awk '/cmd LC_RPATH/{getline; getline; if ($1 == "path") print $2}')"
+      if [[ -z "$rpaths" ]] || rg -qv '^@loader_path|^@executable_path' <<<"$rpaths"; then
+        echo "Runtime audit failed: @rpath is not confined to the bundle in $candidate" >&2
+        otool -L "$candidate" >&2
+        exit 1
+      fi
     fi
   fi
 done < <(find "$RUNTIME_DIR" -type f \( -perm -111 -o -name '*.dylib' \) -print0)
