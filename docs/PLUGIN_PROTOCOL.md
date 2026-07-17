@@ -46,4 +46,25 @@ Trước khi XPC host chạy plugin, AZpdf tạo `PluginDocumentGrant` **chỉ t
 
 AZpdf hiện có discovery/validation manifest và không tự chạy executable. Không plugin nào có thể truy cập PDF chỉ bằng cách cài manifest.
 
-Trước khi bật thực thi, host sẽ dùng một XPC service App Sandbox riêng, nhận bản sao tạm chỉ-đọc của tài liệu sau khi người dùng đồng ý. Không xem chmod, thư mục tạm hay `runsLocally` là security sandbox; chỉ boundary do macOS enforce mới đủ điều kiện phát hành.
+Không xem chmod, thư mục tạm hay `runsLocally` là security sandbox; chúng không đủ điều kiện phát hành.
+
+## Thiết kế thực thi v2
+
+AZpdf **không** sẽ chạy executable native tùy ý trong `Application Support` rồi gọi đó là sandbox. Một XPC service chỉ là ranh giới quyền hạn khi chính service được nhúng trong app, ký mã và có entitlement riêng; nó không biến binary cộng đồng cài bên ngoài thành code đáng tin cậy.
+
+Mô hình plugin mặc định của v2 là **Wasm worker local**:
+
+- Host dùng runtime Wasm nhúng, không cấp network, process spawning, quyền đọc filesystem tùy ý hay quyền ghi PDF.
+- Mỗi lần chạy có giới hạn bộ nhớ, thời gian và lượng lệnh; mọi input/output là payload có schema và kích thước giới hạn.
+- Host cấp dữ liệu đã chọn (trang raster hoặc text layer), không cấp URL PDF, bookmark hay quyền Keychain.
+- Kết quả chỉ là dữ liệu (text, boxes, confidence); host xác thực rồi mới cho người dùng xem/áp dụng.
+- `PluginDocumentGrant` vẫn là quyền một lần theo document/plugin/capability; hết tác vụ là thu hồi và xóa dữ liệu tạm.
+
+XPC được dùng cho worker do AZpdf phát hành (ví dụ OCR engine nặng), với App Sandbox tối thiểu và code-signing requirement để chỉ AZpdf được kết nối. Native plugin bên thứ ba sẽ không nằm trong phạm vi v1/v2 cho đến khi có mô hình ký, audit và entitlement có thể kiểm chứng.
+
+## Điều kiện phát hành thực thi plugin
+
+- Runtime và mọi XPC service phải được ký lồng theo app trước khi ký bundle ngoài cùng.
+- Service từ chối client không thỏa code-signing requirement của AZpdf.
+- Không cấp entitlement network cho worker mặc định; capability mới cần review bảo mật và đồng ý rõ ràng của người dùng.
+- Có test từ chối manifest, symlink, capability ngoài grant, payload quá cỡ, timeout và kết nối từ client không hợp lệ.

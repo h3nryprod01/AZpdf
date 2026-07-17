@@ -12,7 +12,7 @@
 
 - [x] Chữ ký CMS/PKCS#7 tách rời dựa trên certificate trong Keychain (PDF gốc không bị sửa)
 - [ ] Nhúng chữ ký số PDF (ByteRange) và xác minh trong app
-- [ ] XPC plugin host sandbox với cấp quyền theo tài liệu (discovery/validation đã có; chưa thực thi plugin)
+- [ ] Wasm plugin worker local, cấp quyền theo tài liệu; XPC App-Sandbox chỉ cho worker do AZpdf phát hành (discovery/validation đã có; chưa thực thi plugin)
 - [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
 - [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào
 - [ ] Ký/notarize bản phát hành chính thức bằng Developer ID Application certificate
