@@ -85,6 +85,16 @@ struct ContentView: View {
                 store.verifyDetachedCertificateSignature(at: url)
             }
         }
+        .fileImporter(isPresented: $store.isPAdESCertificateImporterPresented, allowedContentTypes: [.data]) { result in
+            if case let .success(url) = result {
+                guard url.startAccessingSecurityScopedResource() else {
+                    store.selectPAdESCertificate(at: url)
+                    return
+                }
+                defer { url.stopAccessingSecurityScopedResource() }
+                store.selectPAdESCertificate(at: url)
+            }
+        }
         .fileExporter(isPresented: $store.isExportPresented, document: PDFExportDocument(data: store.document?.dataRepresentation()), contentType: .pdf, defaultFilename: store.title) { _ in }
         .fileExporter(
             isPresented: $store.isCurrentPageExporterPresented,
@@ -121,10 +131,18 @@ struct ContentView: View {
         .sheet(isPresented: $store.isCertificateSigningSheetPresented) {
             CertificateSignatureSheet(store: store)
         }
+        .sheet(isPresented: $store.isPAdESSigningSheetPresented) {
+            PAdESSigningSheet(store: store)
+        }
         .alert("Xác minh chữ ký số", isPresented: $store.isCertificateVerificationResultPresented) {
             Button("OK", role: .cancel) { }
         } message: {
             Text(store.certificateVerificationMessage)
+        }
+        .alert("Xác minh PAdES", isPresented: $store.isPAdESVerificationResultPresented) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(store.padesVerificationMessage)
         }
         .sheet(isPresented: $store.isOCRSheetPresented) {
             OCRSheet(store: store)
@@ -161,6 +179,8 @@ struct ContentView: View {
             Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }.help("Chèn và định dạng chữ")
             Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }.help("Vẽ và chèn chữ ký")
             Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }.help("Xuất chữ ký số .p7s")
+            Button { store.beginPAdESSigning() } label: { Label("Ký PAdES", systemImage: "signature") }.help("Nhúng chữ ký số PAdES vào PDF")
+            Button { store.verifyPAdESSignatures() } label: { Label("Xác minh PAdES", systemImage: "checkmark.shield") }.help("Kiểm tra tính toàn vẹn chữ ký nhúng")
             Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }.help("Nhận dạng chữ trên trang hiện tại")
             Button { store.beginOCRDocument() } label: { Label("OCR toàn bộ", systemImage: "doc.text.magnifyingglass") }.help("Nhận dạng chữ trên toàn bộ tài liệu")
             Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }.help("Tô sáng đoạn văn bản đã chọn")

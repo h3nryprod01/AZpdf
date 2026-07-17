@@ -30,6 +30,18 @@ if [[ -n "${VERAPDF_RUNTIME_DIR:-}" ]]; then
   cp -R "$VERAPDF_RUNTIME_DIR/." "$APP_RESOURCES/Tools/veraPDF/"
   chmod +x "$APP_RESOURCES/Tools/veraPDF/verapdf"
 fi
+if [[ -n "${PYHANKO_RUNTIME_DIR:-}" ]]; then
+  [[ -x "$PYHANKO_RUNTIME_DIR/pyhanko" ]] || { echo "PYHANKO_RUNTIME_DIR must contain a self-contained executable pyhanko" >&2; exit 2; }
+  mkdir -p "$APP_RESOURCES/Tools/pyhanko"
+  cp -R "$PYHANKO_RUNTIME_DIR/." "$APP_RESOURCES/Tools/pyhanko/"
+  chmod +x "$APP_RESOURCES/Tools/pyhanko/pyhanko"
+fi
+if [[ -n "${PDFSIG_RUNTIME_DIR:-}" ]]; then
+  [[ -x "$PDFSIG_RUNTIME_DIR/pdfsig" ]] || { echo "PDFSIG_RUNTIME_DIR must contain executable pdfsig" >&2; exit 2; }
+  mkdir -p "$APP_RESOURCES/Tools"
+  cp -R "$PDFSIG_RUNTIME_DIR/." "$APP_RESOURCES/Tools/"
+  chmod +x "$APP_RESOURCES/Tools/pdfsig"
+fi
 chmod +x "$APP_MACOS/$APP_NAME"
 
 cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST

@@ -5,6 +5,8 @@ set -euo pipefail
 : "${SIGNING_IDENTITY:?Set SIGNING_IDENTITY to a Developer ID Application identity.}"
 : "${MUTOOL_RUNTIME_DIR:?Set MUTOOL_RUNTIME_DIR to a self-contained, redistributable MuPDF runtime directory.}"
 : "${VERAPDF_RUNTIME_DIR:?Set VERAPDF_RUNTIME_DIR to a self-contained veraPDF runtime directory.}"
+: "${PYHANKO_RUNTIME_DIR:?Set PYHANKO_RUNTIME_DIR to a self-contained, redistributable pyHanko runtime directory.}"
+: "${PDFSIG_RUNTIME_DIR:?Set PDFSIG_RUNTIME_DIR to a self-contained, redistributable pdfsig runtime directory.}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/AZpdf.app"
@@ -18,6 +20,14 @@ ENTITLEMENTS="$ROOT_DIR/Config/AZpdf.entitlements"
 }
 [[ -x "$APP_BUNDLE/Contents/Resources/Tools/veraPDF/verapdf" ]] || {
   echo "Release packaging failed: bundled veraPDF runtime is missing." >&2
+  exit 1
+}
+[[ -x "$APP_BUNDLE/Contents/Resources/Tools/pyhanko/pyhanko" ]] || {
+  echo "Release packaging failed: bundled pyHanko runtime is missing." >&2
+  exit 1
+}
+[[ -x "$APP_BUNDLE/Contents/Resources/Tools/pdfsig" ]] || {
+  echo "Release packaging failed: bundled pdfsig runtime is missing." >&2
   exit 1
 }
 /usr/bin/codesign --force --options runtime --timestamp --sign "$SIGNING_IDENTITY" --entitlements "$ENTITLEMENTS" "$APP_BUNDLE"
