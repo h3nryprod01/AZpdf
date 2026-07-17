@@ -6,7 +6,6 @@ set -euo pipefail
 : "${MUTOOL_RUNTIME_DIR:?Set MUTOOL_RUNTIME_DIR to a self-contained, redistributable MuPDF runtime directory.}"
 : "${VERAPDF_RUNTIME_DIR:?Set VERAPDF_RUNTIME_DIR to a self-contained veraPDF runtime directory.}"
 : "${PYHANKO_RUNTIME_DIR:?Set PYHANKO_RUNTIME_DIR to a self-contained, redistributable pyHanko runtime directory.}"
-: "${PDFSIG_RUNTIME_DIR:?Set PDFSIG_RUNTIME_DIR to a self-contained, redistributable pdfsig runtime directory.}"
 : "${OCRMY_PDF_RUNTIME_DIR:?Set OCRMY_PDF_RUNTIME_DIR to a self-contained, redistributable OCRmyPDF runtime directory.}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -26,10 +25,6 @@ RELEASE_DIR="$ROOT_DIR/dist/release"
   echo "Release packaging failed: bundled pyHanko runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Helpers/pdfsig" ]] || {
-  echo "Release packaging failed: bundled pdfsig runtime is missing." >&2
-  exit 1
-}
 [[ -x "$APP_BUNDLE/Contents/Helpers/ocrmypdf/ocrmypdf" ]] || {
   echo "Release packaging failed: bundled OCRmyPDF runtime is missing." >&2
   exit 1
@@ -37,7 +32,6 @@ RELEASE_DIR="$ROOT_DIR/dist/release"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers" "mutool"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/veraPDF" "verapdf"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/pyhanko" "pyhanko"
-"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers" "pdfsig"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Helpers/ocrmypdf" "ocrmypdf"
 "$ROOT_DIR/script/sign_bundle.sh" "$APP_BUNDLE" "$SIGNING_IDENTITY"
 /usr/sbin/spctl -a -vv "$APP_BUNDLE"

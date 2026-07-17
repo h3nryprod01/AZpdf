@@ -37,12 +37,6 @@ if [[ -n "${PYHANKO_RUNTIME_DIR:-}" ]]; then
   cp -R "$PYHANKO_RUNTIME_DIR/." "$APP_HELPERS/pyhanko/"
   chmod +x "$APP_HELPERS/pyhanko/pyhanko"
 fi
-if [[ -n "${PDFSIG_RUNTIME_DIR:-}" ]]; then
-  [[ -x "$PDFSIG_RUNTIME_DIR/pdfsig" ]] || { echo "PDFSIG_RUNTIME_DIR must contain executable pdfsig" >&2; exit 2; }
-  mkdir -p "$APP_HELPERS"
-  cp -R "$PDFSIG_RUNTIME_DIR/." "$APP_HELPERS/"
-  chmod +x "$APP_HELPERS/pdfsig"
-fi
 if [[ -n "${OCRMY_PDF_RUNTIME_DIR:-}" ]]; then
   [[ -x "$OCRMY_PDF_RUNTIME_DIR/ocrmypdf" ]] || { echo "OCRMY_PDF_RUNTIME_DIR must contain a self-contained executable ocrmypdf" >&2; exit 2; }
   mkdir -p "$APP_HELPERS/ocrmypdf"

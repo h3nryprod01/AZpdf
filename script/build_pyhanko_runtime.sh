@@ -14,6 +14,7 @@ trap 'rm -rf "$WORK_DIR"' EXIT
   --noconfirm \
   --clean \
   --onefile \
+  --collect-submodules pyhanko \
   --name pyhanko \
   --distpath "$WORK_DIR/dist" \
   --workpath "$WORK_DIR/work" \
@@ -25,4 +26,5 @@ cp "$WORK_DIR/dist/pyhanko" "$OUTPUT_DIR/pyhanko"
 chmod +x "$OUTPUT_DIR/pyhanko"
 "$ROOT_DIR/script/audit_runtime.sh" "$OUTPUT_DIR" pyhanko
 "$OUTPUT_DIR/pyhanko" --version
+"$OUTPUT_DIR/pyhanko" sign validate --help >/dev/null
 echo "Built pyHanko runtime: $OUTPUT_DIR/pyhanko"

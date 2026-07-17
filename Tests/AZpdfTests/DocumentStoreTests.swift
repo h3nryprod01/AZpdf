@@ -328,13 +328,12 @@ final class DocumentStoreTests: XCTestCase {
         let directory = FileManager.default.temporaryDirectory.appending(path: "azpdf-pades-verify-test-\(UUID().uuidString)")
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         defer { try? FileManager.default.removeItem(at: directory) }
-        let executable = directory.appending(path: "pdfsig")
+        let executable = directory.appending(path: "pyhanko")
         try """
         #!/bin/sh
-        echo "Signature #1:"
-        echo "  - Signer Certificate Common Name: AZpdf Test"
-        echo "  - Signature Validation: Signature is Valid."
-        echo "  - Certificate Validation: Certificate issuer isn't Trusted."
+        echo "Certificate subject: \\\"AZpdf Test\\\""
+        echo "The signer's certificate is untrusted."
+        echo "The signature is cryptographically sound."
         """.write(to: executable, atomically: true, encoding: .utf8)
         try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: executable.path)
 
