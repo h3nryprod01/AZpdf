@@ -93,6 +93,8 @@ Lệnh tạo `dist/release/AZpdf-macOS.zip`, ký Hardened Runtime và kiểm tra
 
 Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime được đặt tại `AZpdf.app/Contents/Helpers/`, phải self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, chạy `audit_runtime.sh` để chặn symlink trỏ ra ngoài bundle, Homebrew path, `@rpath` ngoài bundle và Python entrypoint ngoài bundle, rồi dùng `codesign --verify --deep --strict` để chặn nested helper không hợp lệ.
 
+Build release trên volume/local checkout không tự áp metadata quản lý tệp. `sign_bundle.sh` đã làm sạch xattr và cờ executable sai của dữ liệu runtime trước khi ký; nếu `codesign` vẫn báo `resource fork, Finder information, or similar detritus`, chuyển source/artifact sang một workspace sạch rồi build lại — không bỏ qua lỗi đó.
+
 ## Notarization
 
 Tạo Keychain profile một lần theo Apple Developer account rồi chạy:
