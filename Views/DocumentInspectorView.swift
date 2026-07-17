@@ -79,6 +79,7 @@ struct DocumentInspectorView: View {
                         get: { Color(nsColor: store.selectedAnnotationColor) },
                         set: { store.selectedAnnotationColor = NSColor($0) }
                     ))
+                    annotationPositionControls
                     Button("Áp dụng định dạng") { store.updateSelectedFreeText() }
                 }
             }
@@ -90,6 +91,7 @@ struct DocumentInspectorView: View {
                         .font(.caption).foregroundStyle(.secondary)
                     Stepper("Rộng: \(Int(store.selectedAnnotationWidth)) pt", value: $store.selectedAnnotationWidth, in: 24...1_200, step: 4)
                     Stepper("Cao: \(Int(store.selectedAnnotationHeight)) pt", value: $store.selectedAnnotationHeight, in: 24...1_200, step: 4)
+                    annotationPositionControls
                     Button("Áp dụng kích thước") { store.updateSelectedImageSize() }
                 }
             }
@@ -107,6 +109,33 @@ struct DocumentInspectorView: View {
         if let value = attributes[key] as? String, !value.isEmpty {
             LabeledContent(label) { Text(value).lineLimit(2).multilineTextAlignment(.trailing) }
         }
+    }
+
+    private var annotationPositionControls: some View {
+        HStack(spacing: 6) {
+            Text("Di chuyển 8 pt")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            Spacer()
+            Button { store.moveSelectedAnnotation(horizontal: 0, vertical: 8) } label: {
+                Label("Di chuyển lên", systemImage: "arrow.up")
+            }
+            .help("Di chuyển chú thích lên 8 pt")
+            Button { store.moveSelectedAnnotation(horizontal: -8, vertical: 0) } label: {
+                Label("Di chuyển sang trái", systemImage: "arrow.left")
+            }
+            .help("Di chuyển chú thích sang trái 8 pt")
+            Button { store.moveSelectedAnnotation(horizontal: 8, vertical: 0) } label: {
+                Label("Di chuyển sang phải", systemImage: "arrow.right")
+            }
+            .help("Di chuyển chú thích sang phải 8 pt")
+            Button { store.moveSelectedAnnotation(horizontal: 0, vertical: -8) } label: {
+                Label("Di chuyển xuống", systemImage: "arrow.down")
+            }
+            .help("Di chuyển chú thích xuống 8 pt")
+        }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("Điều khiển vị trí chú thích")
     }
 
     private func annotationSymbol(for annotation: PDFAnnotation) -> String {
