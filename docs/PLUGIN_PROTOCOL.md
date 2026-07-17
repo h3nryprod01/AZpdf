@@ -28,6 +28,8 @@ Manifest tối thiểu:
 
 `id` phải theo dạng reverse-domain (ví dụ `org.example.azpdf.ocr`). `executable` phải là đường dẫn tương đối nằm trong bundle plugin; đường dẫn tuyệt đối và `..` bị từ chối.
 
+Host còn resolve symlink của manifest và executable trước khi hiển thị plugin; cả hai phải còn nằm trong thư mục `Plugins`. Plugin trỏ ra ngoài qua symlink bị từ chối.
+
 ## Quy tắc an toàn bắt buộc
 
 - Plugin không được mở socket, gọi HTTP hoặc tự gửi tài liệu/telemetry.

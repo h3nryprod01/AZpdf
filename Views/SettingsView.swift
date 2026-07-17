@@ -15,8 +15,8 @@ struct SettingsView: View {
                     .font(.caption).foregroundStyle(.secondary)
             }
             Section("Plugin cục bộ") {
-                LabeledContent("Đang bật") { Text("\(pluginRegistry.plugins.count) plugin") }
-                Text("OCR, dịch và tóm tắt chỉ hoạt động khi bạn tự cài plugin chạy cục bộ. AZpdf không cần cloud để hoạt động.")
+                LabeledContent("Đã phát hiện") { Text("\(pluginRegistry.plugins.count) plugin") }
+                Text("AZpdf chỉ phát hiện manifest cục bộ an toàn; v1 chưa chạy executable. OCR tích hợp vẫn hoạt động hoàn toàn trên máy.")
                     .font(.caption).foregroundStyle(.secondary)
                 Button("Tải lại plugin") { pluginRegistry.reload() }
             }
