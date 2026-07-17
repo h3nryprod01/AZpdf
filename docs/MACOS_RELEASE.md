@@ -27,6 +27,19 @@ Script chạy `audit_runtime.sh` và `pyhanko --version` sau khi build. Ghi lạ
 
 `package_release.sh` gọi `sign_bundle.sh`: script này ký mọi Mach-O nhúng trước, rồi ký app chính với hardened runtime và entitlement. Không thay thế bước notarization.
 
+## Build runtime veraPDF
+
+Bundle veraPDF cùng JRE/JDK đã kiểm tra license; không dùng launcher Homebrew trong release:
+
+```bash
+export VERAPDF_SOURCE_DIR='/path/to/verapdf/libexec'
+export JAVA_HOME='/path/to/jdk/Contents/Home'
+./script/build_verapdf_runtime.sh
+export VERAPDF_RUNTIME_DIR="$PWD/dist/runtime/veraPDF"
+```
+
+Builder chạy veraPDF từ bundle vừa tạo. Đọc kỹ license GPL-3.0-or-later hoặc MPL-2.0 của veraPDF và GPLv2+Classpath Exception của OpenJDK, rồi ghi chúng trong SBOM/notices trước phát hành.
+
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
@@ -47,7 +60,7 @@ export OCRMY_PDF_RUNTIME_DIR='/path/to/redistributable-ocrmypdf-runtime'
 
 Lệnh tạo `dist/release/AZpdf-macOS.zip`, ký Hardened Runtime và kiểm tra bằng `codesign`/`spctl`.
 
-Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime được đặt tại `AZpdf.app/Contents/Helpers/`, phải self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, chạy `audit_runtime.sh` để chặn symlink, Homebrew path, `@rpath` và Python entrypoint ngoài bundle, rồi dùng `codesign --verify --deep --strict` để chặn nested helper không hợp lệ.
+Không copy trực tiếp binary từ Homebrew: chúng thường liên kết tới dylib ngoài app. Runtime được đặt tại `AZpdf.app/Contents/Helpers/`, phải self-contained, kiểm tra giấy phép tương ứng và được ký cùng app trước notarization. PyHanko runtime phải là executable relocatable (ví dụ bundle Python/pyoxidizer được kiểm chứng), không phải virtualenv developer. `package_release.sh` dừng nếu một trong các runtime không có, chạy `audit_runtime.sh` để chặn symlink trỏ ra ngoài bundle, Homebrew path, `@rpath` ngoài bundle và Python entrypoint ngoài bundle, rồi dùng `codesign --verify --deep --strict` để chặn nested helper không hợp lệ.
 
 ## Notarization
 
