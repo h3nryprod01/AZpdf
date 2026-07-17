@@ -148,6 +148,9 @@ struct ContentView: View {
         .sheet(isPresented: $store.isConformanceSheetPresented) {
             PDFConformanceSheet(store: store)
         }
+        .sheet(isPresented: $store.isDocumentPropertiesSheetPresented) {
+            DocumentPropertiesSheet(store: store)
+        }
         .sheet(isPresented: $store.isPasswordProtectSheetPresented) {
             PasswordProtectSheet(store: store)
         }
@@ -214,6 +217,8 @@ struct ContentView: View {
                 .monospacedDigit().frame(minWidth: 42)
             Button { store.zoomIn() } label: { Image(systemName: "plus.magnifyingglass") }
             Button { store.fitPage() } label: { Label("Vừa trang", systemImage: "arrow.up.left.and.down.right.magnifyingglass") }
+            Button { store.beginDocumentProperties() } label: { Label("Thuộc tính", systemImage: "doc.text") }
+                .help("Chỉnh sửa tiêu đề, tác giả và metadata PDF")
             Button { isInspectorPresented.toggle() } label: { Label("Thông tin", systemImage: "sidebar.right") }
             }
         }

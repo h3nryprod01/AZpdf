@@ -75,6 +75,25 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(PDFDocument(data: store.currentPageExportData ?? Data())?.pageCount, 1)
     }
 
+    func testDocumentPropertiesAreWrittenAndMarkDocumentModified() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        store.documentMetadataTitle = "Tài liệu mẫu"
+        store.documentMetadataAuthor = "AZpdf"
+        store.documentMetadataSubject = "Khả năng truy cập"
+        store.documentMetadataKeywords = "PDF/UA, PDF/A"
+
+        store.applyDocumentProperties()
+
+        let attributes = store.document?.documentAttributes
+        XCTAssertEqual(attributes?[PDFDocumentAttribute.titleAttribute] as? String, "Tài liệu mẫu")
+        XCTAssertEqual(attributes?[PDFDocumentAttribute.authorAttribute] as? String, "AZpdf")
+        XCTAssertEqual(attributes?[PDFDocumentAttribute.subjectAttribute] as? String, "Khả năng truy cập")
+        XCTAssertEqual(attributes?[PDFDocumentAttribute.keywordsAttribute] as? String, "PDF/UA, PDF/A")
+        XCTAssertTrue(store.isModified)
+        XCTAssertTrue(store.canUndo)
+    }
+
     func testPageNavigationStopsAtDocumentBounds() {
         let store = DocumentStore()
         store.document = makeDocument(pageCount: 2)

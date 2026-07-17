@@ -36,6 +36,7 @@ final class DocumentStore {
     var isPAdESVerificationResultPresented = false
     var isOCRSheetPresented = false
     var isConformanceSheetPresented = false
+    var isDocumentPropertiesSheetPresented = false
     var isConformanceChecking = false
     var isOCRProcessing = false
     var isSearchablePDFExporting = false
@@ -67,6 +68,10 @@ final class DocumentStore {
     var ocrReviews: [OCRPageReview] = []
     var conformanceReport: PDFConformanceReport?
     var conformanceError: String?
+    var documentMetadataTitle = ""
+    var documentMetadataAuthor = ""
+    var documentMetadataSubject = ""
+    var documentMetadataKeywords = ""
     var ocrPageIndex = 0
     var readerAction: PDFReaderAction = .none
     var readerActionID = 0
@@ -169,6 +174,30 @@ final class DocumentStore {
         fileURL = url
         isModified = false
         addToRecentDocuments(url)
+    }
+
+    func beginDocumentProperties() {
+        guard let document else { return }
+        let attributes = document.documentAttributes ?? [:]
+        documentMetadataTitle = attributes[PDFDocumentAttribute.titleAttribute] as? String ?? ""
+        documentMetadataAuthor = attributes[PDFDocumentAttribute.authorAttribute] as? String ?? ""
+        documentMetadataSubject = attributes[PDFDocumentAttribute.subjectAttribute] as? String ?? ""
+        documentMetadataKeywords = attributes[PDFDocumentAttribute.keywordsAttribute] as? String ?? ""
+        isDocumentPropertiesSheetPresented = true
+    }
+
+    func applyDocumentProperties() {
+        guard let document else { return }
+        registerUndoStep()
+        var attributes = document.documentAttributes ?? [:]
+        attributes[PDFDocumentAttribute.titleAttribute] = documentMetadataTitle.nilIfBlank
+        attributes[PDFDocumentAttribute.authorAttribute] = documentMetadataAuthor.nilIfBlank
+        attributes[PDFDocumentAttribute.subjectAttribute] = documentMetadataSubject.nilIfBlank
+        attributes[PDFDocumentAttribute.keywordsAttribute] = documentMetadataKeywords.nilIfBlank
+        document.documentAttributes = attributes
+        isModified = true
+        documentRevision += 1
+        isDocumentPropertiesSheetPresented = false
     }
 
     func selectAnnotation(_ annotation: PDFAnnotation?, pageIndex: Int?) {
