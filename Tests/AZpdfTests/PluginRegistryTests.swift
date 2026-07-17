@@ -17,19 +17,34 @@ final class PluginRegistryTests: XCTestCase {
         try manifest(id: "org.example.future", runsLocally: true, protocolVersion: 2)
             .write(to: directory.appending(path: "future.json"))
 
+        let outside = FileManager.default.temporaryDirectory.appending(path: "azpdf-plugin-outside-\(UUID().uuidString)")
+        try Data().write(to: outside)
+        defer { try? FileManager.default.removeItem(at: outside) }
+        try FileManager.default.createSymbolicLink(
+            at: directory.appending(path: "escaped-executable"),
+            withDestinationURL: outside
+        )
+        try manifest(id: "org.example.escape", runsLocally: true, protocolVersion: 1, executable: "./escaped-executable")
+            .write(to: directory.appending(path: "escape.json"))
+
         let registry = PluginRegistry(directory: directory)
 
         XCTAssertEqual(registry.plugins.map(\.id), ["org.example.local"])
     }
 
-    private func manifest(id: String, runsLocally: Bool, protocolVersion: Int) throws -> Data {
+    private func manifest(
+        id: String,
+        runsLocally: Bool,
+        protocolVersion: Int,
+        executable: String = "./plugin"
+    ) throws -> Data {
         try JSONEncoder().encode(PluginManifest(
             id: id,
             name: id,
             version: "0.1.0",
             protocolVersion: protocolVersion,
             capabilities: [.ocr],
-            executable: "./plugin",
+            executable: executable,
             runsLocally: runsLocally
         ))
     }
