@@ -5,24 +5,30 @@ import UniformTypeIdentifiers
 struct ContentView: View {
     @Bindable var store: DocumentStore
     let openPDF: () -> Void
-    @State private var isInspectorPresented = false
     @State private var isDropTarget = false
+    @FocusState private var isFindFieldFocused: Bool
 
     var body: some View {
         NavigationSplitView {
             SidebarView(store: store)
         } detail: {
-            Group {
-                if store.document != nil {
-                    PDFReaderView(store: store) { hasSelection in
-                        if hasSelection { isInspectorPresented = true }
+            VStack(spacing: 0) {
+                if store.isFindBarPresented { findBar }
+                Group {
+                    if store.document != nil {
+                        PDFReaderView(store: store) { hasSelection in
+                            if hasSelection { store.isInspectorPresented = true }
+                        }
+                    } else {
+                        EmptyDocumentView(store: store, openPDF: openPDF)
                     }
-                } else {
-                    EmptyDocumentView(store: store, openPDF: openPDF)
                 }
             }
             .navigationTitle(store.windowTitle)
             .toolbar { toolbar }
+            .onChange(of: store.isFindBarPresented) { _, shown in
+                isFindFieldFocused = shown
+            }
         }
         .overlay {
             ZStack(alignment: .top) {
@@ -97,12 +103,12 @@ struct ContentView: View {
             contentType: .pdf,
             defaultFilename: "\(store.title)-trang-\(store.selectedPageIndex + 1)"
         ) { _ in }
-        .inspector(isPresented: $isInspectorPresented) {
+        .inspector(isPresented: $store.isInspectorPresented) {
             DocumentInspectorView(store: store)
                 .inspectorColumnWidth(min: 250, ideal: 290, max: 360)
         }
         .onChange(of: store.annotationSelectionID) { _, _ in
-            if store.selectedAnnotation != nil { isInspectorPresented = true }
+            if store.selectedAnnotation != nil { store.isInspectorPresented = true }
         }
         .alert("AZpdf", isPresented: Binding(get: { store.lastError != nil }, set: { if !$0 { store.lastError = nil } })) {
             Button("Đóng", role: .cancel) { store.lastError = nil }
@@ -156,6 +162,46 @@ struct ContentView: View {
         }
     }
 
+    // Lives below the toolbar rather than inside it: a toolbar TextField is
+    // dropped silently when the toolbar overflows, which made search
+    // unreachable at every window size.
+    private var findBar: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+            TextField("Tìm trong PDF", text: $store.searchText)
+                .textFieldStyle(.roundedBorder)
+                .frame(maxWidth: 320)
+                .focused($isFindFieldFocused)
+                .onSubmit { store.goToNextSearchResult() }
+            if !store.searchText.isEmpty {
+                Text(store.searchResultCount == 0 ? "Không có" : "\(store.searchResultIndex)/\(store.searchResultCount)")
+                    .monospacedDigit().foregroundStyle(.secondary)
+                Button { store.goToPreviousSearchResult() } label: { Image(systemName: "chevron.up") }
+                    .disabled(store.searchResultCount == 0)
+                    .help("Kết quả trước (⌥⌘G)")
+                Button { store.goToNextSearchResult() } label: { Image(systemName: "chevron.down") }
+                    .disabled(store.searchResultCount == 0)
+                    .help("Kết quả sau (⌘G)")
+            }
+            Spacer()
+            Button("Xong") {
+                store.isFindBarPresented = false
+                store.searchText = ""
+            }
+            .keyboardShortcut(.cancelAction)
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(.bar)
+        // Focus has to be set after the field is in the hierarchy AND after the
+        // AppKit PDFView has settled, otherwise it keeps first responder and
+        // the field stays empty while the user types.
+        .task {
+            try? await Task.sleep(for: .milliseconds(120))
+            isFindFieldFocused = true
+        }
+    }
+
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
             Button(action: openPDF) { Label("Mở PDF", systemImage: "folder") }
@@ -201,17 +247,8 @@ struct ContentView: View {
                 .monospacedDigit().frame(minWidth: 46)
             Button { store.goToNextPage() } label: { Label("Trang sau", systemImage: "chevron.right") }
                 .disabled(!store.canGoToNextPage)
-            TextField("Tìm trong PDF", text: $store.searchText)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 180)
-            if !store.searchText.isEmpty {
-                Text(store.searchResultCount == 0 ? "Không có" : "\(store.searchResultIndex)/\(store.searchResultCount)")
-                    .monospacedDigit().foregroundStyle(.secondary)
-                Button { store.goToPreviousSearchResult() } label: { Label("Kết quả trước", systemImage: "chevron.up") }
-                    .disabled(store.searchResultCount == 0)
-                Button { store.goToNextSearchResult() } label: { Label("Kết quả sau", systemImage: "chevron.down") }
-                    .disabled(store.searchResultCount == 0)
-            }
+            Button { store.isFindBarPresented.toggle() } label: { Label("Tìm", systemImage: "magnifyingglass") }
+                .help("Tìm trong PDF (⌘F)")
             Button { store.zoomOut() } label: { Image(systemName: "minus.magnifyingglass") }
             Text(store.isAutoScale ? "Vừa trang" : "\(Int(store.zoomScale * 100))%")
                 .monospacedDigit().frame(minWidth: 42)
@@ -219,7 +256,8 @@ struct ContentView: View {
             Button { store.fitPage() } label: { Label("Vừa trang", systemImage: "arrow.up.left.and.down.right.magnifyingglass") }
             Button { store.beginDocumentProperties() } label: { Label("Thuộc tính", systemImage: "doc.text") }
                 .help("Chỉnh sửa tiêu đề, tác giả và metadata PDF")
-            Button { isInspectorPresented.toggle() } label: { Label("Thông tin", systemImage: "sidebar.right") }
+            Button { store.isInspectorPresented.toggle() } label: { Label("Thông tin", systemImage: "sidebar.right") }
+                .help("Hiện/ẩn Thông tin (⌘I)")
             }
         }
     }

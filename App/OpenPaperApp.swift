@@ -9,6 +9,13 @@ struct AZpdfApp: App {
         WindowGroup("AZpdf") {
             WorkspaceView(workspace: workspace)
                 .frame(minWidth: 980, minHeight: 640)
+                // Files opened from Finder ("Open With", double-click) arrive
+                // here; without this the request was dropped and macOS just
+                // spawned a duplicate window.
+                .onOpenURL { url in
+                    guard url.isFileURL else { return }
+                    workspace.openInNewTab(url)
+                }
         }
         .commands {
             CommandGroup(replacing: .undoRedo) {
@@ -33,6 +40,35 @@ struct AZpdfApp: App {
             }
             CommandGroup(replacing: .appInfo) {
                 Button("Giới thiệu về AZpdf") { openWindow(id: "about") }
+            }
+            // Search, zoom and the inspector used to exist only as toolbar
+            // items. When the toolbar overflowed they were dropped with no
+            // menu or shortcut fallback, making them unreachable at every
+            // window size. These commands are that fallback.
+            CommandMenu("Hiển thị") {
+                Button("Tìm trong PDF…") { workspace.activeStore.isFindBarPresented = true }
+                    .keyboardShortcut("f", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
+                Button("Kết quả sau") { workspace.activeStore.goToNextSearchResult() }
+                    .keyboardShortcut("g", modifiers: .command)
+                    .disabled(workspace.activeStore.searchResultCount == 0)
+                Button("Kết quả trước") { workspace.activeStore.goToPreviousSearchResult() }
+                    .keyboardShortcut("g", modifiers: [.command, .option])
+                    .disabled(workspace.activeStore.searchResultCount == 0)
+                Divider()
+                Button("Phóng to") { workspace.activeStore.zoomIn() }
+                    .keyboardShortcut("+", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
+                Button("Thu nhỏ") { workspace.activeStore.zoomOut() }
+                    .keyboardShortcut("-", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
+                Button("Vừa trang") { workspace.activeStore.fitPage() }
+                    .keyboardShortcut("0", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
+                Divider()
+                Button("Hiện/ẩn Thông tin") { workspace.activeStore.isInspectorPresented.toggle() }
+                    .keyboardShortcut("i", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
             }
             CommandMenu("Điều hướng") {
                 Button("Trang trước") { workspace.activeStore.goToPreviousPage() }

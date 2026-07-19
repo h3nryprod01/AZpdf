@@ -42,6 +42,10 @@ final class DocumentStore {
     var isOCRSheetPresented = false
     var isConformanceSheetPresented = false
     var isDocumentPropertiesSheetPresented = false
+    // Find bar and inspector live on the store, not in View @State, so the
+    // menu commands (⌘F, ⌘I) can reach them without depending on the toolbar.
+    var isFindBarPresented = false
+    var isInspectorPresented = false
     var isConformanceChecking = false
     var isOCRProcessing = false
     var isSearchablePDFExporting = false
