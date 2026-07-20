@@ -61,6 +61,15 @@ function kindForAnnotation(annotation) {
         var object = annotation.getObject()
         if (annotation.getIntent() === "StampImage" || boolFromObject(object, "AZpdfImage")) return "image"
     }
+    // Without these, every highlight and every hand-drawn signature came back
+    // as "unknown" even though PDFAnnotationKind already declares them. The
+    // Linux shell reads documents through this engine, so a file annotated on
+    // macOS was being misclassified there.
+    if (type === "Highlight") return "highlight"
+    if (type === "Ink") return "ink"
+    if (type === "Link") return "link"
+    if (type === "Widget") return "widget"
+    if (type === "Redact") return "redaction"
     return "unknown"
 }
 
