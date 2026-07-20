@@ -10,11 +10,15 @@ OUTPUT_DIR="${1:-$ROOT_DIR/dist/runtime/pyhanko}"
 WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/azpdf-pyhanko-build.XXXXXX")"
 trap 'rm -rf "$WORK_DIR"' EXIT
 
+"$PYHANKO_PYTHON" -c \
+  'import certifi, pathlib, tzdata; from zoneinfo import ZoneInfo; assert pathlib.Path(certifi.where()).is_file(); ZoneInfo("Europe/Brussels")'
+
 "$PYHANKO_PYTHON" -m PyInstaller \
   --noconfirm \
   --clean \
   --onefile \
   --collect-submodules pyhanko \
+  --collect-all tzdata \
   --name pyhanko \
   --distpath "$WORK_DIR/dist" \
   --workpath "$WORK_DIR/work" \
@@ -24,6 +28,19 @@ trap 'rm -rf "$WORK_DIR"' EXIT
 mkdir -p "$OUTPUT_DIR"
 cp "$WORK_DIR/dist/pyhanko" "$OUTPUT_DIR/pyhanko"
 chmod +x "$OUTPUT_DIR/pyhanko"
+"$PYHANKO_PYTHON" - <<'PY' >"$OUTPUT_DIR/components.tsv"
+from importlib.metadata import version
+
+components = (
+    ("pyHanko", "pyHanko", "MIT"),
+    ("pyhanko-cli", "pyhanko-cli", "MIT"),
+    ("PyInstaller", "PyInstaller", "GPL-2.0-only WITH Bootloader-exception"),
+    ("tzdata", "tzdata", "Apache-2.0"),
+    ("certifi", "certifi", "MPL-2.0"),
+)
+for display_name, package_name, license_expression in components:
+    print(display_name, version(package_name), license_expression, sep="\t")
+PY
 "$ROOT_DIR/script/audit_runtime.sh" "$OUTPUT_DIR" pyhanko
 "$OUTPUT_DIR/pyhanko" --version
 "$OUTPUT_DIR/pyhanko" sign validate --help >/dev/null

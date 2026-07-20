@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eu
+
+export GTK_USE_PORTAL=1
+export AZPDF_ENGINE=/app/azpdf/azpdf-engine
+export AZPDF_MUTOOL=/app/azpdf/mutool
+export AZPDF_OCRMYPDF=/app/azpdf/runtime/ocrmypdf/ocrmypdf
+export AZPDF_PYHANKO=/app/azpdf/runtime/pyhanko/pyhanko
+
+exec /app/azpdf/azpdf_desktop "$@"

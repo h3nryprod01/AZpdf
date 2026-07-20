@@ -1,0 +1,18 @@
+%%MediaBox 0 0 595 842
+%%Font F0 Helvetica Latin
+q
+0.94 0.97 1 rg
+48 650 499 120 re
+f
+Q
+BT
+/F0 24 Tf
+0 0 0 rg
+72 730 Td
+(AZpdf engine fixture) Tj
+/F0 12 Tf
+0 -36 Td
+(Portable open, text extraction, search and render.) Tj
+0 -22 Td
+(Page size: A4 portrait. PDF syntax: deterministic.) Tj
+ET

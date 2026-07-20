@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.h3nryprod01.AZpdf</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>AGPL-3.0-only</project_license>
+  <name>AZpdf</name>
+  <summary>Read, edit and sign PDF files</summary>
+  <summary xml:lang="vi">Đọc, sửa và ký tài liệu PDF</summary>
+  <description>
+    <p>Open, search, annotate, OCR and digitally sign PDF documents while keeping document contents on your computer.</p>
+    <p xml:lang="vi">Mở, tìm kiếm, chú thích, OCR và ký số tài liệu PDF trong khi nội dung vẫn được giữ trên máy tính của bạn.</p>
+    <p>Edit text, notes and images, then review changes before saving a new copy or updating the selected document.</p>
+    <p xml:lang="vi">Chỉnh sửa chữ, ghi chú và hình ảnh, sau đó xem lại thay đổi trước khi lưu bản sao mới hoặc cập nhật tài liệu đã chọn.</p>
+  </description>
+  <developer id="io.github.h3nryprod01">
+    <name>h3nryprod01 and AZpdf contributors</name>
+  </developer>
+  <launchable type="desktop-id">io.github.h3nryprod01.AZpdf.desktop</launchable>
+  <provides>
+    <mediatype>application/pdf</mediatype>
+  </provides>
+  <url type="homepage">https://github.com/h3nryprod01/AZpdf</url>
+  <url type="bugtracker">https://github.com/h3nryprod01/AZpdf/issues</url>
+  <url type="vcs-browser">https://github.com/h3nryprod01/AZpdf</url>
+  <url type="donation">https://ko-fi.com/h3nryng</url>
+  <content_rating type="oars-1.1" />
+  <requires>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <display_length compare="ge">768</display_length>
+  </requires>
+  <releases>
+    <release version="1.0.0-alpha" date="2026-07-19" type="development">
+      <description>
+        <p>Initial Linux alpha with PDF editing, local OCR, digital signatures and sandboxed document access.</p>
+      </description>
+    </release>
+  </releases>
+</component>

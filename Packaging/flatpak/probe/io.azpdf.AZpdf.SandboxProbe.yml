@@ -1,0 +1,17 @@
+app-id: io.azpdf.AZpdf.SandboxProbe
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: azpdf-sandbox-probe
+finish-args: []
+modules:
+  - name: azpdf-sandbox-probe
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 azpdf-sandbox-probe.sh /app/bin/azpdf-sandbox-probe
+      - install -Dm755 azpdf-structured-ocr-probe.sh /app/libexec/azpdf-structured-ocr-probe
+    sources:
+      - type: file
+        path: azpdf-sandbox-probe.sh
+      - type: file
+        path: azpdf-structured-ocr-probe.sh

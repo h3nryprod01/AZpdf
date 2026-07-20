@@ -8,12 +8,25 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-$ROOT_DIR/dist/runtime/mutool}"
-MUPDF_ARCHFLAGS="${MUPDF_ARCHFLAGS:--arch $(uname -m)}"
+if [[ -z "${MUPDF_ARCHFLAGS+x}" ]]; then
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    MUPDF_ARCHFLAGS="-arch $(uname -m)"
+  else
+    MUPDF_ARCHFLAGS=""
+  fi
+fi
+if [[ -z "${MUPDF_JOBS+x}" ]]; then
+  if command -v nproc >/dev/null 2>&1; then
+    MUPDF_JOBS="$(nproc)"
+  else
+    MUPDF_JOBS="$(sysctl -n hw.ncpu 2>/dev/null || echo 8)"
+  fi
+fi
 
 [[ -f "$MUPDF_SOURCE_DIR/Makefile" ]] || { echo "MUPDF_SOURCE_DIR must contain a MuPDF Makefile" >&2; exit 2; }
 
 make -C "$MUPDF_SOURCE_DIR" build=release clean
-ARCHFLAGS="$MUPDF_ARCHFLAGS" make -C "$MUPDF_SOURCE_DIR" -j8 build=release shared=no tesseract=no HAVE_GLUT=no
+ARCHFLAGS="$MUPDF_ARCHFLAGS" make -C "$MUPDF_SOURCE_DIR" -j"$MUPDF_JOBS" build=release shared=no tesseract=no HAVE_GLUT=no
 
 mkdir -p "$OUTPUT_DIR"
 cp "$MUPDF_SOURCE_DIR/build/release/mutool" "$OUTPUT_DIR/mutool"

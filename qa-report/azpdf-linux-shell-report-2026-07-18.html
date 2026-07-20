@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>AZpdf v2 — Linux shell QA — 2026-07-18</title>
+  <style>
+    :root { color-scheme: light; --navy:#0b2554; --blue:#0878d1; --line:#d9e0ea; --muted:#5f6f83; --ok:#167347; }
+    * { box-sizing:border-box; }
+    body { margin:0; font:15px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif; color:#192434; background:#eef2f7; }
+    header { padding:44px max(28px,calc((100% - 1180px)/2)); color:white; background:linear-gradient(125deg,#071a3d,#0d4f9b); }
+    header h1 { margin:0 0 8px; font-size:34px; }
+    header p { margin:0; opacity:.86; }
+    main { max-width:1180px; margin:28px auto 56px; padding:0 22px; }
+    section { margin:18px 0; padding:24px; background:white; border:1px solid var(--line); border-radius:16px; box-shadow:0 8px 28px #1831530d; }
+    h2 { margin:0 0 14px; color:var(--navy); }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:12px; }
+    .metric { padding:16px; border:1px solid var(--line); border-radius:12px; background:#f8fafd; }
+    .metric b { display:block; color:var(--ok); font-size:20px; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:11px 12px; border-bottom:1px solid var(--line); text-align:left; }
+    th { color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.06em; }
+    .pass { color:var(--ok); font-weight:700; }
+    figure { margin:18px 0 0; }
+    img { width:100%; display:block; border:1px solid #b9c5d5; border-radius:12px; }
+    figcaption { margin-top:8px; color:var(--muted); }
+    code { padding:2px 6px; border-radius:5px; background:#eef3f8; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>AZpdf v2 — Linux shell QA</h1>
+    <p>Ubuntu 24.04 x86_64 · Flutter 3.44.0 · Swift 6.3.3 · MuPDF 1.28.0 · 2026-07-18</p>
+  </header>
+  <main>
+    <section>
+      <h2>Kết luận</h2>
+      <div class="grid">
+        <div class="metric"><b>PASS</b>Flutter analyzer</div>
+        <div class="metric"><b>8 / 8</b>Widget tests</div>
+        <div class="metric"><b>24 + 1</b>Linux suite + PAdES integration</div>
+        <div class="metric"><b>PASS</b>Linux release build</div>
+        <div class="metric"><b>321 MB</b>Bundle portable trước nén</div>
+      </div>
+    </section>
+    <section>
+      <h2>Flow đã kiểm thử</h2>
+      <table>
+        <thead><tr><th>Flow</th><th>Kết quả</th><th>Bằng chứng</th></tr></thead>
+        <tbody>
+          <tr><td>Mở PDF từ command line</td><td class="pass">Đạt</td><td>Tab, trang chính và thumbnail xuất hiện</td></tr>
+          <tr><td>Điều hướng Page Down</td><td class="pass">Đạt</td><td>Chuyển từ 1/3 tới 3/3</td></tr>
+          <tr><td>Ctrl++</td><td class="pass">Đạt</td><td>Zoom 100% → 125%</td></tr>
+          <tr><td>Ctrl+F + Enter</td><td class="pass">Đạt</td><td>Tìm “Right column line 2”, 1 kết quả</td></tr>
+          <tr><td>Ctrl+S</td><td class="pass">Đạt</td><td>SHA-256 trước/sau giống nhau: <code>6d1669c7…eb35</code></td></tr>
+          <tr><td>Tooltip toolbar</td><td class="pass">Đạt</td><td>“Mở PDF (Ctrl+O)” hiển thị sau hover</td></tr>
+          <tr><td>Engine health + runtime discovery</td><td class="pass">Đạt</td><td>Bundle tự tìm <code>mutool version 1.28.0</code></td></tr>
+          <tr><td>Chèn/sửa text</td><td class="pass">Đạt</td><td>Kéo, resize, cỡ chữ, căn lề, màu, bold/italic/underline và mở lại edit</td></tr>
+          <tr><td>Ghi chú</td><td class="pass">Đạt</td><td>Chèn, kéo, mở lại và sửa nội dung</td></tr>
+          <tr><td>Ảnh</td><td class="pass">Đạt</td><td>Chèn JPG, kéo, resize và thay bằng PNG khác nhưng giữ bounds</td></tr>
+          <tr><td>Working copy + Ctrl+S</td><td class="pass">Đạt</td><td>SHA nguồn chỉ đổi sau Save: <code>51a9d95c… → 5c378f4b…</code></td></tr>
+          <tr><td>Static package resource</td><td class="pass">Đạt</td><td>Bundle mang SwiftPM JS resource; annotation smoke test chạy ngoài toolchain Swift</td></tr>
+          <tr><td>Undo / redo</td><td class="pass">Đạt</td><td>Snapshot working PDF; Ctrl+Z và Ctrl+Shift+Z phục hồi đúng appearance và dirty state</td></tr>
+          <tr><td>Trang xoay 0° / 90° / 180° / 270°</td><td class="pass">Đạt</td><td>Transform và nghịch đảo được test; overlay 90° khớp render MuPDF thật sau drag</td></tr>
+          <tr><td>Đóng khi chưa lưu</td><td class="pass">Đạt</td><td>Tab và nút X cửa sổ đều có Save / Discard / Cancel</td></tr>
+          <tr><td>OCR runtime</td><td class="pass">Đạt</td><td>OCRmyPDF 15.2.0 + Tesseract 5.3.4; language data <code>vie</code>, <code>eng</code>, <code>osd</code></td></tr>
+          <tr><td>OCR PDF scan image-only</td><td class="pass">Đạt</td><td>Text trước OCR rỗng; profile <code>eng</code> đọc đúng ba dòng, giữ 1 trang; profile <code>vie+eng</code> tìm “Portable” có 1 kết quả</td></tr>
+          <tr><td>Undo OCR</td><td class="pass">Đạt</td><td>Text layer bị gỡ khỏi working PDF; truy vấn được chạy lại, không giữ result cũ</td></tr>
+          <tr><td>Bundle OCR portable sạch</td><td class="pass">Đạt</td><td>Chạy trong Ubuntu 24.04 container, <code>--network none</code>, không Python/OCRmyPDF/Tesseract/Ghostscript cài sẵn</td></tr>
+          <tr><td>Ký PAdES Baseline B</td><td class="pass">Đạt</td><td>pyHanko 0.35.2 portable; ký PKCS#12, xác minh chữ ký và undo thành công</td></tr>
+          <tr><td>Phát hiện thay đổi sau ký</td><td class="pass">Đạt</td><td>PDF hợp lệ được nhận diện; bản bị sửa sau ký bị báo integrity không hợp lệ</td></tr>
+          <tr><td>Bundle PAdES portable sạch</td><td class="pass">Đạt</td><td>Ký và verify trong cùng container không mạng, không Python/pyHanko cài sẵn</td></tr>
+        </tbody>
+      </table>
+    </section>
+    <section>
+      <h2>Text editing: format, drag và resize</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-blue-applied-final.png" alt="Text annotation màu xanh, bold và căn giữa với khung chọn đồng bộ">
+        <figcaption>Dialog nhận đúng màu float từ MuPDF; Apply giữ màu xanh, bold, căn giữa và khung chọn khớp appearance.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-text-resized.png" alt="Text annotation sau khi kéo và đổi kích thước">
+        <figcaption>Text đã được kéo sang vị trí mới và resize bằng handle; bounds được ghi lại trong PDF.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Ghi chú và ảnh</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-note-moved.png" alt="Ghi chú PDF sau khi kéo sang vị trí mới">
+        <figcaption>Note 20×20 pt di chuyển ổn định; nội dung đọc lại là “Ubuntu moved note”.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-image-resized.png" alt="Ảnh PDF sau khi kéo và resize">
+        <figcaption>Ảnh JPG sau drag/resize với selection và appearance đồng bộ.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-image-replaced-final.png" alt="Ảnh đang chọn được thay bằng PNG khác và giữ nguyên khung">
+        <figcaption>Thay nội dung ảnh bằng PNG khác qua toolbar; vị trí và kích thước được giữ nguyên.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Save có kiểm soát</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-after-save.png" alt="AZpdf sau Ctrl S, tab không còn dấu tài liệu chưa lưu">
+        <figcaption>Ứng dụng chỉnh trên working copy. Sau Ctrl+S, SHA file nguồn đổi và dấu dirty trên tab biến mất; đọc lại có đủ text, note và image.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Trang xoay và undo / redo</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-rotated-overlay-selected-v2.png" alt="Overlay annotation khớp nội dung trên trang PDF xoay 90 độ">
+        <figcaption>Engine trả cropBox 842×595 và rotation 90°. Overlay đổi đúng thành 60×220 pt trên viewport 595×842.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-rotated-moved-stepped-v2.png" alt="Annotation trên trang xoay sau khi được kéo">
+        <figcaption>Drag trên viewport được đổi ngược về tọa độ PDF; appearance render lại và khung chọn vẫn trùng nhau.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-rotated-undo-v2.png" alt="Annotation trở về vị trí ban đầu sau Ctrl Z">
+        <figcaption>Ctrl+Z phục hồi snapshot PDF trước drag; Ctrl+Shift+Z đưa annotation trở lại vị trí mới.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Bảo vệ thay đổi chưa lưu</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-unsaved-titlebar-close-v2.png" alt="Hộp thoại lưu tất cả, không lưu hoặc hủy khi đóng cửa sổ">
+        <figcaption>Nút X thật trên title bar bị chặn khi còn dirty document; người dùng chọn Hủy, Không lưu hoặc Lưu tất cả.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Keyboard, search và multi-page</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-keyboard-search.png" alt="AZpdf Linux đang hiển thị trang 3 trên 3, zoom 125 phần trăm và truy vấn tìm kiếm">
+        <figcaption>PDF ba trang; sidebar chỉ chứa danh sách trang, tab có khung, trang 3 được chọn.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Tooltip và Save</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-tooltip-save.png" alt="Tooltip Mở PDF Ctrl O trên toolbar AZpdf Linux">
+        <figcaption>Tooltip hoạt động trên toolbar; Ctrl+S hoàn tất và không thay đổi byte của fixture.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>OCR local-first trên PDF scan</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-ocr-dialog.png" alt="Dialog OCR Linux với ngôn ngữ Việt Anh, deskew và tự phát hiện hướng trang">
+        <figcaption>App phát hiện OCRmyPDF cục bộ, cho chọn Việt/Anh, deskew/rotation và nói rõ baseline chưa hiểu ngữ nghĩa bảng/công thức.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-ocr-complete.png" alt="AZpdf Linux thông báo OCR hoàn tất và tài liệu đang chưa lưu">
+        <figcaption>OCR chạy trên working copy; tab có dirty indicator và Snackbar yêu cầu Ctrl+S mới ghi vào file gốc.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-ocr-search.png" alt="Tìm kiếm Portable trả về một kết quả sau OCR">
+        <figcaption>Fixture ban đầu chỉ có ảnh; sau OCR, truy vấn “Portable” trả về 1 kết quả. Profile CLI <code>eng</code> đọc đúng ba dòng; profile GUI <code>vie+eng</code> còn nhận sai token hiếm “AZpdf” thành “A2 pdf”.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-ocr-undo-search-final.png" alt="Sau Undo OCR truy vấn Portable hiển thị không kết quả">
+        <figcaption>Ctrl+Z gỡ text layer khỏi working PDF và chạy lại truy vấn; bộ đếm đổi từ 1 thành 0, không còn search result cũ.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Chữ ký số PAdES trên Linux</h2>
+      <figure>
+        <img src="linux-shell/azpdf-linux-pades-sign-dialog.png" alt="Dialog ký PAdES Baseline B bằng chứng thư PKCS12 trên Linux">
+        <figcaption>Dialog chọn PKCS#12, mật khẩu và lý do ký; private key chỉ được dùng cục bộ.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-pades-sign-complete.png" alt="AZpdf báo ký PAdES hoàn tất và tài liệu có thay đổi chưa lưu">
+        <figcaption>Chữ ký được tạo trên working copy; người dùng vẫn kiểm soát thời điểm ghi vào file gốc.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-pades-verify-valid.png" alt="Kết quả xác minh chữ ký PAdES hợp lệ">
+        <figcaption>Integrity của chữ ký hợp lệ. Certificate thử nghiệm là self-signed nên trust chain chưa được hệ điều hành tin cậy, đúng kỳ vọng QA.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-pades-verify-tampered.png" alt="Kết quả xác minh phát hiện PDF bị thay đổi sau ký">
+        <figcaption>Bản PDF bị sửa sau khi ký được phát hiện là không còn toàn vẹn.</figcaption>
+      </figure>
+      <figure>
+        <img src="linux-shell/azpdf-linux-pades-sign-undo.png" alt="Undo phục hồi PDF trước thao tác ký PAdES">
+        <figcaption>Undo phục hồi working copy trước ký và đồng bộ lại trạng thái dirty.</figcaption>
+      </figure>
+    </section>
+    <section>
+      <h2>Giới hạn còn lại</h2>
+      <p>OCR và PAdES Baseline B đã có runtime portable, nhưng chưa phải release public cuối: cần xác minh SBOM/checksum tái lập, worker sandbox, installer AppImage/Flatpak, Orca audit và CI trên distro matrix. Phần chức năng tiếp theo gồm structured-layout cho bảng/công thức/hình, PDF/UA-2, PDF/A-4, PAdES B-T/LT/LTA với TSA/OCSP/CRL production và bản Windows có runtime tương đương.</p>
+    </section>
+  </main>
+</body>
+</html>

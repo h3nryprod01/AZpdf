@@ -1,0 +1,134 @@
+{
+  "metadata": {
+    "primaryLanguage": "vi",
+    "sourceFilename": "document-ir-fixture.pdf",
+    "title": "AZpdf DocumentIR fixture"
+  },
+  "pages": [
+    {
+      "blocks": [
+        {
+          "bounds": {
+            "origin": { "x": 40, "y": 32 },
+            "size": { "height": 28, "width": 300 }
+          },
+          "id": "heading",
+          "isArtifact": false,
+          "kind": "heading",
+          "lines": [],
+          "text": "AZpdf structured OCR"
+        },
+        {
+          "bounds": {
+            "origin": { "x": 40, "y": 100 },
+            "size": { "height": 70, "width": 300 }
+          },
+          "id": "table",
+          "isArtifact": false,
+          "kind": "table",
+          "lines": [],
+          "table": {
+            "cells": [
+              {
+                "bounds": {
+                  "origin": { "x": 40, "y": 100 },
+                  "size": { "height": 35, "width": 150 }
+                },
+                "column": 0,
+                "columnSpan": 1,
+                "row": 0,
+                "rowSpan": 1,
+                "text": "Tên"
+              },
+              {
+                "bounds": {
+                  "origin": { "x": 190, "y": 100 },
+                  "size": { "height": 35, "width": 150 }
+                },
+                "column": 1,
+                "columnSpan": 1,
+                "row": 0,
+                "rowSpan": 1,
+                "text": "Giá trị"
+              },
+              {
+                "bounds": {
+                  "origin": { "x": 40, "y": 135 },
+                  "size": { "height": 35, "width": 150 }
+                },
+                "column": 0,
+                "columnSpan": 1,
+                "row": 1,
+                "rowSpan": 1,
+                "text": "License"
+              },
+              {
+                "bounds": {
+                  "origin": { "x": 190, "y": 135 },
+                  "size": { "height": 35, "width": 150 }
+                },
+                "column": 1,
+                "columnSpan": 1,
+                "row": 1,
+                "rowSpan": 1,
+                "text": "AGPL-3.0"
+              }
+            ],
+            "columnCount": 2,
+            "rowCount": 2
+          }
+        },
+        {
+          "bounds": {
+            "origin": { "x": 40, "y": 210 },
+            "size": { "height": 32, "width": 180 }
+          },
+          "formula": {
+            "confidence": 0.96,
+            "latex": "E = mc^2"
+          },
+          "id": "formula",
+          "isArtifact": false,
+          "kind": "formula",
+          "lines": []
+        },
+        {
+          "bounds": {
+            "origin": { "x": 40, "y": 280 },
+            "size": { "height": 180, "width": 300 }
+          },
+          "figure": {
+            "altText": "Sơ đồ pipeline OCR",
+            "captionBlockIDs": [],
+            "classification": "diagram"
+          },
+          "id": "figure",
+          "isArtifact": false,
+          "kind": "figure",
+          "lines": []
+        }
+      ],
+      "coordinateSpace": "pagePointsTopLeft",
+      "detectedLanguages": ["vi", "en"],
+      "index": 0,
+      "readingOrder": ["heading", "table", "formula", "figure"],
+      "size": { "height": 842, "width": 595 },
+      "sourceRotation": 0
+    }
+  ],
+  "provenance": {
+    "languages": ["vi", "en"],
+    "modelID": "fixture-layout-model",
+    "options": { "device": "cpu" },
+    "providerID": "org.azpdf.fixture",
+    "providerVersion": "1.0"
+  },
+  "relations": [
+    {
+      "kind": "readingOrderBefore",
+      "sourceBlockID": "heading",
+      "targetBlockID": "table"
+    }
+  ],
+  "schemaVersion": 1
+}

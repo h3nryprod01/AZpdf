@@ -20,14 +20,32 @@
 - [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
 - [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào
 - [x] Ký Developer ID, notarize và staple ZIP macOS; Gatekeeper đã xác minh `Notarized Developer ID`
-- [ ] Tạo GitHub Release public và upload ZIP notarized (chờ xác nhận xuất bản)
+- [x] Tạo GitHub Release public và upload ZIP notarized
 
 ## Windows và Linux
 
 - [x] Tách portable core Foundation-only (`AZpdfCore`) cho policy, plugin manifest và intent thao tác
 - [x] Đưa adapter PDFKit macOS qua contract `PDFDocumentEngine`
+- [x] Thêm model đọc/render/metadata/annotation độc lập nền tảng và `PortableDocumentSession` với undo/redo
+- [x] Thêm capability contract để UI chỉ hiện tính năng engine thực sự hỗ trợ
 - [ ] Mở rộng portable core để mô hình hóa toàn bộ đọc/lưu/chỉnh sửa độc lập PDFKit
 - [x] Quyết định engine prototype qua ADR về giấy phép và kiến trúc (MuPDF AGPL)
-- [ ] Benchmark fidelity/performance MuPDF trên fixture chung trước khi tích hợp
-- [ ] Xây dựng UI adapter và CI theo nền tảng
+- [x] Benchmark baseline latency/memory MuPDF 1.28.0 trên macOS arm64 và Ubuntu x86_64
+- [ ] Mở rộng benchmark fidelity bằng pixel diff, round-trip và bộ PDF thực tế/malformed
+- [x] Khai báo CI cho portable core trên macOS, Ubuntu và Windows
+- [x] Dựng Flutter shell Windows/Linux và JSON bridge `azpdf-engine`
+- [x] Chạy Linux release với open/render/thumbnails/tabs/search/zoom/save, tooltip và phím tắt
+- [x] Linux annotation baseline: text/note/image, move/resize, format, thay ảnh, working copy và Save
+- [x] Linux undo/redo bằng snapshot working PDF, cảnh báo chưa lưu và mapping annotation cho trang xoay
+- [x] Linux OCR searchable-PDF baseline: Việt/Anh, deskew/rotation, Save và Undo/Redo; QA PDF scan image-only đạt
+- [x] Đóng gói OCRmyPDF/Tesseract/Ghostscript/qpdf và pyHanko portable trong Linux bundle; audit ELF và smoke test container sạch, tắt mạng đạt
+- [x] Thêm `DocumentIR` portable v1 cho reading order, bảng, công thức, figure/alt text, provenance và geometry top-left có validation
+- [x] Thêm capability/request contract v1 cho structured OCR provider local CPU/GPU, model license, language, feature và resource limit
+- [x] Ánh xạ MuPDF structured text thành `DocumentIR` baseline; CLI generate/validate/export-text và geometry trang xoay đã test
+- [x] Thêm viewer `DocumentIR` trong Flutter: overlay block, reading order, geometry/confidence và copy text; QA bằng engine Release thật trên Ubuntu
+- [ ] Thêm provider structured-layout và editor sửa text/bảng/công thức/reading order trước export
+- [x] Linux shell ký/xác minh PAdES Baseline B, tách integrity/trust và hỗ trợ undo working copy
+- [ ] Build OCR/PAdES runtime và kiểm thử release thật trên Windows
 - [ ] Chạy cùng fixture và conformance tests với macOS
+
+Definition of Done chi tiết: [docs/V2_CROSS_PLATFORM.md](docs/V2_CROSS_PLATFORM.md).
