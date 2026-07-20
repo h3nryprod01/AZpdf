@@ -70,6 +70,9 @@ extension DocumentStore {
             isPAdESSigningSheetPresented = false
             open(url)
         } catch {
+            // Same reason as the certificate path: the alert cannot show over
+            // the sheet, so a failed signing looked like nothing happened.
+            isPAdESSigningSheetPresented = false
             lastError = error.localizedDescription
         }
     }
@@ -110,6 +113,10 @@ extension DocumentStore {
             try signature.write(to: url, options: .atomic)
             isCertificateSigningSheetPresented = false
         } catch {
+            // Dismiss first: an alert cannot present while this sheet is up, so
+            // setting lastError alone left the user with no feedback at all —
+            // the common case being macOS denying access to the signing key.
+            isCertificateSigningSheetPresented = false
             lastError = "Không thể tạo chữ ký số: \(error.localizedDescription)"
         }
     }
