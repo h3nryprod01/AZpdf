@@ -17,7 +17,11 @@ struct SidebarView: View {
                     }
                 }
                 Section("Trang — \(document.pageCount)") {
-                    ForEach(0..<document.pageCount, id: \.self) { index in
+                    // Array, not a literal Range: SwiftUI treats ForEach over a
+                    // constant range as static content and ignores .onMove, so
+                    // dragging a thumbnail only selected it instead of
+                    // reordering the page.
+                    ForEach(Array(0..<document.pageCount), id: \.self) { index in
                         HStack(spacing: 10) {
                             PageThumbnail(page: document.page(at: index))
                             VStack(alignment: .leading, spacing: 2) {
