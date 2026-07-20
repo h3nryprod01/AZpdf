@@ -350,13 +350,18 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertTrue(verification.summary.contains("AZpdf Test"))
     }
 
-    func testDetachedSignatureVerificationOpensImporterForOpenPDF() {
+    // Verification now opens an NSOpenPanel directly instead of setting an
+    // importer flag, because SwiftUI silently dropped the stacked
+    // .fileImporter this used to drive. With no document open it must return
+    // before showing any picker, which is what this asserts — a test that
+    // opened the panel would block on runModal.
+    func testDetachedSignatureVerificationDoesNothingWithoutDocument() {
         let store = DocumentStore()
-        store.document = makeDocument(pageCount: 1)
 
         store.beginCertificateSignatureVerification()
 
-        XCTAssertTrue(store.isCertificateSignatureImporterPresented)
+        XCTAssertTrue(store.certificateVerificationMessage.isEmpty)
+        XCTAssertFalse(store.isCertificateVerificationResultPresented)
     }
 
     func testPAdESSigningServiceUsesPassfileAndReturnsEmbeddedPDF() throws {
