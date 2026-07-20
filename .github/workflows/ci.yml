@@ -4,9 +4,13 @@ on:
   push:
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   macos-tests:
     runs-on: macos-14
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - name: Test
@@ -19,7 +23,8 @@ jobs:
         run: ./script/build_and_run.sh --bundle
       - name: Validate release scripts
         run: |
-          bash -n script/build_and_run.sh script/build_mupdf_runtime.sh script/build_ocrmypdf_runtime.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/generate_sbom.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh
+          bash -n script/build_and_run.sh script/build_linux_release.sh script/build_mupdf_runtime.sh script/build_ocrmypdf_runtime.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/build_flatpak_dev.sh script/build_flatpak_source.sh script/stage_flatpak_source.sh script/lint_flatpak_manifest.sh script/test_flatpak_gui.sh script/test_flatpak_sandbox.sh script/test_flatpak_desktop_session.sh script/generate_linux_sbom.sh script/generate_sbom.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh
+          python3 -m py_compile script/generate_flatpak_pub_sources.py
           runtime="$(mktemp -d)"
           cp /usr/bin/true "$runtime/helper"
           chmod +x "$runtime/helper"
@@ -37,3 +42,121 @@ jobs:
             exit 1
           fi
           rm -rf "$runtime"
+
+  linux-core:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    container: swift:6.3.3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify toolchain
+        run: swift --version
+      - name: Test portable core
+        run: swift test
+      - name: Build self-contained engine bridge
+        run: |
+          swift build -c release --build-path .build-linux-static \
+            -Xswiftc -static-stdlib --product azpdf-engine
+          if ldd .build-linux-static/release/azpdf-engine | grep -q 'not found'; then
+            ldd .build-linux-static/release/azpdf-engine
+            exit 1
+          fi
+      - name: Audit portable core boundary
+        run: ./script/audit_portable_core.sh
+
+  linux-shell:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Linux desktop build dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+            clang cmake ninja-build pkg-config libgtk-3-dev libstdc++-12-dev \
+            liblzma-dev libglu1-mesa
+      - name: Install pinned official Flutter SDK
+        run: |
+          curl -fsSL \
+            https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.44.0-stable.tar.xz \
+            -o "$RUNNER_TEMP/flutter.tar.xz"
+          echo 'e1ec95e6c550458a34de93580cb85dac24da0e9bedb9bb42811f050ac5a0c7d5  '"$RUNNER_TEMP/flutter.tar.xz" | sha256sum -c -
+          tar -xf "$RUNNER_TEMP/flutter.tar.xz" -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+      - name: Analyze and test desktop shell
+        working-directory: Shell/azpdf_desktop
+        run: |
+          "$RUNNER_TEMP/flutter/bin/flutter" --disable-analytics
+          "$RUNNER_TEMP/flutter/bin/flutter" pub get
+          "$RUNNER_TEMP/flutter/bin/flutter" analyze
+          "$RUNNER_TEMP/flutter/bin/flutter" test
+          "$RUNNER_TEMP/flutter/bin/flutter" build linux --release
+
+  flatpak-manifest:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install manifest validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq \
+            flatpak-builder jq rsync
+      - name: Validate pinned offline sources and least privilege
+        run: |
+          ./script/generate_flatpak_pub_sources.py \
+            Shell/azpdf_desktop/pubspec.lock \
+            Packaging/flatpak/flutter-pub-sources.json \
+            --additional-lockfile Packaging/flatpak/flutter-3.44.0-tools-pubspec.lock \
+            --check
+          ./script/stage_flatpak_source.sh
+          ./script/lint_flatpak_manifest.sh
+
+  windows-core:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install official Swift toolchain
+        shell: pwsh
+        run: |
+          winget install --id Swift.Toolchain --exact --source winget `
+            --accept-package-agreements --accept-source-agreements
+          $swift = Get-ChildItem 'C:\Program Files\Swift\Toolchains' -Recurse -Filter swift.exe |
+            Select-Object -First 1
+          if (-not $swift) { throw 'Swift toolchain was installed but swift.exe was not found.' }
+          $swift.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Test portable core
+        shell: pwsh
+        run: |
+          swift --version
+          swift test
+          swift build -c release --product azpdf-engine
+
+  windows-shell:
+    runs-on: windows-2022
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pinned official Flutter SDK
+        shell: pwsh
+        run: |
+          $archive = Join-Path $env:RUNNER_TEMP 'flutter_windows_3.44.0-stable.zip'
+          curl.exe -fL `
+            'https://storage.googleapis.com/flutter_infra_release/releases/stable/windows/flutter_windows_3.44.0-stable.zip' `
+            -o $archive
+          $actual = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          $expected = '88da00194893bf9543fc47c0bf31e6de978d49ffdb9c2f6e30c46dde0116c768'
+          if ($actual -ne $expected) { throw "Flutter SDK checksum mismatch: $actual" }
+          Expand-Archive -Path $archive -DestinationPath $env:RUNNER_TEMP
+          (Join-Path $env:RUNNER_TEMP 'flutter\bin') |
+            Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+      - name: Analyze, test and build Windows desktop shell
+        shell: pwsh
+        working-directory: Shell/azpdf_desktop
+        run: |
+          flutter --disable-analytics
+          flutter pub get
+          flutter analyze
+          flutter test
+          flutter build windows --release

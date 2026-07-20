@@ -1,0 +1,16 @@
+[Desktop Entry]
+Name=AZpdf
+GenericName=PDF Editor
+GenericName[vi]=Trình chỉnh sửa PDF
+Comment=Read, annotate, OCR and sign PDF documents locally
+Comment[vi]=Đọc, chú thích, OCR và ký tài liệu PDF hoàn toàn cục bộ
+Exec=azpdf %U
+Icon=io.github.h3nryprod01.AZpdf
+Terminal=false
+Type=Application
+Categories=Office;Viewer;Graphics;
+MimeType=application/pdf;
+StartupNotify=true
+StartupWMClass=io.github.h3nryprod01.AZpdf
+Keywords=PDF;OCR;Signature;Annotation;
+Keywords[vi]=PDF;OCR;Chữ ký;Chú thích;

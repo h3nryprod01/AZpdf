@@ -7,9 +7,9 @@ if [[ $# -ne 2 ]]; then
 fi
 
 RUNTIME_DIR="$1"
-EXECUTABLE="$RUNTIME_DIR/$2"
-
 [[ -d "$RUNTIME_DIR" ]] || { echo "Runtime audit failed: directory does not exist: $RUNTIME_DIR" >&2; exit 1; }
+RUNTIME_DIR="$(cd "$RUNTIME_DIR" && pwd -P)"
+EXECUTABLE="$RUNTIME_DIR/$2"
 [[ -x "$EXECUTABLE" ]] || { echo "Runtime audit failed: expected executable is missing: $EXECUTABLE" >&2; exit 1; }
 [[ ! -L "$EXECUTABLE" ]] || { echo "Runtime audit failed: executable must not be a symlink: $EXECUTABLE" >&2; exit 1; }
 
@@ -64,6 +64,35 @@ while IFS= read -r -d '' candidate; do
       fi
     fi
   fi
-done < <(find "$RUNTIME_DIR" -type f \( -perm -111 -o -name '*.dylib' \) -print0)
+
+  if [[ "$candidate_type" == *ELF* ]]; then
+    runtime_library_path="$RUNTIME_DIR/lib"
+    dependencies="$(LD_LIBRARY_PATH="$runtime_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" ldd "$candidate" 2>&1 || true)"
+    if rg -q 'not found' <<<"$dependencies"; then
+      echo "Runtime audit failed: ELF dependency is missing for $candidate" >&2
+      echo "$dependencies" >&2
+      exit 1
+    fi
+    while IFS= read -r dependency; do
+      [[ -z "$dependency" ]] && continue
+      case "$dependency" in
+        "$RUNTIME_DIR"/*) ;;
+        /lib/*|/lib64/*|/usr/lib/*|/usr/lib64/*) ;;
+        *)
+          echo "Runtime audit failed: ELF dependency is outside system runtime: $candidate -> $dependency" >&2
+          exit 1
+          ;;
+      esac
+    done < <(awk '
+      /=> \// {print $3}
+      /^[[:space:]]*\// {print $1}
+    ' <<<"$dependencies")
+  fi
+done < <(find "$RUNTIME_DIR" -type f \( \
+  -perm -111 -o \
+  -name '*.dylib' -o \
+  -name '*.so' -o \
+  -name '*.so.*' \
+\) -print0)
 
 echo "Runtime audit passed: $RUNTIME_DIR"

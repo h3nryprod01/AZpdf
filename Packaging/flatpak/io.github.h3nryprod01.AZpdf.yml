@@ -1,0 +1,39 @@
+app-id: io.github.h3nryprod01.AZpdf
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: azpdf
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --env=GTK_USE_PORTAL=1
+modules:
+  - name: azpdf
+    buildsystem: simple
+    build-commands:
+      - mkdir -p /app/azpdf
+      - cp -a bundle/. /app/azpdf/
+      - install -Dm755 azpdf-flatpak /app/bin/azpdf
+      - install -Dm644 io.github.h3nryprod01.AZpdf.desktop /app/share/applications/io.github.h3nryprod01.AZpdf.desktop
+      - install -Dm644 io.github.h3nryprod01.AZpdf.metainfo.xml /app/share/metainfo/io.github.h3nryprod01.AZpdf.metainfo.xml
+      - install -Dm644 icon_512x512.png /app/share/icons/hicolor/512x512/apps/io.github.h3nryprod01.AZpdf.png
+      - install -Dm644 LICENSE /app/share/licenses/io.github.h3nryprod01.AZpdf/LICENSE
+      - install -Dm644 THIRD_PARTY_NOTICES.md /app/share/licenses/io.github.h3nryprod01.AZpdf/THIRD_PARTY_NOTICES.md
+    sources:
+      - type: dir
+        path: dev/bundle
+        dest: bundle
+      - type: file
+        path: azpdf-flatpak
+      - type: file
+        path: io.github.h3nryprod01.AZpdf.desktop
+      - type: file
+        path: io.github.h3nryprod01.AZpdf.metainfo.xml
+      - type: file
+        path: ../../Assets/AZpdf.iconset/icon_512x512.png
+      - type: file
+        path: ../../LICENSE
+      - type: file
+        path: ../../THIRD_PARTY_NOTICES.md

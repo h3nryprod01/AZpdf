@@ -1,0 +1,20 @@
+%%MediaBox 0 0 842 595
+%%Rotate 90
+%%Font F0 Helvetica-Bold Latin
+q
+0.92 0.92 0.92 rg
+40 40 762 515 re
+f
+1 1 1 rg
+64 64 714 467 re
+f
+Q
+BT
+/F0 22 Tf
+0 0 0 rg
+90 480 Td
+(Rotated landscape fixture) Tj
+/F0 12 Tf
+0 -34 Td
+(Checks rotation normalization and crop geometry.) Tj
+ET

@@ -1,5 +1,14 @@
 .build/
 dist/
+.flatpak-probe-build/
+.flatpak-probe-repo/
+.flatpak-build/
+.flatpak-repo/
+.flatpak-source-build/
+.flatpak-source-repo/
+Packaging/flatpak/dev/
 .DS_Store
 .codegraph/
 .cursor/
+Tests/Fixtures/generated/
+script/__pycache__/

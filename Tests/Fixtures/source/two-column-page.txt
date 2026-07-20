@@ -1,0 +1,27 @@
+%%MediaBox 0 0 612 792
+%%Font F0 Helvetica Latin
+q
+0.1 0.4 0.9 RG
+2 w
+306 72 m
+306 720 l
+S
+Q
+BT
+/F0 18 Tf
+54 728 Td
+(Two-column layout fixture) Tj
+/F0 11 Tf
+0 -40 Td
+(Left column line 1) Tj
+0 -18 Td
+(Left column line 2) Tj
+0 -18 Td
+(Left column line 3) Tj
+306 36 Td
+(Right column line 1) Tj
+0 -18 Td
+(Right column line 2) Tj
+0 -18 Td
+(Right column line 3) Tj
+ET

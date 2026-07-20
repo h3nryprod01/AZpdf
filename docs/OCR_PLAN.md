@@ -1,29 +1,45 @@
-# Brainstorm OCR local-first cho AZpdf
+# OCR local-first cho AZpdf
 
-## Đã có trong macOS v1
+## Baseline đã triển khai
 
-OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu dùng pipeline hybrid local-first: ưu tiên text layer vốn có trong PDF để không mất nội dung/reading order; nếu không có text layer đủ nghĩa thì dùng Vision nhận dạng Việt/Anh ở 3× resolution. Có tiến độ theo trang và nhãn nguồn kết quả. Người dùng review, sửa, sao chép hoặc xuất `.txt`; AZpdf tạo searchable PDF mới bằng OCRmyPDF sau review, không tự sửa PDF đang mở.
+AZpdf có contract OCR portable trong `AZpdfCore`, adapter `OCRmyPDFProcessor`, lệnh `ocr-health`/`ocr` và flow Flutter cho Linux. Người dùng chọn `vie`, `eng` hoặc `vie+eng`, deskew và tự phát hiện hướng trang. OCR chạy trên working copy, giữ nguyên hình thức trang, thêm text layer tìm kiếm và có Undo/Redo trước khi Save.
 
-## Mục tiêu v1.1
+`DocumentIR` schema v1 đã được triển khai trong core Foundation-only. IR dùng PDF point với gốc top-left, lưu provenance provider/model, reading order, text line/word/quad, style, bảng có row/column span, công thức LaTeX/MathML, figure/alt text và quan hệ semantic. Validation từ chối geometry/confidence sai, ID hoặc reading-order trùng/mất và reference semantic không tồn tại; JSON round-trip được test độc lập với UI/engine.
 
-OCR hoàn toàn trên máy, không tải PDF hay ảnh lên cloud. Người dùng chọn trang hoặc vùng cần nhận dạng, xem trước văn bản, rồi mới quyết định thêm text layer hoặc xuất `.txt`/`.md`.
+Contract provider v1 cũng đã có: capability handshake khai báo model/version/SPDX license, CPU/GPU local execution, feature, BCP 47 language, VRAM và giới hạn số trang; request khai báo page index, language, feature bắt buộc, DPI và chính sách trang đã có text. Remote endpoint không tồn tại trong contract v1.
 
-## Lộ trình đề xuất
+MuPDF `stext.json` hiện có thể đi qua `DocumentIRBuilder` để tạo IR baseline ngay từ PDF. Builder giữ thứ tự block, style dòng, image region và chuyển geometry PDF bottom-left sang top-left đúng cho rotation 0°/90°/180°/270°. CLI `ir-baseline`, `ir-validate`, `ir-export-text` đã smoke test với fixture PDF thường và xoay.
 
-1. **macOS — Vision framework:** dùng `VNRecognizeTextRequest`, hỗ trợ Việt/Anh, xử lý từng trang/vùng và hiển thị tiến độ/hủy tác vụ.
-2. **Review trước khi ghi:** kết quả là bản nháp có bounding box; người dùng sửa text trước khi thêm annotation/text layer vào PDF.
-3. **Xuất dữ liệu:** copy clipboard, `.txt`, `.md`, hoặc thêm searchable text layer vào bản sao PDF.
-4. **Kiến trúc portable:** đưa request/result OCR vào `AZpdfCore`; adapter Vision là macOS-specific.
-5. **Windows/Linux:** plugin local được ký/xác minh và chạy qua XPC/sandbox tương đương; có thể dùng Tesseract hoặc PaddleOCR, không gửi dữ liệu ra mạng.
+Flutter shell đã có màn hình review `DocumentIR` cho trang hiện tại: danh sách block theo reading order, overlay top-left trên bản render, loại block, geometry/confidence, provenance provider/model và copy plain text. MuPDF baseline được gắn nhãn rõ là chưa hiểu bảng/công thức; visual QA dùng engine Linux Release thật đã đạt.
 
-## Điều cần quyết định trước khi code
+QA Ubuntu 24.04 đã chạy PDF chỉ có ảnh bằng OCRmyPDF 15.2.0 + Tesseract 5.3.4: trước OCR không có text; profile `eng` trích xuất đúng ba dòng, còn profile mặc định `vie+eng` nhận sai token hiếm `AZpdf` thành `A2 pdf` nhưng tìm “Portable” trong UI vẫn trả về 1 kết quả. Undo đã xóa text layer và chạy lại truy vấn để không giữ kết quả cũ.
 
-- Ưu tiên tốc độ hay độ chính xác với tiếng Việt và tài liệu scan mờ?
-- OCR toàn trang hay chọn vùng là mặc định?
-- Kết quả nên thêm overlay có thể tìm kiếm hay chỉ xuất text? Khuyến nghị: chọn vùng mặc định, overlay là tùy chọn sau khi review.
+## Capability contract
+
+| Provider | Searchable PDF | Giữ hình thức trang | Reading order/bounding box | Bảng | Công thức | Output cấu trúc |
+|---|---:|---:|---:|---:|---:|---:|
+| OCRmyPDF + Tesseract | Có | Có | Hạn chế | Không | Không | Không |
+| PP-StructureV3 | Có thể ghép | Có thể dựng lại | Có | Có | Có | Markdown/JSON |
+| PaddleOCR-VL 1.6 | Qua adapter | Có thể dựng lại | Có | Có | Có | JSON/Markdown qua DocumentIR |
+| Docling | Qua adapter | Có thể dựng lại | Có | Có | Có stage riêng | Docling document/JSON/Markdown |
+| MinerU | Qua adapter | Có thể dựng lại | Có | Có | Có | JSON/Markdown |
+
+UI chỉ hiển thị khả năng provider thực sự khai báo; baseline OCRmyPDF không được gắn nhãn “hiểu” bảng, công thức hay reading order ngữ nghĩa.
+
+## Hướng phát triển
+
+1. **v2 baseline:** hoàn tất runtime OCR Linux; tiếp tục Windows, checksum/SBOM, CPU/memory/timeout và file tạm.
+2. **DocumentIR:** schema và provider contract v1 đã có; tiếp theo thêm JSON Schema, migration/version negotiation và fixture đa provider.
+3. **Advanced Layout:** plugin local PaddleOCR-VL/PP-StructureV3 cho workstation có GPU, ánh xạ block, reading order, bảng, ảnh và công thức vào `DocumentIR`; không ghi đè PDF trước màn hình review.
+4. **Document Intelligence:** adapter Docling là lựa chọn CPU/GPU portable; MinerU là profile nghiên cứu cho tài liệu khoa học phức tạp.
+5. **Review editor:** viewer overlay/confidence/reading order đã có; tiếp theo sửa text/bảng/công thức, reorder block và xuất PDF, Markdown, JSON.
+6. **Bộ đo:** CER/WER tiếng Việt, TEDS cho bảng, exact/normalized match cho công thức, reading-order score, latency và peak VRAM/RAM.
 
 ## Ranh giới an toàn
 
-- Không tự chạy OCR khi mở PDF.
-- Không gửi ảnh/PDF/recognized text/telemetry ra Internet.
-- Luôn làm việc trên bản sao trong bộ nhớ; ghi vào PDF chỉ sau xác nhận của người dùng.
+- Không tự chạy OCR khi mở PDF; không gửi PDF, ảnh, text hay telemetry ra Internet.
+- Model/provider nâng cao chạy trong worker có sandbox; model phải được người dùng cài hoặc AZpdf đóng gói và xác minh.
+- Process adapter mặc định từ chối runner không có network-isolated OS sandbox. Linux Bubblewrap phân loại lỗi namespace/AppArmor thành `sandboxUnavailable` và không fallback unsandboxed. Runner Flatpak dùng subsandbox `flatpak-spawn --sandbox --no-network`, chỉ nhận provider đã đóng gói dưới `/app`, expose input/request read-only và output directory riêng; cấm `--host`. Probe subsandbox và GTK portal E2E đã đạt trên Ubuntu 24.04. Gói hệ thống vẫn cần AppArmor profile được review; không tự biến `bwrap` thành setuid. Portal KDE thật và manifest reproducible từ source còn là release gate.
+- Luôn OCR working copy; kiểm tra PDF đầu ra, số trang và khả năng Undo trước Save.
+
+Tham khảo: [OCRmyPDF](https://ocrmypdf.readthedocs.io/en/latest/introduction.html), [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html), [PP-StructureV3](https://www.paddleocr.ai/main/en/version3.x/algorithm/PP-StructureV3/PP-StructureV3.html), [Docling model catalog](https://docling-project.github.io/docling/usage/model_catalog/), [MinerU](https://github.com/opendatalab/mineru).

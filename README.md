@@ -1,6 +1,6 @@
 # AZpdf
 
-Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặt quyền riêng tư lên trước.
+Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là nền tảng phát hành đầu tiên; Linux v2 đang ở giai đoạn alpha và Windows nằm trong lộ trình tiếp theo.
 
 <img width="254" height="254" alt="Generated image 3" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -38,7 +38,7 @@ Trình đọc và chỉnh sửa PDF native cho macOS, mã nguồn mở và đặ
 - CI kiểm tra source để chặn API client mạng trong app/core.
 - **Plugin-ready:** OCR, dịch và tóm tắt sẽ là plugin cài đặt tùy chọn; bản thân AZpdf không phụ thuộc dịch vụ cloud.
 - Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md) và [mô hình sandbox](docs/PLUGIN_PROTOCOL.md). Bản v1 không thực thi executable bên thứ ba.
-- **OCR searchable PDF:** sau khi review preview, có thể xuất PDF mới qua OCRmyPDF theo chế độ giữ text layer gốc; runtime phát hành cần Tesseract/Ghostscript và language data đóng gói.
+- **OCR searchable PDF:** sau khi review preview, có thể xuất PDF mới qua OCRmyPDF theo chế độ giữ text layer gốc. Bundle Linux alpha đã đóng gói runtime OCR portable cùng Tesseract, Ghostscript, qpdf và language data `vie`/`eng`/`osd`; macOS vẫn dùng pipeline Vision + OCRmyPDF tùy runtime.
 
 ## Ủng hộ
 
@@ -49,11 +49,18 @@ Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
 <img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
 
 ## Phát triển
+
+### macOS
+
 Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh và veraPDF (`brew install verapdf`) để kiểm tra chuẩn. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` và `VERAPDF_RUNTIME_DIR` chứa runtime self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
 
 Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). AZpdf hỗ trợ chữ ký CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain và ký nhúng PAdES từ PKCS#12 (`.p12`/`.pfx`) cục bộ. Có thể chọn Baseline B, LT hoặc LTA; LT/LTA chỉ khả dụng khi cung cấp TSA URL và vẫn cần kiểm thử với trust store/OCSP/CRL production trước khi dùng cho hồ sơ pháp lý dài hạn.
 
 Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) và SBOM SPDX theo đúng runtime đã đóng gói.
+
+### Linux v2 alpha
+
+Linux dùng Flutter shell gọi cùng core Swift qua JSON-line process. Bundle alpha hiện tự mang engine, MuPDF 1.28.0, OCRmyPDF/Tesseract và pyHanko; các health check, OCR searchable-PDF và ký/xác minh PAdES Baseline B đã chạy thành công trong container Ubuntu 24.04 không có mạng hay dependency cài sẵn. Development Flatpak Freedesktop 25.08 cũng đã qua sandbox probe, runtime health và GTK document-portal E2E với PDF fixture thật; manifest public reproducible/Flathub và portal KDE thật vẫn là bước tiếp theo. Shell review được `DocumentIR`/reading order trực tiếp trên trang. Xem [hướng dẫn shell đa nền tảng](Shell/azpdf_desktop/README.md), [báo cáo UI/UX](qa-report/azpdf-linux-shell-report-2026-07-18.html) và [QA workstation Ubuntu](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
 
 Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
