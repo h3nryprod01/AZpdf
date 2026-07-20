@@ -163,8 +163,14 @@ struct PDFReaderView: NSViewRepresentable {
         }
     }
 
+    /// Returns a point in annotation-local space, i.e. relative to the ink
+    /// annotation's own bounds origin — NOT page space. PDFKit adds
+    /// `bounds.origin` when it writes `/InkList`, so returning page
+    /// coordinates here offsets every stroke by the origin a second time and
+    /// pushes the whole signature outside `/Rect`, where every viewer clips it
+    /// away. The signature then exists in the file but renders nowhere.
     private func signaturePoint(_ point: CGPoint, in bounds: CGRect) -> CGPoint {
-        CGPoint(x: bounds.minX + point.x / 520 * bounds.width, y: bounds.maxY - point.y / 190 * bounds.height)
+        CGPoint(x: point.x / 520 * bounds.width, y: bounds.height - point.y / 190 * bounds.height)
     }
 
     private func showSearchResult(in view: PDFView, coordinator: Coordinator) {
