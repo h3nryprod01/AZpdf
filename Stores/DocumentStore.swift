@@ -24,20 +24,16 @@ final class DocumentStore {
     var selectedPageIndex = 0
     var zoomScale: CGFloat = 1
     var isAutoScale = true
-    var isInsertImporterPresented = false
     var isImageImporterPresented = false
     var isReplacingSelectedImage = false // internal for DocumentStore+Annotations
-    var isExportPresented = false
     var isCurrentPageExporterPresented = false
     var isPasswordPromptPresented = false
     var isPasswordProtectSheetPresented = false
     var isTextAnnotationSheetPresented = false
     var isSignatureSheetPresented = false
     var isCertificateSigningSheetPresented = false
-    var isCertificateSignatureImporterPresented = false
     var isCertificateVerificationResultPresented = false
     var isPAdESSigningSheetPresented = false
-    var isPAdESCertificateImporterPresented = false
     var isPAdESVerificationResultPresented = false
     var isOCRSheetPresented = false
     var isConformanceSheetPresented = false
@@ -155,6 +151,22 @@ final class DocumentStore {
     }
 
     // MARK: - Shared plumbing
+
+    /// SwiftUI keeps only the last .fileImporter/.fileExporter attached to a
+    /// given view, so the pickers stacked on ContentView silently stopped
+    /// opening — "Chèn trang từ PDF", ".p7s verification" and "Xuất bản sao"
+    /// did nothing at all, with no error. Native panels always present and are
+    /// already what the rest of this store uses.
+    @MainActor
+    func chooseFile(contentTypes: [UTType]) -> URL? {
+        let panel = NSOpenPanel()
+        panel.allowedContentTypes = contentTypes
+        panel.allowsMultipleSelection = false
+        panel.canChooseDirectories = false
+        panel.canChooseFiles = true
+        guard panel.runModal() == .OK else { return nil }
+        return panel.url
+    }
 
     func record(_ operation: DocumentOperation) {
         lastOperation = operation

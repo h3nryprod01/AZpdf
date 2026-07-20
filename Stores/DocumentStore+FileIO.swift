@@ -42,6 +42,16 @@ extension DocumentStore {
         guard document.write(to: url) else { lastError = "Không thể xuất PDF."; return }
     }
 
+    @MainActor
+    func beginExportCopy() {
+        guard document != nil else { return }
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = "\(title).pdf"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+        export(to: url)
+    }
+
     func beginPasswordProtectedExport() {
         guard document != nil else { return }
         exportPassword = ""

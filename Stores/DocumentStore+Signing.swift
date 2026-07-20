@@ -18,9 +18,10 @@ extension DocumentStore {
         }
     }
 
+    @MainActor
     func beginCertificateSignatureVerification() {
-        guard document != nil else { return }
-        isCertificateSignatureImporterPresented = true
+        guard document != nil, let url = chooseFile(contentTypes: [.data]) else { return }
+        verifyDetachedCertificateSignature(at: url)
     }
 
     func beginPAdESSigning() {
@@ -28,8 +29,10 @@ extension DocumentStore {
         isPAdESSigningSheetPresented = true
     }
 
+    @MainActor
     func choosePAdESCertificate() {
-        isPAdESCertificateImporterPresented = true
+        guard let url = chooseFile(contentTypes: [.data]) else { return }
+        selectPAdESCertificate(at: url)
     }
 
     func selectPAdESCertificate(at url: URL) {

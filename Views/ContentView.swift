@@ -69,34 +69,10 @@ struct ContentView: View {
             }
             return true
         }
-        .fileImporter(isPresented: $store.isInsertImporterPresented, allowedContentTypes: [.pdf]) { result in
-            if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else { store.insertPages(from: url); return }
-                defer { url.stopAccessingSecurityScopedResource() }
-                store.insertPages(from: url)
-            }
-        }
-        .fileImporter(isPresented: $store.isCertificateSignatureImporterPresented, allowedContentTypes: [.data]) { result in
-            if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else {
-                    store.verifyDetachedCertificateSignature(at: url)
-                    return
-                }
-                defer { url.stopAccessingSecurityScopedResource() }
-                store.verifyDetachedCertificateSignature(at: url)
-            }
-        }
-        .fileImporter(isPresented: $store.isPAdESCertificateImporterPresented, allowedContentTypes: [.data]) { result in
-            if case let .success(url) = result {
-                guard url.startAccessingSecurityScopedResource() else {
-                    store.selectPAdESCertificate(at: url)
-                    return
-                }
-                defer { url.stopAccessingSecurityScopedResource() }
-                store.selectPAdESCertificate(at: url)
-            }
-        }
-        .fileExporter(isPresented: $store.isExportPresented, document: PDFExportDocument(data: store.document?.dataRepresentation()), contentType: .pdf, defaultFilename: store.title) { _ in }
+        // Only ONE fileExporter remains here on purpose: SwiftUI keeps just the
+        // last presentation modifier of each kind per view, so the pickers that
+        // used to be stacked above this one never opened. They now use native
+        // panels from the store instead.
         .fileExporter(
             isPresented: $store.isCurrentPageExporterPresented,
             document: PDFExportDocument(data: store.currentPageExportData),
@@ -218,7 +194,7 @@ struct ContentView: View {
                 .help("Lưu (⌘S)")
             Button { store.saveAs() } label: { Label("Lưu thành", systemImage: "square.and.arrow.down.on.square") }
                 .help("Lưu thành bản PDF mới (⇧⌘S)")
-            Button { store.isExportPresented = true } label: { Label("Xuất", systemImage: "square.and.arrow.up") }
+            Button { store.beginExportCopy() } label: { Label("Xuất", systemImage: "square.and.arrow.up") }
                 .help("Xuất bản sao PDF")
             }
             ToolbarItemGroup(placement: .principal) {
@@ -235,7 +211,7 @@ struct ContentView: View {
             Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }.help("Xóa vĩnh viễn nội dung đã chọn")
             Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }.help("Xoay trang hiện tại")
             Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }.help("Nhân đôi trang hiện tại")
-            Button { store.isInsertImporterPresented = true } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }.help("Chèn trang từ PDF khác")
+            Button { store.beginInsertPages() } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }.help("Chèn trang từ PDF khác")
             Button { store.beginImageInsertion() } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }.help("Chèn ảnh có thể kéo, đổi cỡ và thay thế")
             Button { store.prepareCurrentPageExport() } label: { Label("Xuất trang", systemImage: "doc.badge.arrow.up") }.help("Xuất trang hiện tại")
             Button { store.beginPasswordProtectedExport() } label: { Label("Xuất bảo vệ", systemImage: "lock.doc") }.help("Xuất PDF có mật khẩu")

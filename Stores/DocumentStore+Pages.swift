@@ -38,6 +38,12 @@ extension DocumentStore {
         record(operation)
     }
 
+    @MainActor
+    func beginInsertPages() {
+        guard document != nil, let url = chooseFile(contentTypes: [.pdf]) else { return }
+        insertPages(from: url)
+    }
+
     func insertPages(from url: URL) {
         guard let document else { return }
         guard let source = PDFDocument(url: url), source.pageCount > 0 else {

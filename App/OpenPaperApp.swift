@@ -108,7 +108,7 @@ struct AZpdfApp: App {
                     .keyboardShortcut("r", modifiers: [.command, .shift])
                 Button("Nhân đôi trang hiện tại") { workspace.activeStore.duplicateCurrentPage() }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
-                Button("Chèn trang từ PDF…") { workspace.activeStore.isInsertImporterPresented = true }
+                Button("Chèn trang từ PDF…") { workspace.activeStore.beginInsertPages() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
                 Button("Chèn ảnh…") { workspace.activeStore.beginImageInsertion() }
                     .keyboardShortcut("i", modifiers: [.command, .option])
