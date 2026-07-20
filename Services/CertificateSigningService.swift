@@ -4,7 +4,10 @@ import Security
 struct CertificateIdentity: Identifiable {
     let id: String
     let displayName: String
-    fileprivate let identity: SecIdentity
+    // internal, not fileprivate, so tests can build an identity from a
+    // throwaway in-memory PKCS#12 and exercise the real signing path without
+    // touching the user's Keychain.
+    let identity: SecIdentity
 }
 
 struct CertificateSignatureVerification: Equatable {
