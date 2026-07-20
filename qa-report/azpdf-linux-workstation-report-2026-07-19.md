@@ -2,11 +2,11 @@
 
 ## Môi trường
 
-- Host: `cuongdn-u`, Ubuntu 24.04.4 LTS, kernel 6.14.0-37-generic, x86_64.
+- Host: `<ubuntu-host>`, Ubuntu 24.04.4 LTS, kernel 6.14.0-37-generic, x86_64.
 - Phần cứng thấy từ phiên SSH: 32 CPU, 61 GiB RAM.
 - Flutter 3.44.0, Dart 3.12.0, Docker 29.6.2, Bubblewrap 0.9.0.
 - Flatpak 1.14.6, flatpak-builder 1.4.2 và Freedesktop Platform/SDK 25.08 được cài ở user scope; không thay đổi policy AppArmor toàn hệ thống.
-- Source kiểm thử độc lập: `/home/cuongdn/azpdf-linux-test-20260719`.
+- Source kiểm thử độc lập: `/home/<user>/azpdf-linux-test-20260719`.
 
 ## Kết quả
 
