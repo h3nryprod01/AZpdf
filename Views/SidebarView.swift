@@ -40,6 +40,14 @@ struct SidebarView: View {
                     }
                     .onMove(perform: store.movePages)
                 }
+            } else {
+                // Without this the sidebar is a blank column on launch, which
+                // reads as something failing to load rather than as "no
+                // document yet".
+                Text("Mở một PDF để xem mục lục và thumbnail trang.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .padding(.vertical, 8)
             }
         }
         .listStyle(.sidebar)

@@ -202,7 +202,7 @@ struct ContentView: View {
             Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }.help("Chèn và định dạng chữ")
             Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }.help("Vẽ và chèn chữ ký")
             Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }.help("Xuất chữ ký số .p7s")
-            Button { store.beginPAdESSigning() } label: { Label("Ký PAdES", systemImage: "signature") }.help("Nhúng chữ ký số PAdES vào PDF")
+            Button { store.beginPAdESSigning() } label: { Label("Ký PAdES", systemImage: "checkmark.seal.fill") }.help("Nhúng chữ ký số PAdES vào PDF")
             Button { store.verifyPAdESSignatures() } label: { Label("Xác minh PAdES", systemImage: "checkmark.shield") }.help("Kiểm tra tính toàn vẹn chữ ký nhúng")
             Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }.help("Nhận dạng chữ trên trang hiện tại")
             Button { store.beginOCRRegionSelection() } label: { Label("OCR vùng", systemImage: "viewfinder.rectangular") }.help("Kéo để chọn vùng cần nhận dạng chữ")

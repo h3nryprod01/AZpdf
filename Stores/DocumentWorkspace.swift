@@ -57,6 +57,16 @@ final class DocumentWorkspace {
         let store = DocumentStore()
         store.open(url)
         guard store.document != nil else { return }
+        // Take over the current tab when it is still empty. Always appending
+        // left a dead "Chưa mở tài liệu" tab behind after the first open, which
+        // the user then had to close by hand.
+        if let index = tabs.firstIndex(where: { $0.id == selectedTabID }),
+           tabs[index].store.document == nil {
+            let replacement = Tab(store: store)
+            tabs[index] = replacement
+            selectedTabID = replacement.id
+            return
+        }
         let tab = Tab(store: store)
         tabs.append(tab)
         selectedTabID = tab.id
