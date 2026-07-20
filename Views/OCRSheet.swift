@@ -47,21 +47,28 @@ struct OCRSheet: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            HStack {
-                Button("OCR trang này") { store.beginOCRCurrentPage() }
-                    .disabled(store.isOCRProcessing)
-                Button("OCR vùng…") { store.beginOCRRegionSelection() }
-                    .disabled(store.isOCRProcessing)
-                Button("OCR toàn bộ") { store.beginOCRDocument() }
-                    .disabled(store.isOCRProcessing)
-                Spacer()
-                Button("Sao chép") { store.copyOCRText() }
-                    .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
-                Button("Xuất .txt") { store.exportOCRText() }
-                    .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
-                Button(store.isSearchablePDFExporting ? "Đang tạo PDF…" : "Xuất PDF có lớp chữ…") { store.exportSearchablePDF() }
-                    .disabled(store.ocrText.isEmpty || store.isOCRProcessing || store.isSearchablePDFExporting)
-                Button("Đóng") { dismiss() }
+            // Two rows: all seven buttons on one row exceed the sheet width and
+            // macOS truncates the labels to "OCR tran…", "Xuất PDF…".
+            VStack(spacing: 10) {
+                HStack {
+                    Button("OCR trang này") { store.beginOCRCurrentPage() }
+                        .disabled(store.isOCRProcessing)
+                    Button("OCR vùng…") { store.beginOCRRegionSelection() }
+                        .disabled(store.isOCRProcessing)
+                    Button("OCR toàn bộ") { store.beginOCRDocument() }
+                        .disabled(store.isOCRProcessing)
+                    Spacer()
+                }
+                HStack {
+                    Spacer()
+                    Button("Sao chép") { store.copyOCRText() }
+                        .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
+                    Button("Xuất .txt") { store.exportOCRText() }
+                        .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
+                    Button(store.isSearchablePDFExporting ? "Đang tạo PDF…" : "Xuất PDF có lớp chữ…") { store.exportSearchablePDF() }
+                        .disabled(store.ocrText.isEmpty || store.isOCRProcessing || store.isSearchablePDFExporting)
+                    Button("Đóng") { dismiss() }
+                }
             }
         }
         .padding(24)
