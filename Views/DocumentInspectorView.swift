@@ -7,6 +7,11 @@ struct DocumentInspectorView: View {
     private var attributes: [AnyHashable: Any] { store.document?.documentAttributes ?? [:] }
 
     var body: some View {
+        // Annotation and page data is read straight off PDFKit objects, which
+        // @Observable cannot track. Reading documentRevision registers the one
+        // dependency that does change on every edit, so the inspector refreshes
+        // instead of showing a stale annotation count.
+        let _ = store.documentRevision
         Form {
             Section("Trang hiện tại") {
                 LabeledContent("Vị trí") { Text("\(store.selectedPageIndex + 1) / \(store.pageCount)") }

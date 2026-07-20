@@ -37,6 +37,16 @@ struct PDFReaderView: NSViewRepresentable {
 
     func updateNSView(_ view: PlacementPDFView, context: Context) {
         if view.document !== store.document { view.document = store.document }
+        // Edits that mutate the document in place — deleting an annotation, for
+        // example — keep the same PDFDocument identity, so the check above
+        // cannot catch them. The store bumps documentRevision for exactly this
+        // reason; reading it here both registers the observation dependency and
+        // tells us when to force PDFView to redraw. Without it a deleted
+        // annotation stays on screen and the edit looks like it failed.
+        if context.coordinator.documentRevision != store.documentRevision {
+            context.coordinator.documentRevision = store.documentRevision
+            view.layoutDocumentView()
+        }
         if store.isAutoScale {
             view.autoScales = true
         } else {
@@ -184,6 +194,7 @@ struct PDFReaderView: NSViewRepresentable {
 
     final class Coordinator {
         var pageIndex = -1
+        var documentRevision = -1
         var searchText = ""
         var searchResults: [PDFSelection] = []
         var searchIndex = -1
