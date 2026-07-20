@@ -43,6 +43,18 @@ for tool in swift mutool; do
     bad "thiếu $tool" "cài rồi chạy lại"
   fi
 done
+
+# Engine chạy azpdf_annotations.js qua JS engine của mutool, mà file đó dùng
+# `import ... from "mupdf"` (ES module). mutool cũ không parse được và fail bằng
+# một SyntaxError khó hiểu, nên kiểm phiên bản ở đây cho rõ ràng.
+MUTOOL_OK_FOR_JS=1
+if command -v mutool >/dev/null 2>&1; then
+  MV=$(mutool -v 2>&1 | grep -oE '[0-9]+\.[0-9]+' | head -1)
+  if [[ -n "$MV" ]] && awk "BEGIN{exit !($MV < 1.24)}"; then
+    MUTOOL_OK_FOR_JS=0
+    skip "mutool $MV quá cũ cho annotations" "cần >= 1.24 (ES module); bundle release mang sẵn 1.28"
+  fi
+fi
 for tool in flutter flatpak ocrmypdf; do
   command -v "$tool" >/dev/null 2>&1 && ok "có $tool (tuỳ chọn)" || skip "$tool" "tuỳ chọn, bỏ qua phần liên quan"
 done
@@ -75,7 +87,9 @@ engine "info"                   info        --document "$DOC"
 engine "page (trang 0)"         page        --document "$DOC" --page 0
 engine "text (trang 0)"         text        --document "$DOC" --page 0
 engine "search"                 search      --document "$DOC" --query "the"
-engine "annotations"            annotations --document "$DOC" --page 0
+if [[ $MUTOOL_OK_FOR_JS -eq 1 ]]; then
+  engine "annotations"          annotations --document "$DOC" --page 0
+fi
 engine "render -> PNG"          render      --document "$DOC" --page 0 --scale 1 --output "$OUT/render.png"
 [[ -s "$OUT/render.png" ]] && ok "render tạo file không rỗng" || bad "render tạo file" "file rỗng/không có"
 
@@ -100,7 +114,15 @@ out="$("$ENGINE" info --document /khong/ton/tai.pdf 2>&1)"
 section "8. Flatpak / shell (nếu có)"
 for s in test_flatpak_sandbox.sh test_flatpak_desktop_session.sh; do
   if [[ -x "$REPO/script/$s" ]] && command -v flatpak >/dev/null 2>&1; then
-    if bash "$REPO/script/$s" >"$OUT/$s.log" 2>&1; then ok "$s"; else bad "$s" "xem $OUT/$s.log"; fi
+    if bash "$REPO/script/$s" >"$OUT/$s.log" 2>&1; then
+      ok "$s"
+    elif grep -q "AZPDF_ALLOW_ACTIVE_DESKTOP_TEST" "$OUT/$s.log" 2>/dev/null; then
+      # Script tự chặn để không đụng vào desktop đang có nội dung riêng tư.
+      # Đó là guard chạy đúng, không phải lỗi.
+      skip "$s" "cần AZPDF_ALLOW_ACTIVE_DESKTOP_TEST=YES, script tự chặn để bảo vệ desktop"
+    else
+      bad "$s" "xem $OUT/$s.log"
+    fi
   else
     skip "$s" "thiếu flatpak hoặc script"
   fi
