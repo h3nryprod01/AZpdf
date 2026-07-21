@@ -160,8 +160,8 @@ struct PDFReaderView: NSViewRepresentable {
             for stroke in strokes {
                 guard let first = stroke.points.first else { continue }
                 let path = NSBezierPath()
-                path.move(to: signaturePoint(first, in: bounds))
-                for point in stroke.points.dropFirst() { path.line(to: signaturePoint(point, in: bounds)) }
+                path.move(to: Self.signaturePoint(first, in: bounds))
+                for point in stroke.points.dropFirst() { path.line(to: Self.signaturePoint(point, in: bounds)) }
                 annotation.add(path)
             }
             page.addAnnotation(annotation)
@@ -179,8 +179,9 @@ struct PDFReaderView: NSViewRepresentable {
     /// coordinates here offsets every stroke by the origin a second time and
     /// pushes the whole signature outside `/Rect`, where every viewer clips it
     /// away. The signature then exists in the file but renders nowhere.
-    private func signaturePoint(_ point: CGPoint, in bounds: CGRect) -> CGPoint {
-        CGPoint(x: point.x / 520 * bounds.width, y: bounds.height - point.y / 190 * bounds.height)
+    static func signaturePoint(_ point: CGPoint, in bounds: CGRect) -> CGPoint {
+        CGPoint(x: point.x / SignatureCanvasMetrics.size.width * bounds.width,
+                y: bounds.height - point.y / SignatureCanvasMetrics.size.height * bounds.height)
     }
 
     private func showSearchResult(in view: PDFView, coordinator: Coordinator) {

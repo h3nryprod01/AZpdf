@@ -1,5 +1,13 @@
 import SwiftUI
 
+/// Kích thước canvas vẽ chữ ký — dùng chung cho view (`SignatureSheet`)
+/// và cho ánh xạ toạ độ (`PDFReaderView.signaturePoint`) để hai nơi không
+/// lệch tỉ lệ nếu canvas đổi kích thước. (Tên tránh đụng `SignatureCanvas`
+/// view struct ở cuối file.)
+enum SignatureCanvasMetrics {
+    static let size = CGSize(width: 520, height: 190)
+}
+
 struct SignatureSheet: View {
     @Bindable var store: DocumentStore
 
@@ -10,7 +18,7 @@ struct SignatureSheet: View {
             Text("Vẽ chữ ký bằng chuột hoặc trackpad. Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt chữ ký; toàn bộ dữ liệu được xử lý trên máy.")
                 .foregroundStyle(.secondary)
             SignatureCanvas(strokes: $store.draftSignatureStrokes)
-                .frame(width: 520, height: 190)
+                .frame(width: SignatureCanvasMetrics.size.width, height: SignatureCanvasMetrics.size.height)
             HStack {
                 Button("Xóa nét vẽ") { store.draftSignatureStrokes = [] }
                     .disabled(store.draftSignatureStrokes.isEmpty)
