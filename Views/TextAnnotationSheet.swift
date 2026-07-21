@@ -24,5 +24,6 @@ struct TextAnnotationSheet: View {
         }
         .padding(24)
         .frame(width: 460)
+        .background(EscapeDismissInstaller { dismiss() })
     }
 }

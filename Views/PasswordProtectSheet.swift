@@ -22,5 +22,6 @@ struct PasswordProtectSheet: View {
         }
         .padding(24)
         .frame(width: 420)
+        .background(EscapeDismissInstaller { dismiss() })
     }
 }

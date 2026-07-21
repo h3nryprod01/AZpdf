@@ -24,5 +24,6 @@ struct DocumentPropertiesSheet: View {
         }
         .padding(24)
         .frame(width: 520)
+        .background(EscapeDismissInstaller { store.isDocumentPropertiesSheetPresented = false })
     }
 }

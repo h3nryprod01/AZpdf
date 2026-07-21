@@ -31,6 +31,7 @@ struct SignatureSheet: View {
         }
         .padding(24)
         .frame(width: 570)
+        .background(EscapeDismissInstaller { store.isSignatureSheetPresented = false })
     }
 }
 
