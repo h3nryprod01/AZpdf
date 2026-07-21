@@ -1,5 +1,15 @@
 # Roadmap AZpdf
 
+## Trạng thái kiểm chứng (2026-07-21)
+
+> Kỷ luật: chỉ giữ `[x]` khi có **bằng chứng chạy ở tầng UI/e2e**, không dựa vào unit test xanh.
+> Trong phiên QA này phát hiện 3 mục từng `[x]` nhưng thực tế hỏng khi lái GUI (search, zoom thủ công,
+> chữ ký tay không render) — cả 3 đã vá và nay có test canh. Bài học: unit test xanh ≠ tính năng chạy.
+
+- **macOS:** 25/25 tính năng README đã lái GUI thật — xem [qa-report/README-COVERAGE.md](qa-report/README-COVERAGE.md). Search/zoom/chữ ký đã vá + ghim bằng test (`SignaturePointTests`, `MuPDFAnnotationKindTests`).
+- **Linux (shell Flutter):** đọc/render/thumbnail/tab/điều hướng/search đã verify GUI thật trên Ubuntu 24.04 — xem [qa-report/azpdf-linux-shell-gui-2026-07-21.md](qa-report/azpdf-linux-shell-gui-2026-07-21.md). Lưu ý: annotation cần mutool ≥ 1.24 (bundle release mang 1.28); build-từ-source với mutool apt 1.23 sẽ lỗi JS.
+- **Windows:** roadmap — chạy bootstrap trong VM báo thiếu toolchain (Swift for Windows + VS Build Tools). Đúng mức cam kết README.
+
 ## Hoàn thành trên macOS
 
 - [x] Reader/editor local-first: tabs, search, outline, page tools, annotations, signature tay
