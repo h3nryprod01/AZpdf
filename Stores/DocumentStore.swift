@@ -42,6 +42,9 @@ final class DocumentStore {
     // menu commands (⌘F, ⌘I) can reach them without depending on the toolbar.
     var isFindBarPresented = false
     var isInspectorPresented = false
+    // Edit tools live in a reveal-on-demand bar below the toolbar (Preview-style)
+    // instead of crowding the toolbar; this drives that bar.
+    var isEditBarPresented = false
     var isConformanceChecking = false
     var isOCRProcessing = false
     var isSearchablePDFExporting = false

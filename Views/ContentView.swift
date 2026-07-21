@@ -14,6 +14,10 @@ struct ContentView: View {
         } detail: {
             VStack(spacing: 0) {
                 if store.isFindBarPresented { findBar }
+                if store.isEditBarPresented, store.document != nil {
+                    editBar
+                    Divider()
+                }
                 Group {
                     if store.document != nil {
                         PDFReaderView(store: store) { hasSelection in
@@ -178,6 +182,58 @@ struct ContentView: View {
         }
     }
 
+    // Preview-style edit bar: revealed by the toolbar "Chỉnh sửa" toggle. It
+    // holds the annotation / page / OCR / signing tools that used to crowd the
+    // toolbar. Labels are visible here (unlike the cramped toolbar), and moving
+    // these out is also what keeps search and zoom from being pushed into an
+    // overflow menu that never opened.
+    private var editBar: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 2) {
+                editTool("Ghi chú", "note.text") { store.addNote() }
+                editTool("Chữ", "text.cursor") { store.beginTextAnnotation() }
+                editTool("Chữ ký", "signature") { store.beginSignature() }
+                editTool("Tô sáng", "highlighter") { store.highlightSelection() }
+                editTool("Ảnh", "photo.badge.plus") { store.beginImageInsertion() }
+                editTool("Redact", "rectangle.fill") { store.beginRedaction() }
+                editDivider
+                editTool("Xoay", "rotate.right") { store.rotateCurrentPage() }
+                editTool("Nhân đôi", "plus.square.on.square") { store.duplicateCurrentPage() }
+                editTool("Chèn PDF", "doc.badge.plus") { store.beginInsertPages() }
+                editTool("Xuất trang", "doc.badge.arrow.up") { store.prepareCurrentPageExport() }
+                editTool("Xuất bảo vệ", "lock.doc") { store.beginPasswordProtectedExport() }
+                editDivider
+                editTool("OCR trang", "text.viewfinder") { store.beginOCRCurrentPage() }
+                editTool("OCR vùng", "viewfinder.rectangular") { store.beginOCRRegionSelection() }
+                editTool("OCR toàn bộ", "doc.text.magnifyingglass") { store.beginOCRDocument() }
+                editDivider
+                editTool("Ký .p7s", "checkmark.seal") { store.beginCertificateSigning() }
+                editTool("Ký PAdES", "checkmark.seal.fill") { store.beginPAdESSigning() }
+                editTool("Xác minh", "checkmark.shield") { store.verifyPAdESSignatures() }
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+        }
+        .background(.bar)
+    }
+
+    private var editDivider: some View {
+        Divider().frame(height: 30).padding(.horizontal, 4)
+    }
+
+    private func editTool(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(spacing: 3) {
+                Image(systemName: icon).font(.system(size: 15))
+                Text(title).font(.caption2)
+            }
+            .frame(minWidth: 52)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(.primary)
+    }
+
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
             Button(action: openPDF) { Label("Mở PDF", systemImage: "folder") }
@@ -197,24 +253,12 @@ struct ContentView: View {
             Button { store.beginExportCopy() } label: { Label("Xuất", systemImage: "square.and.arrow.up") }
                 .help("Xuất bản sao PDF")
             }
-            ToolbarItemGroup(placement: .principal) {
-            Button { store.addNote() } label: { Label("Thêm ghi chú", systemImage: "note.text") }.help("Thêm ghi chú")
-            Button { store.beginTextAnnotation() } label: { Label("Thêm chữ", systemImage: "text.cursor") }.help("Chèn và định dạng chữ")
-            Button { store.beginSignature() } label: { Label("Chữ ký", systemImage: "signature") }.help("Vẽ và chèn chữ ký")
-            Button { store.beginCertificateSigning() } label: { Label("Ký certificate", systemImage: "checkmark.seal") }.help("Xuất chữ ký số .p7s")
-            Button { store.beginPAdESSigning() } label: { Label("Ký PAdES", systemImage: "checkmark.seal.fill") }.help("Nhúng chữ ký số PAdES vào PDF")
-            Button { store.verifyPAdESSignatures() } label: { Label("Xác minh PAdES", systemImage: "checkmark.shield") }.help("Kiểm tra tính toàn vẹn chữ ký nhúng")
-            Button { store.beginOCRCurrentPage() } label: { Label("OCR trang", systemImage: "text.viewfinder") }.help("Nhận dạng chữ trên trang hiện tại")
-            Button { store.beginOCRRegionSelection() } label: { Label("OCR vùng", systemImage: "viewfinder.rectangular") }.help("Kéo để chọn vùng cần nhận dạng chữ")
-            Button { store.beginOCRDocument() } label: { Label("OCR toàn bộ", systemImage: "doc.text.magnifyingglass") }.help("Nhận dạng chữ trên toàn bộ tài liệu")
-            Button { store.highlightSelection() } label: { Label("Tô sáng vùng chọn", systemImage: "highlighter") }.help("Tô sáng đoạn văn bản đã chọn")
-            Button { store.beginRedaction() } label: { Label("Redact vùng chọn", systemImage: "rectangle.fill") }.help("Xóa vĩnh viễn nội dung đã chọn")
-            Button { store.rotateCurrentPage() } label: { Label("Xoay trang", systemImage: "rotate.right") }.help("Xoay trang hiện tại")
-            Button { store.duplicateCurrentPage() } label: { Label("Nhân đôi trang", systemImage: "plus.square.on.square") }.help("Nhân đôi trang hiện tại")
-            Button { store.beginInsertPages() } label: { Label("Chèn PDF", systemImage: "doc.badge.plus") }.help("Chèn trang từ PDF khác")
-            Button { store.beginImageInsertion() } label: { Label("Chèn ảnh", systemImage: "photo.badge.plus") }.help("Chèn ảnh có thể kéo, đổi cỡ và thay thế")
-            Button { store.prepareCurrentPageExport() } label: { Label("Xuất trang", systemImage: "doc.badge.arrow.up") }.help("Xuất trang hiện tại")
-            Button { store.beginPasswordProtectedExport() } label: { Label("Xuất bảo vệ", systemImage: "lock.doc") }.help("Xuất PDF có mật khẩu")
+            ToolbarItem(placement: .principal) {
+                Button { store.isEditBarPresented.toggle() } label: {
+                    Label("Chỉnh sửa", systemImage: "pencil.tip.crop.circle")
+                }
+                .help("Hiện/ẩn công cụ chỉnh sửa")
+                .tint(store.isEditBarPresented ? .accentColor : nil)
             }
             ToolbarItemGroup(placement: .automatic) {
             Button { store.goToPreviousPage() } label: { Label("Trang trước", systemImage: "chevron.left") }
