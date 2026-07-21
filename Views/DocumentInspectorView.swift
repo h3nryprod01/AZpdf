@@ -86,6 +86,7 @@ struct DocumentInspectorView: View {
                     ))
                     annotationPositionControls
                     Button("Áp dụng định dạng") { store.updateSelectedFreeText() }
+                    deleteSelectedButton
                 }
             }
 
@@ -98,6 +99,7 @@ struct DocumentInspectorView: View {
                         .frame(minHeight: 72)
                     annotationPositionControls
                     Button("Áp dụng ghi chú") { store.updateSelectedNote() }
+                    deleteSelectedButton
                 }
             }
 
@@ -111,6 +113,22 @@ struct DocumentInspectorView: View {
                     annotationPositionControls
                     Button("Áp dụng kích thước") { store.updateSelectedImageSize() }
                     Button("Thay ảnh…") { store.beginReplaceSelectedImage() }
+                    deleteSelectedButton
+                }
+            }
+
+            if let annotation = store.selectedAnnotation,
+               annotation.isAZpdfInk {
+                Section("Chỉnh sửa chữ ký") {
+                    Text("Kéo trực tiếp chữ ký trên PDF để di chuyển, hoặc nhấn Delete để xóa. Có thể đổi màu nét.")
+                        .font(.caption).foregroundStyle(.secondary)
+                    ColorPicker("Màu chữ ký", selection: Binding(
+                        get: { Color(nsColor: store.selectedAnnotationColor) },
+                        set: { store.selectedAnnotationColor = NSColor($0) }
+                    ))
+                    annotationPositionControls
+                    Button("Áp dụng màu") { store.updateSelectedInk() }
+                    deleteSelectedButton
                 }
             }
 
@@ -127,6 +145,10 @@ struct DocumentInspectorView: View {
         if let value = attributes[key] as? String, !value.isEmpty {
             LabeledContent(label) { Text(value).lineLimit(2).multilineTextAlignment(.trailing) }
         }
+    }
+
+    private var deleteSelectedButton: some View {
+        Button("Xóa chú thích", role: .destructive) { store.deleteSelectedAnnotation() }
     }
 
     private var annotationPositionControls: some View {

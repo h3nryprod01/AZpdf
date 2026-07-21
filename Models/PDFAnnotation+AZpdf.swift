@@ -13,6 +13,7 @@ extension PDFAnnotation {
     var isAZpdfNote: Bool { userName == "AZpdf Note" || azpdfSubtype == "text" }
     var isAZpdfFreeText: Bool { azpdfSubtype == "freetext" && !isAZpdfNote }
     var isAZpdfImage: Bool { azpdfSubtype == "stamp" }
+    var isAZpdfInk: Bool { azpdfSubtype == "ink" }
     var isAZpdfPopup: Bool { azpdfSubtype == "popup" }
     var isAZpdfMovable: Bool { ["freetext", "ink", "stamp", "text"].contains(azpdfSubtype) }
 }

@@ -324,6 +324,30 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(store.document?.page(at: 0)?.annotations.first?.bounds.origin, CGPoint(x: 20, y: 20))
     }
 
+    func testDeleteSelectedAnnotationRemovesInkAndUndoRestores() {
+        // Ink = signature, the case the user reported as move-only. A selected
+        // annotation must be deletable in place, and Undo must bring it back.
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let signature = PDFAnnotation(
+            bounds: CGRect(x: 20, y: 20, width: 80, height: 40),
+            forType: .ink,
+            withProperties: nil
+        )
+        store.document?.page(at: 0)?.addAnnotation(signature)
+        store.selectAnnotation(signature, pageIndex: 0)
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.count, 1)
+
+        store.deleteSelectedAnnotation()
+
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.count, 0)
+        XCTAssertNil(store.selectedAnnotation)
+        XCTAssertTrue(store.isModified)
+
+        store.undo()
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.count, 1)
+    }
+
     func testOCRTextNormalizationRemovesNonBreakingSpaces() {
         XCTAssertEqual(OCRService.normalized("\n  AZpdf\u{00A0}OCR\r\n"), "AZpdf OCR")
     }

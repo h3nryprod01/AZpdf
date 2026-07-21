@@ -172,6 +172,31 @@ extension DocumentStore {
         isModified = true
     }
 
+    /// Deletes whatever annotation is currently selected — the path the Delete
+    /// key and the right-click menu use, so a selected signature or image can be
+    /// removed in place instead of only from the inspector's list.
+    func deleteSelectedAnnotation() {
+        guard let annotation = selectedAnnotation,
+              let pageIndex = selectedAnnotationPageIndex,
+              let page = document?.page(at: pageIndex) else { return }
+        registerUndoStep()
+        page.removeAnnotation(annotation)
+        selectAnnotation(nil, pageIndex: nil)
+        documentRevision += 1
+        isModified = true
+    }
+
+    /// Recolors the selected ink signature. Ink strokes cannot be re-drawn after
+    /// the fact, but colour is the one property worth editing.
+    func updateSelectedInk() {
+        guard let annotation = selectedAnnotation, annotation.isAZpdfInk else { return }
+        registerUndoStep()
+        annotation.color = selectedAnnotationColor
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
     func importImage(from url: URL) {
         if isReplacingSelectedImage {
             isReplacingSelectedImage = false

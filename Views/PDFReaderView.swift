@@ -27,6 +27,7 @@ struct PDFReaderView: NSViewRepresentable {
         }
         view.onBeginMoveAnnotation = { store.beginAnnotationMove() }
         view.onFinishMoveAnnotation = { store.finishAnnotationMove() }
+        view.onDeleteSelected = { store.deleteSelectedAnnotation() }
         view.onOCRRegion = { page, bounds in
             guard let index = store.document?.index(for: page) else { return }
             guard index != NSNotFound else { return }
@@ -210,6 +211,7 @@ final class PlacementPDFView: PDFView {
     var onBeginMoveAnnotation: (() -> Void)?
     var onFinishMoveAnnotation: (() -> Void)?
     var onOCRRegion: ((PDFPage, CGRect) -> Void)?
+    var onDeleteSelected: (() -> Void)?
     private var placementAction: PDFReaderAction?
     private var draggedAnnotation: PDFAnnotation?
     private var dragPage: PDFPage?
@@ -259,8 +261,8 @@ final class PlacementPDFView: PDFView {
                     !$0.isAZpdfPopup && $0.bounds.contains(pointOnPage)
                 }
                 onSelectAnnotation?(annotation, page)
+                if annotation != nil { window?.makeFirstResponder(self) }
                 if let annotation, isMovable(annotation) {
-                    window?.makeFirstResponder(self)
                     clearSelection()
                     draggedAnnotation = annotation
                     dragPage = page
@@ -340,6 +342,39 @@ final class PlacementPDFView: PDFView {
     private func isMovable(_ annotation: PDFAnnotation) -> Bool {
         annotation.isAZpdfMovable
     }
+
+    override var acceptsFirstResponder: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        // 51 = Delete (backspace), 117 = Forward Delete. Remove the selected
+        // annotation in place — the natural gesture users expect after clicking
+        // a signature or image.
+        if event.keyCode == 51 || event.keyCode == 117, onDeleteSelected != nil {
+            onDeleteSelected?()
+            return
+        }
+        super.keyDown(with: event)
+    }
+
+    /// Right-click an annotation to select and delete it without hunting through
+    /// the inspector list.
+    override func menu(for event: NSEvent) -> NSMenu? {
+        let pointInView = convert(event.locationInWindow, from: nil)
+        guard let page = page(for: pointInView, nearest: true) else { return super.menu(for: event) }
+        let pointOnPage = convert(pointInView, to: page)
+        guard let annotation = page.annotations.reversed().first(where: {
+            !$0.isAZpdfPopup && $0.bounds.contains(pointOnPage)
+        }) else { return super.menu(for: event) }
+        onSelectAnnotation?(annotation, page)
+        window?.makeFirstResponder(self)
+        let menu = NSMenu()
+        let delete = NSMenuItem(title: "Xóa chú thích", action: #selector(deleteSelectedFromMenu), keyEquivalent: "")
+        delete.target = self
+        menu.addItem(delete)
+        return menu
+    }
+
+    @objc private func deleteSelectedFromMenu() { onDeleteSelected?() }
 
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
