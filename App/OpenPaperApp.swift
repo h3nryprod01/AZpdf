@@ -38,6 +38,11 @@ struct AZpdfApp: App {
                 Button("Đóng tab") { workspace.closeTab(workspace.selectedTabID) }
                     .keyboardShortcut("w", modifiers: .command)
             }
+            CommandGroup(replacing: .printItem) {
+                Button("In…") { workspace.activeStore.printDocument() }
+                    .keyboardShortcut("p", modifiers: .command)
+                    .disabled(workspace.activeStore.document == nil)
+            }
             CommandGroup(replacing: .appInfo) {
                 Button("Giới thiệu về AZpdf") { openWindow(id: "about") }
             }

@@ -14,6 +14,7 @@ struct HelpView: View {
                     Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 8) {
                         GridRow { Text("Mở PDF"); Text("⌘O") }
                         GridRow { Text("Lưu"); Text("⌘S") }
+                        GridRow { Text("In tài liệu"); Text("⌘P") }
                         GridRow { Text("Trang trước / sau"); Text("⌘[ / ⌘]") }
                         GridRow { Text("Ghi chú / tô sáng"); Text("⇧⌘N / ⇧⌘H") }
                         GridRow { Text("Chữ ký tay"); Text("⇧⌘S") }
