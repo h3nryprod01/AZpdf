@@ -6,6 +6,7 @@ struct ContentView: View {
     @Bindable var store: DocumentStore
     let openPDF: () -> Void
     @State private var isDropTarget = false
+    @State private var isShapePickerPresented = false
     @FocusState private var isFindFieldFocused: Bool
 
     var body: some View {
@@ -184,14 +185,17 @@ struct ContentView: View {
     // overflow menu that never opened.
     private var editBar: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 2) {
+            // Every icon is an outline SF Symbol at one size. A single filled
+            // glyph (Redact was `rectangle.fill`, PAdES `checkmark.seal.fill`)
+            // reads as heavier than its neighbours and breaks the row.
+            HStack(spacing: 0) {
                 editTool("Ghi chú", "note.text") { store.addNote() }
-                editTool("Chữ", "text.cursor") { store.beginTextAnnotation() }
+                editTool("Chữ", "character.textbox") { store.beginTextAnnotation() }
                 editTool("Chữ ký", "signature") { store.beginSignature() }
                 editTool("Tô sáng", "highlighter") { store.highlightSelection() }
-                editTool("Ảnh", "photo.badge.plus") { store.beginImageInsertion() }
+                editTool("Ảnh", "photo") { store.beginImageInsertion() }
                 shapeMenu
-                editTool("Redact", "rectangle.fill") { store.beginRedaction() }
+                editTool("Redact", "eye.slash") { store.beginRedaction() }
                 editDivider
                 editTool("Xoay", "rotate.right") { store.rotateCurrentPage() }
                 editTool("Nhân đôi", "plus.square.on.square") { store.duplicateCurrentPage() }
@@ -200,14 +204,16 @@ struct ContentView: View {
                 editTool("Xuất bảo vệ", "lock.doc") { store.beginPasswordProtectedExport() }
                 editDivider
                 editTool("OCR trang", "text.viewfinder") { store.beginOCRCurrentPage() }
-                editTool("OCR vùng", "viewfinder.rectangular") { store.beginOCRRegionSelection() }
+                editTool("OCR vùng", "viewfinder") { store.beginOCRRegionSelection() }
                 editTool("OCR toàn bộ", "doc.text.magnifyingglass") { store.beginOCRDocument() }
                 editDivider
+                // Three distinct outline glyphs: seal signs, shield signs with a
+                // long-term profile, circle reports a verification result.
                 editTool("Ký .p7s", "checkmark.seal") { store.beginCertificateSigning() }
-                editTool("Ký PAdES", "checkmark.seal.fill") { store.beginPAdESSigning() }
-                editTool("Xác minh", "checkmark.shield") { store.verifyPAdESSignatures() }
+                editTool("Ký PAdES", "checkmark.shield") { store.beginPAdESSigning() }
+                editTool("Xác minh", "checkmark.circle") { store.verifyPAdESSignatures() }
             }
-            .padding(.horizontal, 12)
+            .padding(.horizontal, 8)
             .padding(.vertical, 6)
         }
         .background(.bar)
@@ -217,39 +223,67 @@ struct ContentView: View {
         Divider().frame(height: 30).padding(.horizontal, 4)
     }
 
-    /// A menu rather than one button per shape, so six shapes cost one slot in
-    /// the bar — the same shape submenu Preview nests under Annotate.
+    /// One slot in the bar for six shapes — the same grouping Preview uses for
+    /// its shape submenu.
+    ///
+    /// A popover rather than a `Menu`: macOS `Menu` always lays an Image-plus-Text
+    /// label out horizontally as a `Label`, whatever the stack or the menu
+    /// style, so "Hình" sat beside its icon while every neighbour stacked
+    /// icon-over-label. A plain Button takes `editToolLabel` verbatim, so this
+    /// slot is pixel-identical to its neighbours.
     private var shapeMenu: some View {
-        Menu {
-            ForEach(ShapeKind.allCases) { kind in
-                Button { store.beginShape(kind) } label: { Label(kind.label, systemImage: kind.symbol) }
-            }
-        } label: {
-            VStack(spacing: 3) {
-                Image(systemName: "square.on.circle").font(.system(size: 15))
-                Text("Hình").font(.caption2)
-            }
-            .frame(minWidth: 52)
-            .contentShape(Rectangle())
-        }
-        .menuStyle(.borderlessButton)
-        .menuIndicator(.hidden)
-        .fixedSize()
-        .help("Chèn hình: chữ nhật, tròn, đường kẻ, mũi tên, sao, tam giác")
-    }
-
-    private func editTool(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            VStack(spacing: 3) {
-                Image(systemName: icon).font(.system(size: 15))
-                Text(title).font(.caption2)
-            }
-            .frame(minWidth: 52)
-            .contentShape(Rectangle())
+        Button { isShapePickerPresented.toggle() } label: {
+            editToolLabel("Hình", "square.on.circle")
         }
         .buttonStyle(.borderless)
         .foregroundStyle(.primary)
+        .help("Chèn hình: chữ nhật, tròn, đường kẻ, mũi tên, sao, tam giác")
+        .popover(isPresented: $isShapePickerPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(ShapeKind.allCases) { kind in
+                    Button {
+                        isShapePickerPresented = false
+                        store.beginShape(kind)
+                    } label: {
+                        Label(kind.label, systemImage: kind.symbol)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .contentShape(Rectangle())
+                    }
+                    .buttonStyle(.borderless)
+                    .foregroundStyle(.primary)
+                }
+            }
+            .padding(10)
+            .frame(width: 170)
+        }
     }
+
+    private func editTool(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) { editToolLabel(title, icon) }
+            .buttonStyle(.borderless)
+            .foregroundStyle(.primary)
+    }
+
+    /// Shared by the buttons and the shape menu so both stack identically. The
+    /// fixed icon box is what puts every label on one baseline: SF Symbols have
+    /// different intrinsic heights, so without it a wide glyph pushes its label
+    /// down relative to its neighbours.
+    private func editToolLabel(_ title: String, _ icon: String) -> some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 15, weight: .regular))
+                .symbolRenderingMode(.monochrome)
+                .frame(width: 22, height: 19)
+            Text(title)
+                .font(.caption2)
+                .lineLimit(1)
+        }
+        .frame(minWidth: Self.editToolWidth)
+        .padding(.horizontal, 4)
+        .contentShape(Rectangle())
+    }
+
+    private static let editToolWidth: CGFloat = 58
 
     @ToolbarContentBuilder private var toolbar: some ToolbarContent {
         ToolbarItem(placement: .navigation) {
