@@ -72,66 +72,6 @@ struct DocumentInspectorView: View {
                 }
             }
 
-            if let annotation = store.selectedAnnotation,
-               annotation.isAZpdfFreeText {
-                Section("Chỉnh sửa hộp chữ") {
-                    Text("Kéo trực tiếp hộp chữ trên PDF để di chuyển.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    TextEditor(text: $store.selectedAnnotationText)
-                        .frame(minHeight: 80)
-                    Stepper("Cỡ chữ: \(Int(store.selectedAnnotationFontSize)) pt", value: $store.selectedAnnotationFontSize, in: 8...72, step: 1)
-                    ColorPicker("Màu chữ", selection: Binding(
-                        get: { Color(nsColor: store.selectedAnnotationColor) },
-                        set: { store.selectedAnnotationColor = NSColor($0) }
-                    ))
-                    annotationPositionControls
-                    Button("Áp dụng định dạng") { store.updateSelectedFreeText() }
-                    deleteSelectedButton
-                }
-            }
-
-            if let annotation = store.selectedAnnotation,
-               annotation.isAZpdfNote {
-                Section("Chỉnh sửa ghi chú") {
-                    Text("Nhấp ghi chú để sửa nội dung, kéo trực tiếp để di chuyển.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    TextEditor(text: $store.selectedAnnotationText)
-                        .frame(minHeight: 72)
-                    annotationPositionControls
-                    Button("Áp dụng ghi chú") { store.updateSelectedNote() }
-                    deleteSelectedButton
-                }
-            }
-
-            if let annotation = store.selectedAnnotation,
-               annotation.isAZpdfImage {
-                Section("Chỉnh sửa ảnh") {
-                    Text("Kéo trực tiếp ảnh trên PDF để di chuyển. Đổi kích thước rồi nhấn Áp dụng.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    Stepper("Rộng: \(Int(store.selectedAnnotationWidth)) pt", value: $store.selectedAnnotationWidth, in: 24...1_200, step: 4)
-                    Stepper("Cao: \(Int(store.selectedAnnotationHeight)) pt", value: $store.selectedAnnotationHeight, in: 24...1_200, step: 4)
-                    annotationPositionControls
-                    Button("Áp dụng kích thước") { store.updateSelectedImageSize() }
-                    Button("Thay ảnh…") { store.beginReplaceSelectedImage() }
-                    deleteSelectedButton
-                }
-            }
-
-            if let annotation = store.selectedAnnotation,
-               annotation.isAZpdfInk {
-                Section("Chỉnh sửa chữ ký") {
-                    Text("Kéo trực tiếp chữ ký trên PDF để di chuyển, hoặc nhấn Delete để xóa. Có thể đổi màu nét.")
-                        .font(.caption).foregroundStyle(.secondary)
-                    ColorPicker("Màu chữ ký", selection: Binding(
-                        get: { Color(nsColor: store.selectedAnnotationColor) },
-                        set: { store.selectedAnnotationColor = NSColor($0) }
-                    ))
-                    annotationPositionControls
-                    Button("Áp dụng màu") { store.updateSelectedInk() }
-                    deleteSelectedButton
-                }
-            }
-
             Section("Ủng hộ AZpdf") {
                 Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
             }
@@ -145,37 +85,6 @@ struct DocumentInspectorView: View {
         if let value = attributes[key] as? String, !value.isEmpty {
             LabeledContent(label) { Text(value).lineLimit(2).multilineTextAlignment(.trailing) }
         }
-    }
-
-    private var deleteSelectedButton: some View {
-        Button("Xóa chú thích", role: .destructive) { store.deleteSelectedAnnotation() }
-    }
-
-    private var annotationPositionControls: some View {
-        HStack(spacing: 6) {
-            Text("Di chuyển 8 pt")
-                .font(.caption)
-                .foregroundStyle(.secondary)
-            Spacer()
-            Button { store.moveSelectedAnnotation(horizontal: 0, vertical: 8) } label: {
-                Label("Di chuyển lên", systemImage: "arrow.up")
-            }
-            .help("Di chuyển chú thích lên 8 pt")
-            Button { store.moveSelectedAnnotation(horizontal: -8, vertical: 0) } label: {
-                Label("Di chuyển sang trái", systemImage: "arrow.left")
-            }
-            .help("Di chuyển chú thích sang trái 8 pt")
-            Button { store.moveSelectedAnnotation(horizontal: 8, vertical: 0) } label: {
-                Label("Di chuyển sang phải", systemImage: "arrow.right")
-            }
-            .help("Di chuyển chú thích sang phải 8 pt")
-            Button { store.moveSelectedAnnotation(horizontal: 0, vertical: -8) } label: {
-                Label("Di chuyển xuống", systemImage: "arrow.down")
-            }
-            .help("Di chuyển chú thích xuống 8 pt")
-        }
-        .accessibilityElement(children: .contain)
-        .accessibilityLabel("Điều khiển vị trí chú thích")
     }
 
     private func annotationSymbol(for annotation: PDFAnnotation) -> String {

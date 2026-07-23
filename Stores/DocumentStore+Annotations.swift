@@ -27,6 +27,27 @@ extension DocumentStore {
         isModified = true
     }
 
+    /// Mirrors `beginAnnotationMove`: snapshots for undo at drag-start, before
+    /// the view starts mutating `bounds` live.
+    func beginAnnotationResize() {
+        registerUndoStep()
+    }
+
+    /// Commits a resize drag. No `registerUndoStep` here — `beginAnnotationResize`
+    /// already snapshotted the pre-drag state at drag-start.
+    func resizeSelectedAnnotation(to newBounds: CGRect) {
+        guard let annotation = selectedAnnotation else { return }
+        annotation.bounds = CGRect(
+            x: newBounds.minX,
+            y: newBounds.minY,
+            width: max(24, newBounds.width),
+            height: max(24, newBounds.height)
+        )
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
     func updateSelectedFreeText() {
         guard let annotation = selectedAnnotation,
               annotation.isAZpdfFreeText else { return }
@@ -44,19 +65,6 @@ extension DocumentStore {
         guard let annotation = selectedAnnotation else { return }
         registerUndoStep()
         annotation.contents = selectedAnnotationText
-        annotation.modificationDate = Date()
-        isModified = true
-        documentRevision += 1
-    }
-
-    func updateSelectedImageSize() {
-        guard let annotation = selectedAnnotation,
-              annotation.isAZpdfImage else { return }
-        registerUndoStep()
-        annotation.bounds.size = CGSize(
-            width: max(24, selectedAnnotationWidth),
-            height: max(24, selectedAnnotationHeight)
-        )
         annotation.modificationDate = Date()
         isModified = true
         documentRevision += 1

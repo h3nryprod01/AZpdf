@@ -20,9 +20,7 @@ struct ContentView: View {
                 }
                 Group {
                     if store.document != nil {
-                        PDFReaderView(store: store) { hasSelection in
-                            if hasSelection { store.isInspectorPresented = true }
-                        }
+                        PDFReaderView(store: store)
                     } else {
                         EmptyDocumentView(store: store, openPDF: openPDF)
                     }
@@ -86,9 +84,6 @@ struct ContentView: View {
         .inspector(isPresented: $store.isInspectorPresented) {
             DocumentInspectorView(store: store)
                 .inspectorColumnWidth(min: 250, ideal: 290, max: 360)
-        }
-        .onChange(of: store.annotationSelectionID) { _, _ in
-            if store.selectedAnnotation != nil { store.isInspectorPresented = true }
         }
         .alert("AZpdf", isPresented: Binding(get: { store.lastError != nil }, set: { if !$0 { store.lastError = nil } })) {
             Button("Đóng", role: .cancel) { store.lastError = nil }

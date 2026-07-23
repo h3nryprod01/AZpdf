@@ -16,4 +16,6 @@ extension PDFAnnotation {
     var isAZpdfInk: Bool { azpdfSubtype == "ink" }
     var isAZpdfPopup: Bool { azpdfSubtype == "popup" }
     var isAZpdfMovable: Bool { ["freetext", "ink", "stamp", "text"].contains(azpdfSubtype) }
+    // A note is a fixed-size icon: movable but not resizable.
+    var isAZpdfResizable: Bool { isAZpdfFreeText || isAZpdfInk || isAZpdfImage }
 }

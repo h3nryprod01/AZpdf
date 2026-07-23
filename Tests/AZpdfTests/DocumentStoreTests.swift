@@ -324,6 +324,117 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(store.document?.page(at: 0)?.annotations.first?.bounds.origin, CGPoint(x: 20, y: 20))
     }
 
+    func testResizeSelectedAnnotationCommitsAndUndoRestores() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let annotation = PDFAnnotation(
+            bounds: CGRect(x: 20, y: 20, width: 40, height: 24),
+            forType: .freeText,
+            withProperties: nil
+        )
+        store.document?.page(at: 0)?.addAnnotation(annotation)
+        store.selectAnnotation(annotation, pageIndex: 0)
+
+        store.beginAnnotationResize()
+        store.resizeSelectedAnnotation(to: CGRect(x: 20, y: 20, width: 80, height: 48))
+
+        XCTAssertEqual(annotation.bounds, CGRect(x: 20, y: 20, width: 80, height: 48))
+        XCTAssertTrue(store.isModified)
+        XCTAssertTrue(store.canUndo)
+
+        store.undo()
+        XCTAssertEqual(store.document?.page(at: 0)?.annotations.first?.bounds, CGRect(x: 20, y: 20, width: 40, height: 24))
+    }
+
+    // `AnnotationHandles.resizedBounds` already clamps to a 24x24 floor before
+    // the view ever calls the store, but `resizeSelectedAnnotation` enforces
+    // its own floor too (defense in depth against a caller that bypasses
+    // AnnotationHandles). Neither of the other resize tests targets a rect
+    // below 24pt on either axis, so without this test the store's own
+    // `max(24, …)` line has no coverage.
+    func testResizeSelectedAnnotationEnforcesMinimumSizeFloorIndependentlyOfHandles() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let annotation = PDFAnnotation(
+            bounds: CGRect(x: 20, y: 20, width: 40, height: 24),
+            forType: .freeText,
+            withProperties: nil
+        )
+        store.document?.page(at: 0)?.addAnnotation(annotation)
+        store.selectAnnotation(annotation, pageIndex: 0)
+
+        store.beginAnnotationResize()
+        store.resizeSelectedAnnotation(to: CGRect(x: 20, y: 20, width: 5, height: 3))
+
+        XCTAssertEqual(annotation.bounds, CGRect(x: 20, y: 20, width: 24, height: 24))
+    }
+
+    // Render-verify net for "bug F" (see SignaturePointTests): `/InkList` is
+    // absolute inside `/Rect`, so resizing an ink annotation makes PDFKit
+    // rescale its appearance. Round-tripping through a data representation
+    // forces that re-render, then a raster of the reloaded page must still
+    // show the stroke inside the new bounds — not clipped or lost.
+    //
+    // The old and new bounds are deliberately disjoint (moved, not just
+    // grown, with a 50pt gap) so this can't pass on a no-op resize: if
+    // `resizeSelectedAnnotation` failed to actually move/rescale the
+    // annotation, the ink would still be sitting at the old bounds — outside
+    // the region this test scans for it — so the "found in new bounds"
+    // assertion alone would fail. The second assertion (nothing left at the
+    // old bounds) closes the remaining gap: a buggy resize that duplicated
+    // the stroke instead of moving it would still satisfy "found in new
+    // bounds" but must still fail here.
+    func testResizedInkAnnotationStillRendersAfterRoundTrip() throws {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+        let bounds = CGRect(x: 10, y: 10, width: 30, height: 30)
+        let annotation = PDFAnnotation(bounds: bounds, forType: .ink, withProperties: nil)
+        annotation.color = NSColor(red: 1, green: 0, blue: 0, alpha: 1)
+        let border = PDFBorder()
+        border.lineWidth = 10
+        annotation.border = border
+        let path = NSBezierPath()
+        path.move(to: CGPoint(x: 4, y: 4))
+        path.line(to: CGPoint(x: bounds.width - 4, y: bounds.height - 4))
+        annotation.add(path)
+        store.document?.page(at: 0)?.addAnnotation(annotation)
+        store.selectAnnotation(annotation, pageIndex: 0)
+
+        let resizedBounds = CGRect(x: 10, y: 90, width: 60, height: 40)
+        store.beginAnnotationResize()
+        store.resizeSelectedAnnotation(to: resizedBounds)
+
+        let data = try XCTUnwrap(store.document?.dataRepresentation())
+        let reloaded = try XCTUnwrap(PDFDocument(data: data))
+        let page = try XCTUnwrap(reloaded.page(at: 0))
+        let pageBounds = page.bounds(for: .mediaBox)
+
+        let thumbnail = page.thumbnail(of: pageBounds.size, for: .mediaBox)
+        let cgImage = try XCTUnwrap(thumbnail.cgImage(forProposedRect: nil, context: nil, hints: nil))
+        let bitmap = NSBitmapImageRep(cgImage: cgImage)
+        let scaleX = CGFloat(bitmap.pixelsWide) / pageBounds.width
+        let scaleY = CGFloat(bitmap.pixelsHigh) / pageBounds.height
+
+        func containsRedPixel(in rect: CGRect) -> Bool {
+            let minX = max(0, Int(rect.minX * scaleX))
+            let maxX = min(bitmap.pixelsWide, Int(rect.maxX * scaleX))
+            let minY = max(0, Int((pageBounds.height - rect.maxY) * scaleY))
+            let maxY = min(bitmap.pixelsHigh, Int((pageBounds.height - rect.minY) * scaleY))
+            for x in stride(from: minX, to: maxX, by: 1) {
+                for y in stride(from: minY, to: maxY, by: 1) {
+                    guard let color = bitmap.colorAt(x: x, y: y)?.usingColorSpace(.deviceRGB) else { continue }
+                    if color.redComponent > 0.6, color.greenComponent < 0.4, color.blueComponent < 0.4 {
+                        return true
+                    }
+                }
+            }
+            return false
+        }
+
+        XCTAssertTrue(containsRedPixel(in: resizedBounds), "Resized ink stroke should still render inside its new bounds, not be clipped or lost")
+        XCTAssertFalse(containsRedPixel(in: bounds), "Ink should no longer render at the pre-resize bounds — proves this is a real resize, not a no-op")
+    }
+
     func testDeleteSelectedAnnotationRemovesInkAndUndoRestores() {
         // Ink = signature, the case the user reported as move-only. A selected
         // annotation must be deletable in place, and Undo must bring it back.

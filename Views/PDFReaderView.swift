@@ -4,7 +4,6 @@ import AZpdfCore
 
 struct PDFReaderView: NSViewRepresentable {
     @Bindable var store: DocumentStore
-    var onAnnotationSelected: (Bool) -> Void = { _ in }
 
     func makeCoordinator() -> Coordinator { Coordinator() }
 
@@ -15,7 +14,7 @@ struct PDFReaderView: NSViewRepresentable {
         view.displayDirection = .vertical
         view.displaysPageBreaks = true
         view.setAccessibilityLabel("Trình đọc PDF")
-        view.setAccessibilityHelp("Chọn văn bản để tô sáng hoặc redact. Chọn chú thích để chỉnh sửa trong bảng Thông tin.")
+        view.setAccessibilityHelp("Chọn văn bản để tô sáng hoặc redact. Chọn chú thích để chỉnh sửa ngay trên trang.")
         view.document = store.document
         view.onPlace = { action, page, bounds in
             place(action, on: page, bounds: bounds)
@@ -23,11 +22,15 @@ struct PDFReaderView: NSViewRepresentable {
         view.onSelectAnnotation = { annotation, page in
             let index = store.document?.index(for: page)
             store.selectAnnotation(annotation, pageIndex: index == NSNotFound ? nil : index)
-            onAnnotationSelected(annotation != nil)
         }
         view.onBeginMoveAnnotation = { store.beginAnnotationMove() }
         view.onFinishMoveAnnotation = { store.finishAnnotationMove() }
+        view.onBeginResizeAnnotation = { store.beginAnnotationResize() }
+        view.onFinishResizeAnnotation = { bounds in store.resizeSelectedAnnotation(to: bounds) }
         view.onDeleteSelected = { store.deleteSelectedAnnotation() }
+        view.makePopoverContent = { [weak view] in
+            NSHostingController(rootView: AnnotationEditPopover(store: store, onDelete: { view?.deleteSelected() }))
+        }
         view.onOCRRegion = { page, bounds in
             guard let index = store.document?.index(for: page) else { return }
             guard index != NSNotFound else { return }
@@ -37,7 +40,12 @@ struct PDFReaderView: NSViewRepresentable {
     }
 
     func updateNSView(_ view: PlacementPDFView, context: Context) {
-        if view.document !== store.document { view.document = store.document }
+        if view.document !== store.document {
+            view.document = store.document
+            // A new document means any on-object selection frame is anchored
+            // to a page/annotation from the discarded document — drop it.
+            view.resetAnnotationSelection()
+        }
         // Edits that mutate the document in place — deleting an annotation, for
         // example — keep the same PDFDocument identity, so the check above
         // cannot catch them. The store bumps documentRevision for exactly this
@@ -47,6 +55,10 @@ struct PDFReaderView: NSViewRepresentable {
         if context.coordinator.documentRevision != store.documentRevision {
             context.coordinator.documentRevision = store.documentRevision
             view.layoutDocumentView()
+            // Undo/redo replace the whole PDFDocument object graph, which can
+            // leave the selection frame pointing at a stale page/annotation —
+            // clear it rather than risk drawing or resizing a detached object.
+            view.resetAnnotationSelection()
         }
         if store.isAutoScale {
             view.autoScales = true
@@ -210,8 +222,14 @@ final class PlacementPDFView: PDFView {
     var onSelectAnnotation: ((PDFAnnotation?, PDFPage) -> Void)?
     var onBeginMoveAnnotation: (() -> Void)?
     var onFinishMoveAnnotation: (() -> Void)?
+    var onBeginResizeAnnotation: (() -> Void)?
+    var onFinishResizeAnnotation: ((CGRect) -> Void)?
     var onOCRRegion: ((PDFPage, CGRect) -> Void)?
     var onDeleteSelected: (() -> Void)?
+    /// Builds the popover's SwiftUI content on demand. A closure rather than a
+    /// stored `DocumentStore` reference — the view reports through closures
+    /// and never holds the store directly (see `onSelectAnnotation` etc.).
+    var makePopoverContent: (() -> NSViewController)?
     private var placementAction: PDFReaderAction?
     private var draggedAnnotation: PDFAnnotation?
     private var dragPage: PDFPage?
@@ -220,6 +238,41 @@ final class PlacementPDFView: PDFView {
     private var ocrRegionPage: PDFPage?
     private var ocrRegionStartInView: CGPoint?
     private var ocrRegionCurrentInView: CGPoint?
+
+    // On-object selection frame + resize state.
+    private var selectedAnnotation: PDFAnnotation?
+    private var selectedPage: PDFPage?
+    private var activeHandle: AnnotationHandles.Handle?
+    private var resizeStartBounds: CGRect?
+    private static let handleSize: CGFloat = 8
+    private lazy var editPopover: NSPopover = {
+        let popover = NSPopover()
+        popover.behavior = .transient
+        return popover
+    }()
+    /// Transparent, click-through subview that paints the persistent
+    /// on-object selection frame + handles. PDFView renders actual page
+    /// pixels via a nested `PDFPageView`/`PDFPageLayer` several levels deep
+    /// inside its own `PDFScrollView` subview — a full-bounds subview added
+    /// at PDFKit's own init time, which by ordinary AppKit z-order always
+    /// composites *above* anything this view draws directly in its own
+    /// draw(_:). That nested layer re-renders asynchronously (confirmed:
+    /// `convert(_:from:)` returns a correct on-screen rect every time, so
+    /// the frame was never actually missing — it was being drawn, then
+    /// immediately painted over). The continuously-redrawn OCR drag rect
+    /// "works" only because it keeps re-winning that race every
+    /// mouseDragged; a one-shot static frame always loses it. A dedicated
+    /// topmost subview added after PDFScrollView sidesteps the race
+    /// entirely. hitTest always returns nil, so mouse events still reach
+    /// this view unchanged — hit-testing/resize/popover logic stays here.
+    private lazy var selectionOverlay: AnnotationSelectionOverlayView = {
+        let overlay = AnnotationSelectionOverlayView()
+        overlay.host = self
+        overlay.autoresizingMask = [.width, .height]
+        overlay.setAccessibilityElement(false)
+        addSubview(overlay)
+        return overlay
+    }()
 
     func armPlacement(_ action: PDFReaderAction) {
         placementAction = action
@@ -255,24 +308,41 @@ final class PlacementPDFView: PDFView {
         }
         guard let action = placementAction else {
             let pointInView = convert(event.locationInWindow, from: nil)
-            if let page = page(for: pointInView, nearest: true) {
-                let pointOnPage = convert(pointInView, to: page)
-                let annotation = page.annotations.reversed().first {
-                    !$0.isAZpdfPopup && $0.bounds.contains(pointOnPage)
-                }
-                onSelectAnnotation?(annotation, page)
-                if annotation != nil { window?.makeFirstResponder(self) }
-                if let annotation, isMovable(annotation) {
-                    clearSelection()
-                    draggedAnnotation = annotation
-                    dragPage = page
-                    dragStartPoint = pointOnPage
-                    dragStartBounds = annotation.bounds
-                    onBeginMoveAnnotation?()
-                    return
-                }
+            // Handles take priority over selecting a (possibly different)
+            // annotation underneath them.
+            if let handle = activeResizeHandle(at: pointInView) {
+                activeHandle = handle
+                resizeStartBounds = selectedAnnotation?.bounds
+                editPopover.close()
+                onBeginResizeAnnotation?()
+                return
             }
-            super.mouseDown(with: event)
+            guard let page = page(for: pointInView, nearest: true) else {
+                resetAnnotationSelection()
+                super.mouseDown(with: event)
+                return
+            }
+            let pointOnPage = convert(pointInView, to: page)
+            let annotation = page.annotations.reversed().first {
+                !$0.isAZpdfPopup && $0.bounds.contains(pointOnPage)
+            }
+            onSelectAnnotation?(annotation, page)
+            editPopover.close()
+            if annotation != nil { window?.makeFirstResponder(self) }
+            guard let annotation, isMovable(annotation) else {
+                resetAnnotationSelection()
+                super.mouseDown(with: event)
+                return
+            }
+            selectedAnnotation = annotation
+            selectedPage = page
+            needsDisplay = true
+            clearSelection()
+            draggedAnnotation = annotation
+            dragPage = page
+            dragStartPoint = pointOnPage
+            dragStartBounds = annotation.bounds
+            onBeginMoveAnnotation?()
             return
         }
         let pointInView = convert(event.locationInWindow, from: nil)
@@ -286,6 +356,21 @@ final class PlacementPDFView: PDFView {
     override func mouseDragged(with event: NSEvent) {
         if placementAction == .ocrRegion, ocrRegionPage != nil {
             ocrRegionCurrentInView = convert(event.locationInWindow, from: nil)
+            needsDisplay = true
+            return
+        }
+        if let handle = activeHandle, let annotation = selectedAnnotation, let page = selectedPage, let startBounds = resizeStartBounds {
+            let pointOnPage = convert(convert(event.locationInWindow, from: nil), to: page)
+            let shiftDown = event.modifierFlags.contains(.shift)
+            let aspectLocked = annotation.isAZpdfFreeText ? shiftDown : !shiftDown
+            annotation.bounds = AnnotationHandles.resizedBounds(
+                original: startBounds,
+                handle: handle,
+                to: pointOnPage,
+                aspectLocked: aspectLocked,
+                minSize: CGSize(width: 24, height: 24),
+                within: page.bounds(for: .cropBox)
+            )
             needsDisplay = true
             return
         }
@@ -328,12 +413,20 @@ final class PlacementPDFView: PDFView {
             if bounds.width >= 8, bounds.height >= 8 { onOCRRegion?(page, bounds) }
             return
         }
+        if activeHandle != nil, let annotation = selectedAnnotation {
+            activeHandle = nil
+            resizeStartBounds = nil
+            onFinishResizeAnnotation?(annotation.bounds)
+            presentPopover()
+            return
+        }
         if draggedAnnotation != nil {
             draggedAnnotation = nil
             dragPage = nil
             dragStartPoint = nil
             dragStartBounds = nil
             onFinishMoveAnnotation?()
+            presentPopover()
             return
         }
         super.mouseUp(with: event)
@@ -343,6 +436,45 @@ final class PlacementPDFView: PDFView {
         annotation.isAZpdfMovable
     }
 
+    /// Hit-tests the selected annotation's handles in view space. Returns nil
+    /// when nothing is selected, the type has no handles (e.g. a note), or the
+    /// point misses every handle square.
+    private func activeResizeHandle(at pointInView: CGPoint) -> AnnotationHandles.Handle? {
+        guard let selectedAnnotation, let selectedPage, selectedAnnotation.isAZpdfResizable else { return nil }
+        let viewRect = convert(selectedAnnotation.bounds, from: selectedPage)
+        guard case let .handle(handle) = AnnotationHandles(rect: viewRect, handleSize: Self.handleSize)
+            .hit(pointInView, includeEdges: selectedAnnotation.isAZpdfFreeText) else { return nil }
+        return handle
+    }
+
+    /// Clears the on-object selection frame + popover without touching the
+    /// store. Called on deselect (empty space, Esc) and whenever the document
+    /// is replaced or edited elsewhere (Undo/redo, a new document), so the
+    /// view never draws or resizes a page/annotation that no longer belongs
+    /// to the current document.
+    func resetAnnotationSelection() {
+        selectedAnnotation = nil
+        selectedPage = nil
+        needsDisplay = true
+        editPopover.close()
+    }
+
+    /// Presents the caret popover anchored to the current selection.
+    private func presentPopover() {
+        guard let selectedAnnotation, let selectedPage, let makePopoverContent else { return }
+        editPopover.contentViewController = makePopoverContent()
+        let viewRect = convert(selectedAnnotation.bounds, from: selectedPage)
+        editPopover.show(relativeTo: viewRect, of: self, preferredEdge: .maxY)
+    }
+
+    /// Single path for removing the selected annotation — used by the Delete
+    /// key and the popover's "Xóa" button — so the view's frame and popover
+    /// never linger over an annotation the store just deleted.
+    func deleteSelected() {
+        onDeleteSelected?()
+        resetAnnotationSelection()
+    }
+
     override var acceptsFirstResponder: Bool { true }
 
     override func keyDown(with event: NSEvent) {
@@ -350,7 +482,14 @@ final class PlacementPDFView: PDFView {
         // annotation in place — the natural gesture users expect after clicking
         // a signature or image.
         if event.keyCode == 51 || event.keyCode == 117, onDeleteSelected != nil {
-            onDeleteSelected?()
+            deleteSelected()
+            return
+        }
+        // 53 = Escape. Only consume it when there is a selection to drop, so an
+        // idle Esc keeps falling through to whatever handled it before.
+        if event.keyCode == 53, selectedAnnotation != nil {
+            if let selectedPage { onSelectAnnotation?(nil, selectedPage) }
+            resetAnnotationSelection()
             return
         }
         super.keyDown(with: event)
@@ -376,6 +515,18 @@ final class PlacementPDFView: PDFView {
 
     @objc private func deleteSelectedFromMenu() { onDeleteSelected?() }
 
+    override func viewWillDraw() {
+        super.viewWillDraw()
+        // Keeps the overlay sized and repainted in lockstep with every
+        // reason this view redraws: select/move/resize set our own
+        // needsDisplay explicitly; scroll and page navigation are driven by
+        // PDFKit internally and were confirmed (headless PDFView probe) to
+        // still invoke viewWillDraw even on passes where draw(_:) itself is
+        // skipped, so this is the reliable hook, not draw(_:).
+        selectionOverlay.frame = bounds
+        selectionOverlay.needsDisplay = true
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         super.draw(dirtyRect)
         guard let start = ocrRegionStartInView, let current = ocrRegionCurrentInView else { return }
@@ -389,6 +540,35 @@ final class PlacementPDFView: PDFView {
         let path = NSBezierPath(rect: rect)
         path.lineWidth = 2
         path.stroke()
+    }
+
+    /// Called from `AnnotationSelectionOverlayView.draw(_:)` — see
+    /// `selectionOverlay`'s doc comment for why this must run in that
+    /// dedicated topmost view rather than directly in this view's draw(_:).
+    fileprivate func drawSelectionOverlayContent() {
+        guard let selectedAnnotation, let selectedPage else { return }
+        drawSelectionFrame(for: selectedAnnotation, on: selectedPage)
+    }
+
+    /// Draws the accent selection frame in view space, plus resize handles for
+    /// resizable types — 8 handles (corners + edges) for free-text, 4 corner
+    /// handles for image/ink, none for a note.
+    private func drawSelectionFrame(for annotation: PDFAnnotation, on page: PDFPage) {
+        let viewRect = convert(annotation.bounds, from: page)
+        NSColor.controlAccentColor.setStroke()
+        let frame = NSBezierPath(rect: viewRect)
+        frame.lineWidth = 2
+        frame.stroke()
+        guard annotation.isAZpdfResizable else { return }
+        let handles = AnnotationHandles(rect: viewRect, handleSize: Self.handleSize)
+        for (_, handleRect) in handles.handleRects(includeEdges: annotation.isAZpdfFreeText) {
+            let handlePath = NSBezierPath(rect: handleRect)
+            NSColor.white.setFill()
+            handlePath.fill()
+            NSColor.controlAccentColor.setStroke()
+            handlePath.lineWidth = 1.5
+            handlePath.stroke()
+        }
     }
 
     private func clearOCRRegionSelection() {
@@ -409,5 +589,23 @@ final class PlacementPDFView: PDFView {
         let x = min(max(point.x, cropBox.minX + 16), cropBox.maxX - size.width - 16)
         let y = min(max(point.y - size.height, cropBox.minY + 16), cropBox.maxY - size.height - 16)
         return CGRect(origin: CGPoint(x: x, y: y), size: size)
+    }
+}
+
+/// Draw-only, click-through subview of `PlacementPDFView` — see
+/// `PlacementPDFView.selectionOverlay`'s doc comment for why the selection
+/// frame/handles must be drawn here instead of directly in
+/// `PlacementPDFView.draw(_:)`. Never hit-tested (`hitTest` always returns
+/// nil) so mouse events fall through to `PlacementPDFView` unchanged; all
+/// hit-testing, resize, and popover logic stays there.
+private final class AnnotationSelectionOverlayView: NSView {
+    weak var host: PlacementPDFView?
+
+    override var isOpaque: Bool { false }
+
+    override func hitTest(_ point: NSPoint) -> NSView? { nil }
+
+    override func draw(_ dirtyRect: NSRect) {
+        host?.drawSelectionOverlayContent()
     }
 }
