@@ -21,11 +21,15 @@ if [[ -z "${OCRMY_PDF_RUNTIME_DIR:-}" && -x "$ROOT_DIR/dist/runtime/ocrmypdf/ocr
   OCRMY_PDF_RUNTIME_DIR="$ROOT_DIR/dist/runtime/ocrmypdf"
 fi
 
+# Debug by default so the usual edit-build-run loop stays fast; set
+# SWIFT_CONFIGURATION=release to build the bundle you actually install.
+SWIFT_CONFIGURATION="${SWIFT_CONFIGURATION:-debug}"
+
 pkill -x "$APP_NAME" >/dev/null 2>&1 || true
-swift build
+swift build -c "$SWIFT_CONFIGURATION"
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS"
-copy_clean "$(swift build --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
+copy_clean "$(swift build -c "$SWIFT_CONFIGURATION" --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
 mkdir -p "$APP_RESOURCES"
 copy_clean "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
 copy_clean "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
