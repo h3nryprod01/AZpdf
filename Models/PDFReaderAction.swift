@@ -7,6 +7,7 @@ enum PDFReaderAction: Equatable {
     case freeText(String)
     case signature([SignatureStroke])
     case image(URL)
+    case shape(ShapeKind)
     case redactSelection
     case ocrRegion
 }

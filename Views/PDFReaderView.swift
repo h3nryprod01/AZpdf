@@ -28,6 +28,7 @@ struct PDFReaderView: NSViewRepresentable {
         view.onBeginResizeAnnotation = { store.beginAnnotationResize() }
         view.onFinishResizeAnnotation = { bounds in store.resizeSelectedAnnotation(to: bounds) }
         view.onDeleteSelected = { store.deleteSelectedAnnotation() }
+        view.onMoveSelected = { store.moveSelectedAnnotation(horizontal: $0.width, vertical: $0.height) }
         view.makePopoverContent = { [weak view] in
             NSHostingController(rootView: AnnotationEditPopover(store: store, onDelete: { view?.deleteSelected() }))
         }
@@ -127,7 +128,7 @@ struct PDFReaderView: NSViewRepresentable {
             }
             view.clearSelection()
             store.record(.addAnnotation(kind: .highlight, page: store.selectedPageIndex))
-        case .freeText, .signature, .image:
+        case .freeText, .signature, .image, .shape:
             view.armPlacement(action)
         case .ocrRegion:
             view.armOCRRegionSelection()
@@ -181,6 +182,17 @@ struct PDFReaderView: NSViewRepresentable {
             store.finishAnnotationPlacement(.addAnnotation(kind: .signature, page: pageIndex))
         case let .image(url):
             store.insertImageOverlay(from: url, pageIndex: pageIndex, bounds: bounds)
+        case let .shape(kind):
+            store.prepareAnnotationPlacement()
+            let annotation = ShapeAnnotationFactory.make(
+                kind,
+                bounds: bounds,
+                stroke: store.shapeStrokeColor,
+                fill: kind.supportsFill ? store.shapeFillColor : nil,
+                lineWidth: store.shapeLineWidth
+            )
+            page.addAnnotation(annotation)
+            store.finishAnnotationPlacement(.addAnnotation(kind: .shape, page: pageIndex))
         default:
             return
         }
@@ -226,6 +238,7 @@ final class PlacementPDFView: PDFView {
     var onFinishResizeAnnotation: ((CGRect) -> Void)?
     var onOCRRegion: ((PDFPage, CGRect) -> Void)?
     var onDeleteSelected: (() -> Void)?
+    var onMoveSelected: ((CGSize) -> Void)?
     /// Builds the popover's SwiftUI content on demand. A closure rather than a
     /// stored `DocumentStore` reference — the view reports through closures
     /// and never holds the store directly (see `onSelectAnnotation` etc.).
@@ -362,7 +375,7 @@ final class PlacementPDFView: PDFView {
         if let handle = activeHandle, let annotation = selectedAnnotation, let page = selectedPage, let startBounds = resizeStartBounds {
             let pointOnPage = convert(convert(event.locationInWindow, from: nil), to: page)
             let shiftDown = event.modifierFlags.contains(.shift)
-            let aspectLocked = annotation.isAZpdfFreeText ? shiftDown : !shiftDown
+            let aspectLocked = annotation.isAZpdfFreeformResize ? shiftDown : !shiftDown
             annotation.bounds = AnnotationHandles.resizedBounds(
                 original: startBounds,
                 handle: handle,
@@ -371,6 +384,8 @@ final class PlacementPDFView: PDFView {
                 minSize: CGSize(width: 24, height: 24),
                 within: page.bounds(for: .cropBox)
             )
+            // A line's endpoints and an ink shape's paths do not follow bounds.
+            annotation.refreshAZpdfShapeGeometry()
             needsDisplay = true
             return
         }
@@ -443,7 +458,7 @@ final class PlacementPDFView: PDFView {
         guard let selectedAnnotation, let selectedPage, selectedAnnotation.isAZpdfResizable else { return nil }
         let viewRect = convert(selectedAnnotation.bounds, from: selectedPage)
         guard case let .handle(handle) = AnnotationHandles(rect: viewRect, handleSize: Self.handleSize)
-            .hit(pointInView, includeEdges: selectedAnnotation.isAZpdfFreeText) else { return nil }
+            .hit(pointInView, includeEdges: selectedAnnotation.isAZpdfFreeformResize) else { return nil }
         return handle
     }
 
@@ -485,6 +500,13 @@ final class PlacementPDFView: PDFView {
             deleteSelected()
             return
         }
+        // Arrow keys nudge the selection. This is the non-drag way to move an
+        // annotation — keyboard and VoiceOver users have no other one now that
+        // the popover's move buttons are gone. Shift makes it a coarse step.
+        if selectedAnnotation != nil, let nudge = Self.arrowNudge(for: event) {
+            onMoveSelected?(nudge)
+            return
+        }
         // 53 = Escape. Only consume it when there is a selection to drop, so an
         // idle Esc keeps falling through to whatever handled it before.
         if event.keyCode == 53, selectedAnnotation != nil {
@@ -514,6 +536,19 @@ final class PlacementPDFView: PDFView {
     }
 
     @objc private func deleteSelectedFromMenu() { onDeleteSelected?() }
+
+    /// 123–126 are the four arrow keys. Returns the page-space offset to move
+    /// by, or nil if this was not an arrow key.
+    static func arrowNudge(for event: NSEvent) -> CGSize? {
+        let step: CGFloat = event.modifierFlags.contains(.shift) ? 16 : 2
+        return switch event.keyCode {
+        case 123: CGSize(width: -step, height: 0)
+        case 124: CGSize(width: step, height: 0)
+        case 125: CGSize(width: 0, height: -step)
+        case 126: CGSize(width: 0, height: step)
+        default: nil
+        }
+    }
 
     override func viewWillDraw() {
         super.viewWillDraw()
@@ -557,11 +592,19 @@ final class PlacementPDFView: PDFView {
         let viewRect = convert(annotation.bounds, from: page)
         NSColor.controlAccentColor.setStroke()
         let frame = NSBezierPath(rect: viewRect)
-        frame.lineWidth = 2
+        if annotation.isAZpdfFreeText || annotation.isAZpdfNote {
+            // A text box usually has no border of its own, so a solid 2 pt
+            // frame reads as part of the content. A hairline dashed frame reads
+            // as selection — the same distinction Preview draws.
+            frame.lineWidth = 1
+            frame.setLineDash([4, 3], count: 2, phase: 0)
+        } else {
+            frame.lineWidth = 2
+        }
         frame.stroke()
         guard annotation.isAZpdfResizable else { return }
         let handles = AnnotationHandles(rect: viewRect, handleSize: Self.handleSize)
-        for (_, handleRect) in handles.handleRects(includeEdges: annotation.isAZpdfFreeText) {
+        for (_, handleRect) in handles.handleRects(includeEdges: annotation.isAZpdfFreeformResize) {
             let handlePath = NSBezierPath(rect: handleRect)
             NSColor.white.setFill()
             handlePath.fill()
@@ -584,6 +627,7 @@ final class PlacementPDFView: PDFView {
         case .freeText: CGSize(width: min(320, max(100, cropBox.width - 32)), height: 52)
         case .signature: CGSize(width: min(260, max(120, cropBox.width - 32)), height: min(96, max(60, cropBox.height - 32)))
         case .image: CGSize(width: min(180, max(80, cropBox.width - 32)), height: min(180, max(80, cropBox.height - 32)))
+        case .shape: CGSize(width: min(160, max(60, cropBox.width - 32)), height: min(120, max(60, cropBox.height - 32)))
         default: .zero
         }
         let x = min(max(point.x, cropBox.minX + 16), cropBox.maxX - size.width - 16)

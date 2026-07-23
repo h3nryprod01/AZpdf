@@ -92,6 +92,23 @@ final class DocumentStore {
     var selectedAnnotationColor = NSColor.labelColor
     var selectedAnnotationWidth: Double = 0
     var selectedAnnotationHeight: Double = 0
+    // Text formatting and box styling for the selected annotation. `…Color`
+    // above stays the text/stroke colour; these cover the frame and fill around
+    // it, which PDF models as /C and /IC on the very same annotation.
+    var selectedAnnotationFontName = "Helvetica"
+    var selectedAnnotationIsBold = false
+    var selectedAnnotationIsItalic = false
+    var selectedAnnotationAlignment: NSTextAlignment = .left
+    var selectedAnnotationBorderColor = NSColor.labelColor
+    var selectedAnnotationFillColor = NSColor.white
+    var selectedAnnotationHasBorder = false
+    var selectedAnnotationHasFill = false
+    var selectedAnnotationLineWidth: Double = 2
+    // Defaults for the *next* shape inserted, remembered across insertions the
+    // way a drawing tool does — editing an existing shape must not change them.
+    var shapeStrokeColor = NSColor.systemRed
+    var shapeFillColor = NSColor.clear
+    var shapeLineWidth: Double = 2
     var annotationSelectionID = 0
     var recentDocumentPaths: [String]
     private var undoStack: [DocumentSnapshot] = []

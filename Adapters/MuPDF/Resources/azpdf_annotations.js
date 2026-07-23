@@ -70,6 +70,7 @@ function kindForAnnotation(annotation) {
     if (type === "Link") return "link"
     if (type === "Widget") return "widget"
     if (type === "Redact") return "redaction"
+    if (type === "Square" || type === "Circle" || type === "Line") return "shape"
     return "unknown"
 }
 

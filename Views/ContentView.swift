@@ -190,6 +190,7 @@ struct ContentView: View {
                 editTool("Chữ ký", "signature") { store.beginSignature() }
                 editTool("Tô sáng", "highlighter") { store.highlightSelection() }
                 editTool("Ảnh", "photo.badge.plus") { store.beginImageInsertion() }
+                shapeMenu
                 editTool("Redact", "rectangle.fill") { store.beginRedaction() }
                 editDivider
                 editTool("Xoay", "rotate.right") { store.rotateCurrentPage() }
@@ -214,6 +215,27 @@ struct ContentView: View {
 
     private var editDivider: some View {
         Divider().frame(height: 30).padding(.horizontal, 4)
+    }
+
+    /// A menu rather than one button per shape, so six shapes cost one slot in
+    /// the bar — the same shape submenu Preview nests under Annotate.
+    private var shapeMenu: some View {
+        Menu {
+            ForEach(ShapeKind.allCases) { kind in
+                Button { store.beginShape(kind) } label: { Label(kind.label, systemImage: kind.symbol) }
+            }
+        } label: {
+            VStack(spacing: 3) {
+                Image(systemName: "square.on.circle").font(.system(size: 15))
+                Text("Hình").font(.caption2)
+            }
+            .frame(minWidth: 52)
+            .contentShape(Rectangle())
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .help("Chèn hình: chữ nhật, tròn, đường kẻ, mũi tên, sao, tam giác")
     }
 
     private func editTool(_ title: String, _ icon: String, action: @escaping () -> Void) -> some View {

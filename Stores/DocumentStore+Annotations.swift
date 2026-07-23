@@ -12,10 +12,33 @@ extension DocumentStore {
         selectedAnnotationPageIndex = pageIndex
         selectedAnnotationText = annotation?.contents ?? ""
         selectedAnnotationFontSize = Double(annotation?.font?.pointSize ?? 14)
-        selectedAnnotationColor = annotation?.fontColor ?? annotation?.color ?? .labelColor
+        selectedAnnotationColor = annotation.flatMap(strokeColor) ?? .labelColor
         selectedAnnotationWidth = Double(annotation?.bounds.width ?? 0)
         selectedAnnotationHeight = Double(annotation?.bounds.height ?? 0)
+        let traits = annotation?.font.map { NSFontManager.shared.traits(of: $0) } ?? []
+        // The system font's family is the hidden ".AppleSystemUIFont", which is
+        // not in `availableFontFamilies` — leaving it there left the picker
+        // showing no selection at all on every freshly placed text box.
+        let family = annotation?.font?.familyName ?? Self.defaultFontFamily
+        selectedAnnotationFontName = availableFontFamilies.contains(family) ? family : Self.defaultFontFamily
+        selectedAnnotationIsBold = traits.contains(.boldFontMask)
+        selectedAnnotationIsItalic = traits.contains(.italicFontMask)
+        selectedAnnotationAlignment = annotation?.alignment ?? .left
+        selectedAnnotationHasBorder = (annotation?.border?.lineWidth ?? 0) > 0
+        selectedAnnotationLineWidth = Double(annotation?.border?.lineWidth ?? 0)
+        // A nil or fully transparent /C and /IC both mean "no frame"/"no fill".
+        // Keep the last visible colour in the picker so unticking and reticking
+        // the box does not silently reset the user's choice to black.
+        if let border = annotation?.color, border.alphaComponent > 0 { selectedAnnotationBorderColor = border }
+        selectedAnnotationHasFill = (annotation?.interiorColor?.alphaComponent ?? 0) > 0
+        if let fill = annotation?.interiorColor, fill.alphaComponent > 0 { selectedAnnotationFillColor = fill }
         annotationSelectionID += 1
+    }
+
+    /// Free-text carries its colour in `fontColor`; every other type — shapes,
+    /// ink, notes — carries it in `color`.
+    private func strokeColor(of annotation: PDFAnnotation) -> NSColor? {
+        annotation.isAZpdfFreeText ? annotation.fontColor : annotation.color
     }
 
     func beginAnnotationMove() {
@@ -43,6 +66,9 @@ extension DocumentStore {
             width: max(24, newBounds.width),
             height: max(24, newBounds.height)
         )
+        // A line's endpoints and an ink shape's paths are stored apart from
+        // bounds, so without this the frame moves and the shape stays put.
+        annotation.refreshAZpdfShapeGeometry()
         annotation.modificationDate = Date()
         isModified = true
         documentRevision += 1
@@ -53,9 +79,68 @@ extension DocumentStore {
               annotation.isAZpdfFreeText else { return }
         registerUndoStep()
         annotation.contents = selectedAnnotationText
-        annotation.font = .systemFont(ofSize: selectedAnnotationFontSize)
+        annotation.font = selectedFont()
         annotation.fontColor = selectedAnnotationColor
-        annotation.color = .clear
+        annotation.alignment = selectedAnnotationAlignment
+        applyBoxStyle(to: annotation)
+        annotation.modificationDate = Date()
+        isModified = true
+        documentRevision += 1
+    }
+
+    /// Frame and background of the box around a free-text annotation or a
+    /// shape. PDF models both with the same two keys — `/C` for the stroke and
+    /// `/IC` for the interior — so one method serves both types.
+    private func applyBoxStyle(to annotation: PDFAnnotation) {
+        annotation.color = selectedAnnotationHasBorder ? selectedAnnotationBorderColor : .clear
+        annotation.interiorColor = selectedAnnotationHasFill ? selectedAnnotationFillColor : nil
+        let border = PDFBorder()
+        border.lineWidth = selectedAnnotationHasBorder ? CGFloat(selectedAnnotationLineWidth) : 0
+        annotation.border = border
+    }
+
+    private func selectedFont() -> NSFont {
+        var traits: NSFontTraitMask = []
+        if selectedAnnotationIsBold { traits.insert(.boldFontMask) }
+        if selectedAnnotationIsItalic { traits.insert(.italicFontMask) }
+        // weight 5 is regular, 9 is bold in NSFontManager's scale.
+        return NSFontManager.shared.font(
+            withFamily: selectedAnnotationFontName,
+            traits: traits,
+            weight: selectedAnnotationIsBold ? 9 : 5,
+            size: CGFloat(selectedAnnotationFontSize)
+        ) ?? .systemFont(ofSize: CGFloat(selectedAnnotationFontSize))
+    }
+
+    /// Every family the system can actually render, so the picker never offers
+    /// a font that resolves to a fallback.
+    var availableFontFamilies: [String] { NSFontManager.shared.availableFontFamilies }
+
+    /// Shown when the annotation's own family is not selectable — Helvetica is
+    /// one of the base-14 PDF fonts, so it renders in every viewer.
+    static var defaultFontFamily: String { "Helvetica" }
+
+    func beginShape(_ kind: ShapeKind) {
+        guard document != nil else { return }
+        placementInstruction = "Nhấp vào PDF để đặt \(kind.label.lowercased())."
+        sendReaderAction(.shape(kind), recordsUndo: false)
+    }
+
+    /// Restyles the selected shape. Ink-drawn shapes (star, triangle) have no
+    /// interior in `/InkList`, so fill is skipped rather than silently ignored.
+    func updateSelectedShape() {
+        guard let annotation = selectedAnnotation, let kind = annotation.azpdfShapeKind else { return }
+        registerUndoStep()
+        annotation.color = selectedAnnotationColor
+        if kind.supportsFill {
+            annotation.interiorColor = selectedAnnotationHasFill ? selectedAnnotationFillColor : nil
+        }
+        let border = PDFBorder()
+        border.lineWidth = CGFloat(selectedAnnotationLineWidth)
+        annotation.border = border
+        // Remembered as the default for the next shape inserted.
+        shapeStrokeColor = selectedAnnotationColor
+        shapeLineWidth = selectedAnnotationLineWidth
         annotation.modificationDate = Date()
         isModified = true
         documentRevision += 1
@@ -170,6 +255,11 @@ extension DocumentStore {
         placementInstruction = nil
         record(operation)
         isModified = true
+        // The annotation is added straight to the PDFKit page, which @Observable
+        // cannot see. Without this the Inspector keeps showing the count from
+        // before the placement — it read three annotations as "Chú thích — 1".
+        // This is the one exit point every placement goes through.
+        documentRevision += 1
     }
 
     func deleteAnnotation(at index: Int) {

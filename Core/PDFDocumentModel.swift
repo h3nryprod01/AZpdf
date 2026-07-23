@@ -97,6 +97,9 @@ public enum PDFAnnotationKind: String, Codable, CaseIterable, Sendable {
     case signature
     case image
     case ink
+    // Rectangle, oval, line and arrow — the geometric shapes, as distinct from
+    // a hand-drawn ink stroke.
+    case shape
     case link
     case redaction
     case widget
