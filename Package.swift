@@ -65,7 +65,8 @@ targets.append(
         dependencies: ["AZpdfCore"],
         path: ".",
         exclude: [".github", "README.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "CONTRIBUTING.md", "SECURITY.md", "CODE_OF_CONDUCT.md", "ROADMAP.md", "Adapters", "Assets", "Config", "Core", "Plugins", "Shell", "Tools", "docs", "qa-report", "script", ".codex", "dist", "Tests"],
-        sources: ["App", "Models", "Services", "Stores", "Support", "Views"]
+        sources: ["App", "Models", "Services", "Stores", "Support", "Views"],
+        resources: [.process("Resources")]
     )
 )
 targets.append(.testTarget(name: "AZpdfTests", dependencies: ["AZpdf", "AZpdfCore"], path: "Tests/AZpdfTests"))
@@ -73,6 +74,7 @@ targets.append(.testTarget(name: "AZpdfTests", dependencies: ["AZpdf", "AZpdfCor
 
 let package = Package(
     name: "AZpdf",
+    defaultLocalization: "en",
     platforms: [.macOS(.v14)],
     products: products,
     dependencies: [

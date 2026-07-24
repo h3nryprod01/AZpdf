@@ -1,0 +1,164 @@
+/* Step 1 PoC — proves .lproj + Bundle.module works under `swift build` CLI.
+   Real sweep keys are appended per-view in later steps; see plan.md.
+   vi values are the exact wording already shown in the app today — no
+   rewording, only relocation into this file. */
+
+"Cancel" = "Hủy";
+"Open PDF" = "Mở PDF";
+/* Vietnamese has no plural forms, so a plain entry (no .stringsdict) is
+   correct here — "3 trang" the same as "1 trang". */
+"%lld pages" = "%lld trang";
+
+/* Models/ShapeAnnotation.swift — ShapeKind.label */
+"Arrow" = "Mũi tên";
+"Line" = "Đường kẻ";
+"Oval" = "Hình tròn";
+"Rectangle" = "Chữ nhật";
+"Star" = "Ngôi sao";
+"Triangle" = "Tam giác";
+
+/* App/OpenPaperApp.swift — menu bar */
+"About AZpdf" = "Giới thiệu về AZpdf";
+"Add Note" = "Thêm ghi chú";
+"Add Text…" = "Thêm chữ…";
+"AZpdf Help" = "Trợ giúp AZpdf";
+"AZpdf Source Code" = "Mã nguồn AZpdf";
+"Check PDF/A & PDF/UA…" = "Kiểm tra PDF/A & PDF/UA…";
+"Close Tab" = "Đóng tab";
+"Delete Current Page" = "Xóa trang hiện tại";
+"Document Properties…" = "Thuộc tính tài liệu…";
+"Duplicate Current Page" = "Nhân đôi trang hiện tại";
+"Export Current Page…" = "Xuất trang hiện tại…";
+"Export Protected Copy…" = "Xuất bản được bảo vệ…";
+"Find in PDF…" = "Tìm trong PDF…";
+"Fit Page" = "Vừa trang";
+"Go" = "Điều hướng";
+"Highlight Selection" = "Tô sáng vùng chọn";
+"Insert Image…" = "Chèn ảnh…";
+"Insert Pages from PDF…" = "Chèn trang từ PDF…";
+"Insert Signature…" = "Chèn chữ ký…";
+"Next Page" = "Trang sau";
+"Next Result" = "Kết quả sau";
+"OCR Current Page…" = "OCR trang hiện tại…";
+"OCR Entire Document…" = "OCR toàn bộ tài liệu…";
+"OCR Region…" = "OCR vùng…";
+"Open PDF…" = "Mở PDF…";
+"Previous Page" = "Trang trước";
+"Previous Result" = "Kết quả trước";
+"Print…" = "In…";
+"Redact Selection" = "Redact vùng chọn";
+"Redo" = "Làm lại";
+"Rotate Page Right" = "Xoay trang sang phải";
+"Save" = "Lưu";
+"Save As…" = "Lưu thành…";
+"Show/Hide Inspector" = "Hiện/ẩn Thông tin";
+"Sign PDF with PAdES…" = "Ký PAdES vào PDF…";
+"Sign with Certificate…" = "Ký bằng certificate…";
+"Undo" = "Hoàn tác";
+"Verify .p7s Signature…" = "Xác minh chữ ký .p7s…";
+"Verify PAdES Signature" = "Xác minh chữ ký PAdES";
+"View" = "Hiển thị";
+"Zoom In" = "Phóng to";
+"Zoom Out" = "Thu nhỏ";
+
+/* Views/ContentView.swift — toolbar, edit bar, find bar, alerts, drop overlay */
+"%@-page-%lld" = "%@-trang-%lld";
+"AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session." = "AZpdf sẽ raster hóa trang chứa vùng chọn và thay nội dung gốc bằng vùng đen. Không thể khôi phục từ bản đã lưu; hãy dùng Undo nếu cần quay lại trong phiên này.";
+"Close" = "Đóng";
+"Done" = "Xong";
+"Drop PDF to open" = "Thả PDF để mở";
+"Duplicate" = "Nhân đôi";
+"Edit" = "Chỉnh sửa";
+"Edit title, author, and PDF metadata" = "Chỉnh sửa tiêu đề, tác giả và metadata PDF";
+"Enter the password to open and edit this document." = "Nhập mật khẩu để mở và chỉnh sửa tài liệu này.";
+"Export" = "Xuất";
+"Export a PDF copy" = "Xuất bản sao PDF";
+"Export Page" = "Xuất trang";
+"Export Protected" = "Xuất bảo vệ";
+"Find" = "Tìm";
+"Find in PDF" = "Tìm trong PDF";
+"Find in PDF (⌘F)" = "Tìm trong PDF (⌘F)";
+"Highlight" = "Tô sáng";
+"Image" = "Ảnh";
+"Insert PDF" = "Chèn PDF";
+"Insert shape: rectangle, oval, line, arrow, star, triangle" = "Chèn hình: chữ nhật, tròn, đường kẻ, mũi tên, sao, tam giác";
+"Inspector" = "Thông tin";
+"Next result" = "Kết quả sau";
+"Next result (⌘G)" = "Kết quả sau (⌘G)";
+"None" = "Không có";
+"Note" = "Ghi chú";
+"OCR All" = "OCR toàn bộ";
+"OCR Page" = "OCR trang";
+"OCR Region" = "OCR vùng";
+"Page %lld of %lld" = "Trang %lld trên %lld";
+"Password" = "Mật khẩu";
+"Previous result" = "Kết quả trước";
+"Previous result (⌥⌘G)" = "Kết quả trước (⌥⌘G)";
+"Properties" = "Thuộc tính";
+"Protected Document" = "Tài liệu được bảo vệ";
+"Redact" = "Redact";
+"Redact permanently?" = "Redact vĩnh viễn?";
+"Rotate" = "Xoay";
+"Save (⌘S)" = "Lưu (⌘S)";
+"Save As" = "Lưu thành";
+"Save as a new PDF (⇧⌘S)" = "Lưu thành bản PDF mới (⇧⌘S)";
+"Save Changes" = "Lưu thay đổi";
+"Shape" = "Hình";
+"Show/hide editing tools" = "Hiện/ẩn công cụ chỉnh sửa";
+"Show/Hide Inspector (⌘I)" = "Hiện/ẩn Thông tin (⌘I)";
+"Sign .p7s" = "Ký .p7s";
+"Sign PAdES" = "Ký PAdES";
+"Signature" = "Chữ ký";
+"Text" = "Chữ";
+"Undo (⌘Z)" = "Hoàn tác (⌘Z)";
+"Unlock" = "Mở khóa";
+"Verify" = "Xác minh";
+"Verify Digital Signature" = "Xác minh chữ ký số";
+"Verify PAdES" = "Xác minh PAdES";
+"Zoom %lld percent" = "Thu phóng %lld phần trăm";
+
+/* Views/EmptyDocumentView.swift */
+"Open a PDF Document" = "Mở một tài liệu PDF";
+"or drag a PDF into the window" = "hoặc kéo tệp PDF vào cửa sổ";
+"Read, annotate, organize pages, and export PDFs — entirely on your Mac." = "Đọc, chú thích, sắp xếp trang và xuất PDF — hoàn toàn trên máy của bạn.";
+"Recents" = "Gần đây";
+"Remove" = "Xóa";
+"Remove %@ from Recents" = "Xóa %@ khỏi danh sách Gần đây";
+
+/* Views/SidebarView.swift */
+"Delete Page" = "Xóa trang";
+"Duplicate Page" = "Nhân đôi trang";
+"Open a PDF to see its table of contents and page thumbnails." = "Mở một PDF để xem mục lục và thumbnail trang.";
+"Page %lld" = "Trang %lld";
+"Pages — %lld" = "Trang — %lld";
+"Rotate Page" = "Xoay trang";
+"Table of Contents" = "Mục lục";
+"Untitled" = "Không tiêu đề";
+
+/* Views/DocumentPropertiesSheet.swift */
+"Apply" = "Áp dụng";
+"Author" = "Tác giả";
+"Document Properties" = "Thuộc tính tài liệu";
+"Keywords" = "Từ khóa";
+"Metadata helps readers, search tools, and PDF/A/PDF/UA validators identify your document more accurately." = "Metadata giúp người đọc, công cụ tìm kiếm và kiểm tra PDF/A/PDF/UA nhận diện tài liệu chính xác hơn.";
+"Subject" = "Chủ đề";
+"Title" = "Tiêu đề";
+
+/* Views/SettingsView.swift */
+"AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server." = "AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.";
+"AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac." = "AZpdf chỉ phát hiện manifest cục bộ an toàn; v1 chưa chạy executable. OCR tích hợp vẫn hoạt động hoàn toàn trên máy.";
+"Detected plugins" = "Plugin phát hiện được";
+"Display" = "Hiển thị";
+"Display language" = "Ngôn ngữ hiển thị";
+"Document handling" = "Xử lý tài liệu";
+"Language" = "Ngôn ngữ";
+"License" = "Giấy phép";
+"Local plugins" = "Plugin cục bộ";
+"Match macOS" = "Theo macOS";
+"Privacy" = "Quyền riêng tư";
+"Project" = "Dự án";
+"Reload plugins" = "Tải lại plugin";
+"Show gaps between pages" = "Hiển thị khoảng cách giữa các trang";
+"Support on Ko-fi" = "Ủng hộ qua Ko-fi";
+"This Mac only" = "Chỉ trên máy này";
+"Applies immediately — no restart needed." = "Áp dụng ngay, không cần khởi động lại.";

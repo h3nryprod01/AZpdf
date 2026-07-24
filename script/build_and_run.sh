@@ -31,6 +31,10 @@ rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_MACOS"
 copy_clean "$(swift build -c "$SWIFT_CONFIGURATION" --show-bin-path)/$APP_NAME" "$APP_MACOS/$APP_NAME"
 mkdir -p "$APP_RESOURCES"
+# SwiftPM resource bundle carrying Resources/{en,vi}.lproj. Without this,
+# Bundle.module inside the app has nothing to load and L(_:) crashes at
+# launch (see Tests/AZpdfTests/LocalizationTests.swift for the CLI proof).
+copy_clean "$(swift build -c "$SWIFT_CONFIGURATION" --show-bin-path)/AZpdf_AZpdf.bundle" "$APP_RESOURCES/AZpdf_AZpdf.bundle"
 copy_clean "$ROOT_DIR/Assets/AZpdf.icns" "$APP_RESOURCES/AZpdf.icns"
 copy_clean "$ROOT_DIR/Assets/donate-vietqr.jpg" "$APP_RESOURCES/donate-vietqr.jpg"
 copy_clean "$ROOT_DIR/Assets/mupdf_add_image.js" "$APP_RESOURCES/mupdf_add_image.js"
@@ -69,6 +73,8 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <key>CFBundleIconFile</key><string>AZpdf.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
 <key>LSMinimumSystemVersion</key><string>14.0</string>
+<key>CFBundleAllowMixedLocalizations</key><true/>
+<key>CFBundleLocalizations</key><array><string>en</string><string>vi</string></array>
 <key>NSPrincipalClass</key><string>NSApplication</string>
 <key>CFBundleDocumentTypes</key><array><dict>
 <key>CFBundleTypeName</key><string>PDF document</string>

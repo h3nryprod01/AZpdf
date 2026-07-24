@@ -4,11 +4,18 @@ import SwiftUI
 struct AZpdfApp: App {
     @State private var workspace = DocumentWorkspace()
     @Environment(\.openWindow) private var openWindow
+    // `L(_:)` is a plain function, so switching language in Settings changes
+    // what it returns but nothing tells SwiftUI to ask again. Keying the root
+    // on the choice rebuilds the window's view tree, which is what makes the
+    // switch apply without a relaunch. Menu bar commands are built by the
+    // Scene and are not rebuilt — Settings says so.
+    @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.system.rawValue
 
     var body: some Scene {
         WindowGroup("AZpdf") {
             WorkspaceView(workspace: workspace)
                 .frame(minWidth: 980, minHeight: 640)
+                .id(appLanguage)
                 // Files opened from Finder ("Open With", double-click) arrive
                 // here; without this the request was dropped and macOS just
                 // spawned a duplicate window.
@@ -19,114 +26,114 @@ struct AZpdfApp: App {
         }
         .commands {
             CommandGroup(replacing: .undoRedo) {
-                Button("Hoàn tác") { workspace.activeStore.undo() }
+                Button(L("Undo")) { workspace.activeStore.undo() }
                     .keyboardShortcut("z", modifiers: .command)
                     .disabled(!workspace.activeStore.canUndo)
-                Button("Làm lại") { workspace.activeStore.redo() }
+                Button(L("Redo")) { workspace.activeStore.redo() }
                     .keyboardShortcut("z", modifiers: [.command, .shift])
                     .disabled(!workspace.activeStore.canRedo)
             }
             CommandGroup(replacing: .newItem) {
-                Button("Mở PDF…") { workspace.showOpenPanel() }
+                Button(L("Open PDF…")) { workspace.showOpenPanel() }
                     .keyboardShortcut("o", modifiers: .command)
-                Button("Lưu") { workspace.activeStore.save() }
+                Button(L("Save")) { workspace.activeStore.save() }
                     .keyboardShortcut("s", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil || !workspace.activeStore.isModified)
-                Button("Lưu thành…") { workspace.activeStore.saveAs() }
+                Button(L("Save As…")) { workspace.activeStore.saveAs() }
                     .keyboardShortcut("s", modifiers: [.command, .shift])
                     .disabled(workspace.activeStore.document == nil)
-                Button("Đóng tab") { workspace.closeTab(workspace.selectedTabID) }
+                Button(L("Close Tab")) { workspace.closeTab(workspace.selectedTabID) }
                     .keyboardShortcut("w", modifiers: .command)
             }
             CommandGroup(replacing: .printItem) {
-                Button("In…") { workspace.activeStore.printDocument() }
+                Button(L("Print…")) { workspace.activeStore.printDocument() }
                     .keyboardShortcut("p", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
             }
             CommandGroup(replacing: .appInfo) {
-                Button("Giới thiệu về AZpdf") { openWindow(id: "about") }
+                Button(L("About AZpdf")) { openWindow(id: "about") }
             }
             // Search, zoom and the inspector used to exist only as toolbar
             // items. When the toolbar overflowed they were dropped with no
             // menu or shortcut fallback, making them unreachable at every
             // window size. These commands are that fallback.
-            CommandMenu("Hiển thị") {
-                Button("Tìm trong PDF…") { workspace.activeStore.isFindBarPresented = true }
+            CommandMenu(L("View")) {
+                Button(L("Find in PDF…")) { workspace.activeStore.isFindBarPresented = true }
                     .keyboardShortcut("f", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
-                Button("Kết quả sau") { workspace.activeStore.goToNextSearchResult() }
+                Button(L("Next Result")) { workspace.activeStore.goToNextSearchResult() }
                     .keyboardShortcut("g", modifiers: .command)
                     .disabled(workspace.activeStore.searchResultCount == 0)
-                Button("Kết quả trước") { workspace.activeStore.goToPreviousSearchResult() }
+                Button(L("Previous Result")) { workspace.activeStore.goToPreviousSearchResult() }
                     .keyboardShortcut("g", modifiers: [.command, .option])
                     .disabled(workspace.activeStore.searchResultCount == 0)
                 Divider()
-                Button("Phóng to") { workspace.activeStore.zoomIn() }
+                Button(L("Zoom In")) { workspace.activeStore.zoomIn() }
                     .keyboardShortcut("+", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
-                Button("Thu nhỏ") { workspace.activeStore.zoomOut() }
+                Button(L("Zoom Out")) { workspace.activeStore.zoomOut() }
                     .keyboardShortcut("-", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
-                Button("Vừa trang") { workspace.activeStore.fitPage() }
+                Button(L("Fit Page")) { workspace.activeStore.fitPage() }
                     .keyboardShortcut("0", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
                 Divider()
-                Button("Hiện/ẩn Thông tin") { workspace.activeStore.isInspectorPresented.toggle() }
+                Button(L("Show/Hide Inspector")) { workspace.activeStore.isInspectorPresented.toggle() }
                     .keyboardShortcut("i", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
             }
-            CommandMenu("Điều hướng") {
-                Button("Trang trước") { workspace.activeStore.goToPreviousPage() }
+            CommandMenu(L("Go")) {
+                Button(L("Previous Page")) { workspace.activeStore.goToPreviousPage() }
                     .keyboardShortcut("[", modifiers: .command)
                     .disabled(!workspace.activeStore.canGoToPreviousPage)
-                Button("Trang sau") { workspace.activeStore.goToNextPage() }
+                Button(L("Next Page")) { workspace.activeStore.goToNextPage() }
                     .keyboardShortcut("]", modifiers: .command)
                     .disabled(!workspace.activeStore.canGoToNextPage)
             }
             CommandMenu("PDF") {
-                Button("Thêm ghi chú") { workspace.activeStore.addNote() }
+                Button(L("Add Note")) { workspace.activeStore.addNote() }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
-                Button("Thêm chữ…") { workspace.activeStore.beginTextAnnotation() }
+                Button(L("Add Text…")) { workspace.activeStore.beginTextAnnotation() }
                     .keyboardShortcut("t", modifiers: [.command, .shift])
-                Button("Chèn chữ ký…") { workspace.activeStore.beginSignature() }
+                Button(L("Insert Signature…")) { workspace.activeStore.beginSignature() }
                     .keyboardShortcut("g", modifiers: [.command, .shift])
-                Button("Ký bằng certificate…") { workspace.activeStore.beginCertificateSigning() }
-                Button("Xác minh chữ ký .p7s…") { workspace.activeStore.beginCertificateSignatureVerification() }
-                Button("Ký PAdES vào PDF…") { workspace.activeStore.beginPAdESSigning() }
-                Button("Xác minh chữ ký PAdES") { workspace.activeStore.verifyPAdESSignatures() }
-                Button("Kiểm tra PDF/A & PDF/UA…") { workspace.activeStore.beginConformanceCheck() }
+                Button(L("Sign with Certificate…")) { workspace.activeStore.beginCertificateSigning() }
+                Button(L("Verify .p7s Signature…")) { workspace.activeStore.beginCertificateSignatureVerification() }
+                Button(L("Sign PDF with PAdES…")) { workspace.activeStore.beginPAdESSigning() }
+                Button(L("Verify PAdES Signature")) { workspace.activeStore.verifyPAdESSignatures() }
+                Button(L("Check PDF/A & PDF/UA…")) { workspace.activeStore.beginConformanceCheck() }
                     .keyboardShortcut("k", modifiers: [.command, .shift])
-                Button("Thuộc tính tài liệu…") { workspace.activeStore.beginDocumentProperties() }
+                Button(L("Document Properties…")) { workspace.activeStore.beginDocumentProperties() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])
-                Button("OCR trang hiện tại…") { workspace.activeStore.beginOCRCurrentPage() }
+                Button(L("OCR Current Page…")) { workspace.activeStore.beginOCRCurrentPage() }
                     .keyboardShortcut("o", modifiers: [.command, .shift])
-                Button("OCR vùng…") { workspace.activeStore.beginOCRRegionSelection() }
+                Button(L("OCR Region…")) { workspace.activeStore.beginOCRRegionSelection() }
                     .keyboardShortcut("v", modifiers: [.command, .shift])
-                Button("OCR toàn bộ tài liệu…") { workspace.activeStore.beginOCRDocument() }
+                Button(L("OCR Entire Document…")) { workspace.activeStore.beginOCRDocument() }
                     .keyboardShortcut("a", modifiers: [.command, .shift])
-                Button("Tô sáng vùng chọn") { workspace.activeStore.highlightSelection() }
+                Button(L("Highlight Selection")) { workspace.activeStore.highlightSelection() }
                     .keyboardShortcut("h", modifiers: [.command, .shift])
-                Button("Redact vùng chọn") { workspace.activeStore.beginRedaction() }
+                Button(L("Redact Selection")) { workspace.activeStore.beginRedaction() }
                     .keyboardShortcut("x", modifiers: [.command, .shift])
                 Divider()
-                Button("Xoay trang sang phải") { workspace.activeStore.rotateCurrentPage() }
+                Button(L("Rotate Page Right")) { workspace.activeStore.rotateCurrentPage() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
-                Button("Nhân đôi trang hiện tại") { workspace.activeStore.duplicateCurrentPage() }
+                Button(L("Duplicate Current Page")) { workspace.activeStore.duplicateCurrentPage() }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
-                Button("Chèn trang từ PDF…") { workspace.activeStore.beginInsertPages() }
+                Button(L("Insert Pages from PDF…")) { workspace.activeStore.beginInsertPages() }
                     .keyboardShortcut("i", modifiers: [.command, .shift])
-                Button("Chèn ảnh…") { workspace.activeStore.beginImageInsertion() }
+                Button(L("Insert Image…")) { workspace.activeStore.beginImageInsertion() }
                     .keyboardShortcut("i", modifiers: [.command, .option])
-                Button("Xuất trang hiện tại…") { workspace.activeStore.prepareCurrentPageExport() }
+                Button(L("Export Current Page…")) { workspace.activeStore.prepareCurrentPageExport() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
-                Button("Xuất bản được bảo vệ…") { workspace.activeStore.beginPasswordProtectedExport() }
-                Button("Xóa trang hiện tại") { workspace.activeStore.deleteCurrentPage() }
+                Button(L("Export Protected Copy…")) { workspace.activeStore.beginPasswordProtectedExport() }
+                Button(L("Delete Current Page")) { workspace.activeStore.deleteCurrentPage() }
                     .keyboardShortcut(.delete, modifiers: [.command, .shift])
             }
             CommandGroup(replacing: .help) {
-                Button("Trợ giúp AZpdf") { openWindow(id: "help") }
+                Button(L("AZpdf Help")) { openWindow(id: "help") }
                     .keyboardShortcut("/", modifiers: [.command, .shift])
-                Link("Mã nguồn AZpdf", destination: AZpdfLinks.repository)
+                Link(L("AZpdf Source Code"), destination: AZpdfLinks.repository)
             }
         }
 
@@ -134,13 +141,13 @@ struct AZpdfApp: App {
             SettingsView()
         }
 
-        Window("Giới thiệu về AZpdf", id: "about") {
+        Window(L("About AZpdf"), id: "about") {
             AboutView()
         }
         .defaultSize(width: 400, height: 330)
         .windowResizability(.contentSize)
 
-        Window("Trợ giúp AZpdf", id: "help") {
+        Window(L("AZpdf Help"), id: "help") {
             HelpView()
         }
         .defaultSize(width: 620, height: 500)

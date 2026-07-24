@@ -5,20 +5,20 @@ struct DocumentPropertiesSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Thuộc tính tài liệu")
+            Text(L("Document Properties"))
                 .font(.title2.weight(.semibold))
-            Text("Metadata giúp người đọc, công cụ tìm kiếm và kiểm tra PDF/A/PDF/UA nhận diện tài liệu chính xác hơn.")
+            Text(L("Metadata helps readers, search tools, and PDF/A/PDF/UA validators identify your document more accurately."))
                 .foregroundStyle(.secondary)
             Form {
-                TextField("Tiêu đề", text: $store.documentMetadataTitle)
-                TextField("Tác giả", text: $store.documentMetadataAuthor)
-                TextField("Chủ đề", text: $store.documentMetadataSubject)
-                TextField("Từ khóa", text: $store.documentMetadataKeywords)
+                TextField(L("Title"), text: $store.documentMetadataTitle)
+                TextField(L("Author"), text: $store.documentMetadataAuthor)
+                TextField(L("Subject"), text: $store.documentMetadataSubject)
+                TextField(L("Keywords"), text: $store.documentMetadataKeywords)
             }
             HStack {
                 Spacer()
-                Button("Hủy", role: .cancel) { store.isDocumentPropertiesSheetPresented = false }
-                Button("Áp dụng") { store.applyDocumentProperties() }
+                Button(L("Cancel"), role: .cancel) { store.isDocumentPropertiesSheetPresented = false }
+                Button(L("Apply")) { store.applyDocumentProperties() }
                     .keyboardShortcut(.defaultAction)
             }
         }

@@ -10,13 +10,13 @@ struct SidebarView: View {
             if let document = store.document {
                 let outlineItems = PDFOutlineItem.makeItems(from: document.outlineRoot, in: document)
                 if !outlineItems.isEmpty {
-                    Section("Mục lục") {
+                    Section(L("Table of Contents")) {
                         ForEach(outlineItems) { item in
                             OutlineRow(item: item, selectPage: { store.selectedPageIndex = $0 })
                         }
                     }
                 }
-                Section("Trang — \(document.pageCount)") {
+                Section(L("Pages — \(document.pageCount)")) {
                     // Array, not a literal Range: SwiftUI treats ForEach over a
                     // constant range as static content and ignores .onMove, so
                     // dragging a thumbnail only selected it instead of
@@ -25,17 +25,17 @@ struct SidebarView: View {
                         HStack(spacing: 10) {
                             PageThumbnail(page: document.page(at: index))
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Trang \(index + 1)")
+                                Text(L("Page \(index + 1)"))
                                 Text(document.page(at: index)?.label ?? "PDF")
                                     .font(.caption).foregroundStyle(.secondary)
                             }
                         }
                         .tag(index)
                         .contextMenu {
-                            Button("Nhân đôi trang") { store.selectedPageIndex = index; store.duplicateCurrentPage() }
-                            Button("Xoay trang") { store.selectedPageIndex = index; store.rotateCurrentPage() }
+                            Button(L("Duplicate Page")) { store.selectedPageIndex = index; store.duplicateCurrentPage() }
+                            Button(L("Rotate Page")) { store.selectedPageIndex = index; store.rotateCurrentPage() }
                             Divider()
-                            Button("Xóa trang", role: .destructive) { store.selectedPageIndex = index; store.deleteCurrentPage() }
+                            Button(L("Delete Page"), role: .destructive) { store.selectedPageIndex = index; store.deleteCurrentPage() }
                         }
                     }
                     .onMove(perform: store.movePages)
@@ -44,7 +44,7 @@ struct SidebarView: View {
                 // Without this the sidebar is a blank column on launch, which
                 // reads as something failing to load rather than as "no
                 // document yet".
-                Text("Mở một PDF để xem mục lục và thumbnail trang.")
+                Text(L("Open a PDF to see its table of contents and page thumbnails."))
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .padding(.vertical, 8)
@@ -76,7 +76,7 @@ private struct PDFOutlineItem: Identifiable {
             pageIndex = nil
         }
         return PDFOutlineItem(
-            title: outline.label ?? "Không tiêu đề",
+            title: outline.label ?? L("Untitled"),
             pageIndex: pageIndex,
             children: children
         )
@@ -125,5 +125,6 @@ private struct PageThumbnail: View {
         .frame(width: 34, height: 44)
         .clipShape(RoundedRectangle(cornerRadius: 3))
         .overlay(RoundedRectangle(cornerRadius: 3).stroke(.quaternary))
+        .accessibilityHidden(true)
     }
 }

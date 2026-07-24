@@ -1,0 +1,162 @@
+/* Step 1 PoC — proves .lproj + Bundle.module works under `swift build` CLI.
+   Real sweep keys are appended per-view in later steps; see plan.md. */
+
+"Cancel" = "Cancel";
+"Open PDF" = "Open PDF";
+/* Plural rule actually applied via Localizable.stringsdict; this entry only
+   keeps the en/vi key sets identical for the parity test. */
+"%lld pages" = "%lld pages";
+
+/* Models/ShapeAnnotation.swift — ShapeKind.label */
+"Arrow" = "Arrow";
+"Line" = "Line";
+"Oval" = "Oval";
+"Rectangle" = "Rectangle";
+"Star" = "Star";
+"Triangle" = "Triangle";
+
+/* App/OpenPaperApp.swift — menu bar */
+"About AZpdf" = "About AZpdf";
+"Add Note" = "Add Note";
+"Add Text…" = "Add Text…";
+"AZpdf Help" = "AZpdf Help";
+"AZpdf Source Code" = "AZpdf Source Code";
+"Check PDF/A & PDF/UA…" = "Check PDF/A & PDF/UA…";
+"Close Tab" = "Close Tab";
+"Delete Current Page" = "Delete Current Page";
+"Document Properties…" = "Document Properties…";
+"Duplicate Current Page" = "Duplicate Current Page";
+"Export Current Page…" = "Export Current Page…";
+"Export Protected Copy…" = "Export Protected Copy…";
+"Find in PDF…" = "Find in PDF…";
+"Fit Page" = "Fit Page";
+"Go" = "Go";
+"Highlight Selection" = "Highlight Selection";
+"Insert Image…" = "Insert Image…";
+"Insert Pages from PDF…" = "Insert Pages from PDF…";
+"Insert Signature…" = "Insert Signature…";
+"Next Page" = "Next Page";
+"Next Result" = "Next Result";
+"OCR Current Page…" = "OCR Current Page…";
+"OCR Entire Document…" = "OCR Entire Document…";
+"OCR Region…" = "OCR Region…";
+"Open PDF…" = "Open PDF…";
+"Previous Page" = "Previous Page";
+"Previous Result" = "Previous Result";
+"Print…" = "Print…";
+"Redact Selection" = "Redact Selection";
+"Redo" = "Redo";
+"Rotate Page Right" = "Rotate Page Right";
+"Save" = "Save";
+"Save As…" = "Save As…";
+"Show/Hide Inspector" = "Show/Hide Inspector";
+"Sign PDF with PAdES…" = "Sign PDF with PAdES…";
+"Sign with Certificate…" = "Sign with Certificate…";
+"Undo" = "Undo";
+"Verify .p7s Signature…" = "Verify .p7s Signature…";
+"Verify PAdES Signature" = "Verify PAdES Signature";
+"View" = "View";
+"Zoom In" = "Zoom In";
+"Zoom Out" = "Zoom Out";
+
+/* Views/ContentView.swift — toolbar, edit bar, find bar, alerts, drop overlay */
+"%@-page-%lld" = "%@-page-%lld";
+"AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session." = "AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session.";
+"Close" = "Close";
+"Done" = "Done";
+"Drop PDF to open" = "Drop PDF to open";
+"Duplicate" = "Duplicate";
+"Edit" = "Edit";
+"Edit title, author, and PDF metadata" = "Edit title, author, and PDF metadata";
+"Enter the password to open and edit this document." = "Enter the password to open and edit this document.";
+"Export" = "Export";
+"Export a PDF copy" = "Export a PDF copy";
+"Export Page" = "Export Page";
+"Export Protected" = "Export Protected";
+"Find" = "Find";
+"Find in PDF" = "Find in PDF";
+"Find in PDF (⌘F)" = "Find in PDF (⌘F)";
+"Highlight" = "Highlight";
+"Image" = "Image";
+"Insert PDF" = "Insert PDF";
+"Insert shape: rectangle, oval, line, arrow, star, triangle" = "Insert shape: rectangle, oval, line, arrow, star, triangle";
+"Inspector" = "Inspector";
+"Next result" = "Next result";
+"Next result (⌘G)" = "Next result (⌘G)";
+"None" = "None";
+"Note" = "Note";
+"OCR All" = "OCR All";
+"OCR Page" = "OCR Page";
+"OCR Region" = "OCR Region";
+"Page %lld of %lld" = "Page %lld of %lld";
+"Password" = "Password";
+"Previous result" = "Previous result";
+"Previous result (⌥⌘G)" = "Previous result (⌥⌘G)";
+"Properties" = "Properties";
+"Protected Document" = "Protected Document";
+"Redact" = "Redact";
+"Redact permanently?" = "Redact permanently?";
+"Rotate" = "Rotate";
+"Save (⌘S)" = "Save (⌘S)";
+"Save As" = "Save As";
+"Save as a new PDF (⇧⌘S)" = "Save as a new PDF (⇧⌘S)";
+"Save Changes" = "Save Changes";
+"Shape" = "Shape";
+"Show/hide editing tools" = "Show/hide editing tools";
+"Show/Hide Inspector (⌘I)" = "Show/Hide Inspector (⌘I)";
+"Sign .p7s" = "Sign .p7s";
+"Sign PAdES" = "Sign PAdES";
+"Signature" = "Signature";
+"Text" = "Text";
+"Undo (⌘Z)" = "Undo (⌘Z)";
+"Unlock" = "Unlock";
+"Verify" = "Verify";
+"Verify Digital Signature" = "Verify Digital Signature";
+"Verify PAdES" = "Verify PAdES";
+"Zoom %lld percent" = "Zoom %lld percent";
+
+/* Views/EmptyDocumentView.swift */
+"Open a PDF Document" = "Open a PDF Document";
+"or drag a PDF into the window" = "or drag a PDF into the window";
+"Read, annotate, organize pages, and export PDFs — entirely on your Mac." = "Read, annotate, organize pages, and export PDFs — entirely on your Mac.";
+"Recents" = "Recents";
+"Remove" = "Remove";
+"Remove %@ from Recents" = "Remove %@ from Recents";
+
+/* Views/SidebarView.swift */
+"Delete Page" = "Delete Page";
+"Duplicate Page" = "Duplicate Page";
+"Open a PDF to see its table of contents and page thumbnails." = "Open a PDF to see its table of contents and page thumbnails.";
+"Page %lld" = "Page %lld";
+"Pages — %lld" = "Pages — %lld";
+"Rotate Page" = "Rotate Page";
+"Table of Contents" = "Table of Contents";
+"Untitled" = "Untitled";
+
+/* Views/DocumentPropertiesSheet.swift */
+"Apply" = "Apply";
+"Author" = "Author";
+"Document Properties" = "Document Properties";
+"Keywords" = "Keywords";
+"Metadata helps readers, search tools, and PDF/A/PDF/UA validators identify your document more accurately." = "Metadata helps readers, search tools, and PDF/A/PDF/UA validators identify your document more accurately.";
+"Subject" = "Subject";
+"Title" = "Title";
+
+/* Views/SettingsView.swift */
+"AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server." = "AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server.";
+"AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac." = "AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac.";
+"Detected plugins" = "Detected plugins";
+"Display" = "Display";
+"Display language" = "Display language";
+"Document handling" = "Document handling";
+"Language" = "Language";
+"License" = "License";
+"Local plugins" = "Local plugins";
+"Match macOS" = "Match macOS";
+"Privacy" = "Privacy";
+"Project" = "Project";
+"Reload plugins" = "Reload plugins";
+"Show gaps between pages" = "Show gaps between pages";
+"Support on Ko-fi" = "Support on Ko-fi";
+"This Mac only" = "This Mac only";
+"Applies immediately — no restart needed." = "Applies immediately — no restart needed.";

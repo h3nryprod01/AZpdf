@@ -6,19 +6,19 @@ struct EmptyDocumentView: View {
     var body: some View {
         VStack(spacing: 0) {
             ContentUnavailableView {
-                Label("Mở một tài liệu PDF", systemImage: "doc.text.image")
+                Label(L("Open a PDF Document"), systemImage: "doc.text.image")
             } description: {
-                Text("Đọc, chú thích, sắp xếp trang và xuất PDF — hoàn toàn trên máy của bạn.")
+                Text(L("Read, annotate, organize pages, and export PDFs — entirely on your Mac."))
             } actions: {
-                Button("Mở PDF…", action: openPDF)
+                Button(L("Open PDF…"), action: openPDF)
                     .buttonStyle(.borderedProminent)
-                Text("hoặc kéo tệp PDF vào cửa sổ")
+                Text(L("or drag a PDF into the window"))
                     .font(.caption).foregroundStyle(.secondary)
             }
             if !store.recentDocumentURLs.isEmpty {
                 Divider().padding(.horizontal, 80)
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Gần đây").font(.headline)
+                    Text(L("Recents")).font(.headline)
                     ForEach(store.recentDocumentURLs, id: \.path) { url in
                         HStack {
                             Button { store.openRecentDocument(url) } label: {
@@ -27,8 +27,9 @@ struct EmptyDocumentView: View {
                             }
                             .buttonStyle(.plain)
                             Spacer()
-                            Button("Xóa", role: .destructive) { store.removeRecentDocument(url) }
+                            Button(L("Remove"), role: .destructive) { store.removeRecentDocument(url) }
                                 .buttonStyle(.borderless)
+                                .accessibilityLabel(L("Remove \(url.deletingPathExtension().lastPathComponent) from Recents"))
                         }
                     }
                 }

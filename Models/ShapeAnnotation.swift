@@ -20,12 +20,12 @@ enum ShapeKind: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .rectangle: "Chữ nhật"
-        case .oval: "Hình tròn"
-        case .line: "Đường kẻ"
-        case .arrow: "Mũi tên"
-        case .star: "Ngôi sao"
-        case .triangle: "Tam giác"
+        case .rectangle: L("Rectangle")
+        case .oval: L("Oval")
+        case .line: L("Line")
+        case .arrow: L("Arrow")
+        case .star: L("Star")
+        case .triangle: L("Triangle")
         }
     }
 
