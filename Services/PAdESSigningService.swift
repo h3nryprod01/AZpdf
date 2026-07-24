@@ -10,15 +10,15 @@ enum PAdESSigningError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .signingRuntimeUnavailable:
-            "Chưa có PAdES runtime. Bản phát hành AZpdf phải đi kèm pyHanko runtime đã đóng gói."
+            L("No PAdES runtime found. AZpdf releases must bundle the pyHanko runtime.")
         case .verificationRuntimeUnavailable:
-            "Chưa có PAdES runtime. Bản phát hành AZpdf phải đi kèm pyHanko runtime đã đóng gói."
+            L("No PAdES runtime found. AZpdf releases must bundle the pyHanko runtime.")
         case let .signingFailed(message):
-            "Không thể ký PAdES: \(message)"
+            L("Could not sign PAdES: \(message)")
         case let .verificationFailed(message):
-            "Không thể xác minh PAdES: \(message)"
+            L("Could not verify PAdES: \(message)")
         case .timestampURLRequired:
-            "PAdES-LT/LTA cần URL TSA RFC 3161 hợp lệ để lấy timestamp tin cậy."
+            L("PAdES-LT/LTA requires a valid RFC 3161 TSA URL to obtain a trusted timestamp.")
         }
     }
 }
@@ -62,23 +62,23 @@ struct PAdESVerification: Equatable {
 
     var summary: String {
         let integrityMessage = switch integrity {
-        case .valid: "Tính toàn vẹn chữ ký: hợp lệ."
-        case .invalid: "Tính toàn vẹn chữ ký: không hợp lệ."
-        case .unsigned: "PDF không có chữ ký số nhúng."
-        case .unknown: "Không xác định được tính toàn vẹn chữ ký."
+        case .valid: L("Signature integrity: valid.")
+        case .invalid: L("Signature integrity: invalid.")
+        case .unsigned: L("The PDF has no embedded digital signature.")
+        case .unknown: L("Could not determine signature integrity.")
         }
         let trustMessage = switch certificateTrust {
-        case .trusted: "Certificate: được tin cậy trên máy này."
-        case .untrusted: "Certificate: chưa được tin cậy trên máy này."
-        case .unknown: "Certificate: không xác định được trạng thái tin cậy."
+        case .trusted: L("Certificate: trusted on this Mac.")
+        case .untrusted: L("Certificate: not trusted on this Mac.")
+        case .unknown: L("Certificate: trust status could not be determined.")
         }
         let evidence = hasTimestamp
-            ? "Có timestamp trong tài liệu."
-            : "Chưa phát hiện timestamp trong kết quả validator."
+            ? L("A timestamp is present in the document.")
+            : L("No timestamp was found in the validator result.")
         let validationInfo = hasValidationInfo
-            ? "Có dữ liệu validation/DSS."
-            : "Chưa phát hiện dữ liệu validation/DSS."
-        return [integrityMessage, trustMessage, evidence, validationInfo, signerName.map { "Người ký: \($0)." }]
+            ? L("Validation/DSS data is present.")
+            : L("No validation/DSS data was found.")
+        return [integrityMessage, trustMessage, evidence, validationInfo, signerName.map { L("Signer: \($0).") }]
             .compactMap { $0 }
             .joined(separator: " ")
     }
@@ -145,7 +145,7 @@ enum PAdESSigningService {
         // even when the PDF signature itself is cryptographically sound.
         let result = try run(executable, arguments: ["sign", "validate", "--pretty-print", "--no-revocation-check", input.path])
         let details = result.message
-        guard !details.isEmpty else { throw PAdESSigningError.verificationFailed("Trình xác minh không trả kết quả.") }
+        guard !details.isEmpty else { throw PAdESSigningError.verificationFailed(L("The verifier returned no result.")) }
         return PAdESVerification(
             integrity: integrity(in: details),
             certificateTrust: trust(in: details),

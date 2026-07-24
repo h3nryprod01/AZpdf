@@ -7,16 +7,16 @@ struct PDFConformanceSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Kiểm tra chuẩn PDF").font(.title2.weight(.semibold))
-            Text("AZpdf dùng veraPDF chạy cục bộ để kiểm tra PDF/A và PDF/UA. Profile tự động đọc claim XMP; PDF không có claim sẽ được kiểm tra theo fallback PDF/A-1b. Kết quả không phải lời khẳng định tuân thủ nếu validator không khả dụng.")
+            Text(L("Validate PDF Conformance")).font(.title2.weight(.semibold))
+            Text(L("AZpdf uses veraPDF locally to validate PDF/A and PDF/UA. The automatic profile reads the XMP claim; a PDF with no claim is checked against the PDF/A-1b fallback. The result is not a compliance assertion if the validator is unavailable."))
                 .foregroundStyle(.secondary)
-            Picker("Profile", selection: $profile) {
+            Picker(L("Profile"), selection: $profile) {
                 ForEach(PDFConformanceProfile.allCases) { profile in
                     Text(profile.displayName).tag(profile)
                 }
             }
             if store.isConformanceChecking {
-                HStack { ProgressView(); Text("Đang kiểm tra trên máy…") }
+                HStack { ProgressView(); Text(L("Validating on this Mac…")) }
             }
             if let error = store.conformanceError {
                 Label(error, systemImage: "exclamationmark.triangle")
@@ -24,10 +24,10 @@ struct PDFConformanceSheet: View {
                     .font(.callout)
             }
             if let report = store.conformanceReport {
-                LabeledContent("Kết quả") { Text(report.status.displayName) }
+                LabeledContent(L("Result")) { Text(report.status.displayName) }
                 Text(report.summary).foregroundStyle(.secondary)
                 if !report.findings.isEmpty {
-                    GroupBox("Hạng mục cần xử lý") {
+                    GroupBox(L("Issues to Fix")) {
                         ScrollView {
                             VStack(alignment: .leading, spacing: 10) {
                                 ForEach(report.findings) { finding in
@@ -46,7 +46,7 @@ struct PDFConformanceSheet: View {
                         .frame(maxHeight: 180)
                     }
                 }
-                DisclosureGroup("Dữ liệu thô từ veraPDF") {
+                DisclosureGroup(L("Raw veraPDF Output")) {
                     TextEditor(text: .constant(report.details))
                         .font(.system(.caption, design: .monospaced))
                         .frame(minHeight: 160)
@@ -54,11 +54,11 @@ struct PDFConformanceSheet: View {
                 }
             }
             HStack {
-                Button("Kiểm tra") { store.checkConformance(profile) }
+                Button(L("Validate")) { store.checkConformance(profile) }
                     .buttonStyle(.borderedProminent)
                     .disabled(store.isConformanceChecking)
                 Spacer()
-                Button("Đóng") { dismiss() }
+                Button(L("Close")) { dismiss() }
             }
         }
         .padding(24)

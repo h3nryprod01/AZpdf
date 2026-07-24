@@ -27,7 +27,7 @@ struct WorkspaceView: View {
                 Image(systemName: "plus")
             }
             .buttonStyle(.borderless)
-            .help("Mở PDF trong tab mới")
+            .help(Text(L("Open a PDF in a new tab")))
             Spacer()
         }
         .padding(.horizontal, 10)
@@ -55,7 +55,7 @@ private struct WorkspaceTabItem: View {
                     .font(.caption2.weight(.bold))
             }
             .buttonStyle(.borderless)
-            .help("Đóng tab")
+            .help(Text(L("Close Tab")))
         }
         .padding(.horizontal, 9)
         .padding(.vertical, 6)
@@ -64,6 +64,6 @@ private struct WorkspaceTabItem: View {
             RoundedRectangle(cornerRadius: 7)
                 .strokeBorder(isSelected ? Color.accentColor.opacity(0.55) : Color.secondary.opacity(0.22), lineWidth: 1)
         }
-        .contextMenu { Button("Đóng tab", action: close) }
+        .contextMenu { Button(L("Close Tab"), action: close) }
     }
 }

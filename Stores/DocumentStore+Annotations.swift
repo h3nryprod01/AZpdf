@@ -122,7 +122,7 @@ extension DocumentStore {
 
     func beginShape(_ kind: ShapeKind) {
         guard document != nil else { return }
-        placementInstruction = "Nhấp vào PDF để đặt \(kind.label.lowercased())."
+        placementInstruction = L("Click the PDF to place the \(kind.label.lowercased()).")
         sendReaderAction(.shape(kind), recordsUndo: false)
     }
 
@@ -215,7 +215,7 @@ extension DocumentStore {
         guard !text.isEmpty else { return }
         isTextAnnotationSheetPresented = false
         draftTextAnnotation = ""
-        placementInstruction = "Nhấp vào PDF để đặt hộp chữ."
+        placementInstruction = L("Click the PDF to place the text box.")
         sendReaderAction(.freeText(text), recordsUndo: false)
     }
 
@@ -232,12 +232,12 @@ extension DocumentStore {
     func addSignature() {
         let strokes = draftSignatureStrokes.filter { $0.points.count > 1 }
         guard !strokes.isEmpty else {
-            lastError = "Hãy vẽ chữ ký trước khi chèn."
+            lastError = L("Draw a signature before inserting.")
             return
         }
         isSignatureSheetPresented = false
         draftSignatureStrokes = []
-        placementInstruction = "Nhấp vào PDF để đặt chữ ký."
+        placementInstruction = L("Click the PDF to place the signature.")
         sendReaderAction(.signature(strokes), recordsUndo: false)
     }
 
@@ -306,21 +306,21 @@ extension DocumentStore {
 
     func insertImage(from url: URL) {
         guard document != nil, NSImage(contentsOf: url) != nil else {
-            lastError = "Không thể đọc ảnh để chèn."
+            lastError = L("Could not read the image to insert.")
             return
         }
         do {
             let imageURL = try cachedImageURL(from: url)
-            placementInstruction = "Nhấp vào PDF để đặt ảnh. Sau đó kéo ảnh để di chuyển hoặc chọn ảnh để đổi kích thước."
+            placementInstruction = L("Click the PDF to place the image. Then drag the image to move it, or select it to resize.")
             sendReaderAction(.image(imageURL), recordsUndo: false)
         } catch {
-            lastError = "Không thể chuẩn bị ảnh để chèn: \(error.localizedDescription)"
+            lastError = L("Could not prepare the image for insertion: \(error.localizedDescription)")
         }
     }
 
     func insertImageOverlay(from imageURL: URL, pageIndex: Int, bounds: CGRect) {
         guard let page = document?.page(at: pageIndex), let image = NSImage(contentsOf: imageURL) else {
-            lastError = "Không thể đọc ảnh để chèn."
+            lastError = L("Could not read the image to insert.")
             return
         }
         registerUndoStep()
@@ -336,7 +336,7 @@ extension DocumentStore {
     private func replaceSelectedImage(from url: URL) {
         guard let annotation = selectedAnnotation as? EditableImageAnnotation,
               let image = NSImage(contentsOf: url) else {
-            lastError = "Không thể đọc ảnh thay thế."
+            lastError = L("Could not read the replacement image.")
             return
         }
         registerUndoStep()

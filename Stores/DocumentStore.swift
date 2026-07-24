@@ -119,13 +119,13 @@ final class DocumentStore {
         recentDocumentPaths = UserDefaults.standard.stringArray(forKey: recentDocumentsKey) ?? []
     }
 
-    var title: String { fileURL?.deletingPathExtension().lastPathComponent ?? "Chưa mở tài liệu" }
+    var title: String { fileURL?.deletingPathExtension().lastPathComponent ?? L("No Document Open") }
     var pageCount: Int { document?.pageCount ?? 0 }
     var canUndo: Bool { !undoStack.isEmpty }
     var canRedo: Bool { !redoStack.isEmpty }
     var canGoToPreviousPage: Bool { selectedPageIndex > 0 }
     var canGoToNextPage: Bool { selectedPageIndex + 1 < pageCount }
-    var windowTitle: String { isModified ? "\(title) — Đã chỉnh sửa" : title }
+    var windowTitle: String { isModified ? L("\(title) — Edited") : title }
     var recentDocumentURLs: [URL] { recentDocumentPaths.map(URL.init(fileURLWithPath:)) }
     var formFieldCount: Int {
         guard let document else { return 0 }
@@ -142,7 +142,7 @@ final class DocumentStore {
 
     func open(_ url: URL) {
         guard let pdf = PDFDocument(url: url) else {
-            lastError = "Không thể đọc tệp PDF này."
+            lastError = L("Could not read this PDF file.")
             return
         }
         document = pdf
@@ -162,7 +162,7 @@ final class DocumentStore {
     func unlockDocument() {
         guard let document else { return }
         guard document.unlock(withPassword: password) else {
-            lastError = "Mật khẩu không đúng. Vui lòng thử lại."
+            lastError = L("Incorrect password. Please try again.")
             return
         }
         password = ""
@@ -205,7 +205,7 @@ final class DocumentStore {
             try engine.apply(operation, to: document)
             return true
         } catch {
-            lastError = "Không thể thực hiện thao tác PDF này."
+            lastError = L("Could not perform this PDF operation.")
             return false
         }
     }

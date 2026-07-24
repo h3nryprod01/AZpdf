@@ -40,7 +40,7 @@ extension DocumentStore {
             padesPKCS12Data = try Data(contentsOf: url)
             padesCertificateName = url.lastPathComponent
         } catch {
-            lastError = "Không thể đọc PKCS#12: \(error.localizedDescription)"
+            lastError = L("Could not read PKCS#12: \(error.localizedDescription)")
         }
     }
 
@@ -82,7 +82,7 @@ extension DocumentStore {
         do {
             padesVerificationMessage = try PAdESSigningService.verify(documentData: documentData).summary
         } catch {
-            padesVerificationMessage = "Không thể xác minh PAdES: \(error.localizedDescription)"
+            padesVerificationMessage = L("Could not verify PAdES: \(error.localizedDescription)")
         }
         isPAdESVerificationResultPresented = true
     }
@@ -95,7 +95,7 @@ extension DocumentStore {
                 .verifyDetachedSignature(signature, documentData: documentData)
                 .summary
         } catch {
-            certificateVerificationMessage = "Không thể xác minh chữ ký: \(error.localizedDescription)"
+            certificateVerificationMessage = L("Could not verify the signature: \(error.localizedDescription)")
         }
         isCertificateVerificationResultPresented = true
     }
@@ -117,7 +117,7 @@ extension DocumentStore {
             // setting lastError alone left the user with no feedback at all —
             // the common case being macOS denying access to the signing key.
             isCertificateSigningSheetPresented = false
-            lastError = "Không thể tạo chữ ký số: \(error.localizedDescription)"
+            lastError = L("Could not create the digital signature: \(error.localizedDescription)")
         }
     }
 }

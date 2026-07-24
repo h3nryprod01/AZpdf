@@ -23,13 +23,13 @@ struct CertificateSignatureVerification: Equatable {
     let signerName: String?
 
     var summary: String {
-        let signer = signerName.map { "Người ký: \($0). " } ?? ""
+        let signer = signerName.map { L("Signer: \($0). ") } ?? ""
         return switch status {
-        case .valid: "\(signer)Chữ ký hợp lệ và certificate được hệ thống tin cậy."
-        case .invalidSignature: "\(signer)Chữ ký không khớp với PDF đang mở hoặc dữ liệu chữ ký đã bị thay đổi."
-        case .invalidCertificate: "\(signer)Chữ ký đúng dữ liệu nhưng certificate không được hệ thống tin cậy/đã hết hạn."
-        case .unsigned: "Tệp .p7s không chứa chữ ký CMS hợp lệ."
-        case .unsupported: "Không thể xác minh định dạng CMS này."
+        case .valid: signer + L("The signature is valid and the certificate is trusted by the system.")
+        case .invalidSignature: signer + L("The signature does not match the open PDF, or the signature data has been changed.")
+        case .invalidCertificate: signer + L("The signature matches the data, but the certificate is not trusted by the system or has expired.")
+        case .unsigned: L("The .p7s file does not contain a valid CMS signature.")
+        case .unsupported: L("Could not verify this CMS format.")
         }
     }
 }
@@ -42,11 +42,11 @@ enum CertificateSigningError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .noIdentity:
-            "Không tìm thấy certificate ký trong Keychain. Hãy cài certificate có private key trước."
+            L("No signing certificate was found in Keychain. Install a certificate with a private key first.")
         case let .security(status):
-            (SecCopyErrorMessageString(status, nil) as String?) ?? "Lỗi Security.framework: \(status)."
+            (SecCopyErrorMessageString(status, nil) as String?) ?? L("Security.framework error: \(Int(status)).")
         case .invalidSignatureFile:
-            "Tệp chữ ký không phải CMS/PKCS#7 hợp lệ."
+            L("The signature file is not valid CMS/PKCS#7.")
         }
     }
 }
@@ -68,7 +68,7 @@ enum CertificateSigningService {
             var certificate: SecCertificate?
             guard SecIdentityCopyCertificate(identity, &certificate) == errSecSuccess,
                   let certificate else { return nil }
-            let name = (SecCertificateCopySubjectSummary(certificate) as String?) ?? "Certificate không tên"
+            let name = (SecCertificateCopySubjectSummary(certificate) as String?) ?? L("Untitled Certificate")
             let id = SecCertificateCopyData(certificate) as Data
             return CertificateIdentity(id: id.base64EncodedString(), displayName: name, identity: identity)
         }

@@ -31,6 +31,6 @@ final class DocumentWorkspaceTests: XCTestCase {
         workspace.closeTab(workspace.selectedTabID)
 
         XCTAssertEqual(workspace.tabs.count, 1)
-        XCTAssertEqual(workspace.activeStore.lastError, "Hãy lưu thay đổi trước khi đóng tab.")
+        XCTAssertEqual(workspace.activeStore.lastError, L("Save your changes before closing the tab."))
     }
 }

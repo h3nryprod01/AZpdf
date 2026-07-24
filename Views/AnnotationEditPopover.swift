@@ -36,21 +36,21 @@ struct AnnotationEditPopover: View {
 
     private var freeTextSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Chỉnh sửa hộp chữ").font(.headline)
-            Text("Kéo trực tiếp hộp chữ trên PDF để di chuyển.")
+            Text(L("Edit Text Box")).font(.headline)
+            Text(L("Drag the text box on the PDF to move it."))
                 .font(.caption).foregroundStyle(.secondary)
             TextEditor(text: $store.selectedAnnotationText)
                 .frame(minHeight: 80)
 
-            Picker("Phông chữ", selection: $store.selectedAnnotationFontName) {
+            Picker(L("Font"), selection: $store.selectedAnnotationFontName) {
                 ForEach(store.availableFontFamilies, id: \.self) { Text($0).tag($0) }
             }
-            Stepper("Cỡ chữ: \(Int(store.selectedAnnotationFontSize)) pt", value: $store.selectedAnnotationFontSize, in: 8...72, step: 1)
+            Stepper(L("Font Size: \(Int(store.selectedAnnotationFontSize)) pt"), value: $store.selectedAnnotationFontSize, in: 8...72, step: 1)
             HStack(spacing: 8) {
                 Toggle(isOn: $store.selectedAnnotationIsBold) { Image(systemName: "bold") }
-                    .help("Chữ đậm")
+                    .help(Text(L("Bold")))
                 Toggle(isOn: $store.selectedAnnotationIsItalic) { Image(systemName: "italic") }
-                    .help("Chữ nghiêng")
+                    .help(Text(L("Italic")))
                 Spacer()
                 Picker("", selection: $store.selectedAnnotationAlignment) {
                     Image(systemName: "text.alignleft").tag(NSTextAlignment.left)
@@ -63,9 +63,9 @@ struct AnnotationEditPopover: View {
             }
             .toggleStyle(.button)
 
-            ColorPicker("Màu chữ", selection: nsColor($store.selectedAnnotationColor))
+            ColorPicker(L("Text Color"), selection: nsColor($store.selectedAnnotationColor))
             boxStyleControls
-            Button("Áp dụng định dạng") { store.updateSelectedFreeText() }
+            Button(L("Apply Formatting")) { store.updateSelectedFreeText() }
             deleteButton
         }
     }
@@ -75,32 +75,32 @@ struct AnnotationEditPopover: View {
     private var boxStyleControls: some View {
         VStack(alignment: .leading, spacing: 6) {
             Divider()
-            Toggle("Khung viền", isOn: $store.selectedAnnotationHasBorder)
+            Toggle(L("Border"), isOn: $store.selectedAnnotationHasBorder)
             if store.selectedAnnotationHasBorder {
-                ColorPicker("Màu viền", selection: nsColor($store.selectedAnnotationBorderColor))
-                Stepper("Độ dày: \(Int(store.selectedAnnotationLineWidth)) pt", value: $store.selectedAnnotationLineWidth, in: 1...12, step: 1)
+                ColorPicker(L("Border Color"), selection: nsColor($store.selectedAnnotationBorderColor))
+                Stepper(L("Border Width: \(Int(store.selectedAnnotationLineWidth)) pt"), value: $store.selectedAnnotationLineWidth, in: 1...12, step: 1)
             }
-            Toggle("Nền hộp", isOn: $store.selectedAnnotationHasFill)
+            Toggle(L("Background"), isOn: $store.selectedAnnotationHasFill)
             if store.selectedAnnotationHasFill {
-                ColorPicker("Màu nền", selection: nsColor($store.selectedAnnotationFillColor))
+                ColorPicker(L("Background Color"), selection: nsColor($store.selectedAnnotationFillColor))
             }
         }
     }
 
     private func shapeSection(_ kind: ShapeKind) -> some View {
         VStack(alignment: .leading, spacing: 8) {
-            Label("Chỉnh sửa \(kind.label.lowercased())", systemImage: kind.symbol).font(.headline)
-            Text("Kéo để di chuyển, kéo tay cầm để đổi kích thước. Giữ Shift để khoá tỉ lệ.")
+            Label(L("Edit \(kind.label.lowercased())"), systemImage: kind.symbol).font(.headline)
+            Text(L("Drag to move, drag a handle to resize. Hold Shift to constrain proportions."))
                 .font(.caption).foregroundStyle(.secondary)
-            ColorPicker("Màu nét", selection: nsColor($store.selectedAnnotationColor))
-            Stepper("Độ dày nét: \(Int(store.selectedAnnotationLineWidth)) pt", value: $store.selectedAnnotationLineWidth, in: 1...12, step: 1)
+            ColorPicker(L("Stroke Color"), selection: nsColor($store.selectedAnnotationColor))
+            Stepper(L("Line Width: \(Int(store.selectedAnnotationLineWidth)) pt"), value: $store.selectedAnnotationLineWidth, in: 1...12, step: 1)
             if kind.supportsFill {
-                Toggle("Tô nền", isOn: $store.selectedAnnotationHasFill)
+                Toggle(L("Fill"), isOn: $store.selectedAnnotationHasFill)
                 if store.selectedAnnotationHasFill {
-                    ColorPicker("Màu nền", selection: nsColor($store.selectedAnnotationFillColor))
+                    ColorPicker(L("Background Color"), selection: nsColor($store.selectedAnnotationFillColor))
                 }
             }
-            Button("Áp dụng") { store.updateSelectedShape() }
+            Button(L("Apply")) { store.updateSelectedShape() }
             deleteButton
         }
     }
@@ -111,42 +111,42 @@ struct AnnotationEditPopover: View {
 
     private var noteSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Chỉnh sửa ghi chú").font(.headline)
-            Text("Nhấp ghi chú để sửa nội dung, kéo trực tiếp để di chuyển.")
+            Text(L("Edit Note")).font(.headline)
+            Text(L("Click the note to edit its content, drag it directly to move."))
                 .font(.caption).foregroundStyle(.secondary)
             TextEditor(text: $store.selectedAnnotationText)
                 .frame(minHeight: 72)
-            Button("Áp dụng ghi chú") { store.updateSelectedNote() }
+            Button(L("Apply Note")) { store.updateSelectedNote() }
             deleteButton
         }
     }
 
     private var imageSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Chỉnh sửa ảnh").font(.headline)
+            Text(L("Edit Image")).font(.headline)
             // Was "Kéo trực tiếp ảnh trên PDF để di chuyển. Đổi kích thước rồi
             // nhấn Áp dụng." — the size steppers + Apply-size button moved to
             // handle-drag resize (Step 4), so the caption is updated to match
             // the controls actually present here.
-            Text("Kéo để di chuyển, kéo góc để đổi kích thước.")
+            Text(L("Drag to move, drag a corner to resize."))
                 .font(.caption).foregroundStyle(.secondary)
-            Button("Thay ảnh…") { store.beginReplaceSelectedImage() }
+            Button(L("Replace Image…")) { store.beginReplaceSelectedImage() }
             deleteButton
         }
     }
 
     private var inkSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("Chỉnh sửa chữ ký").font(.headline)
-            Text("Kéo trực tiếp chữ ký trên PDF để di chuyển, hoặc nhấn Delete để xóa. Có thể đổi màu nét.")
+            Text(L("Edit Signature")).font(.headline)
+            Text(L("Drag the signature directly on the PDF to move it, or press Delete to remove it. You can change the stroke color."))
                 .font(.caption).foregroundStyle(.secondary)
-            ColorPicker("Màu chữ ký", selection: nsColor($store.selectedAnnotationColor))
-            Button("Áp dụng màu") { store.updateSelectedInk() }
+            ColorPicker(L("Signature Color"), selection: nsColor($store.selectedAnnotationColor))
+            Button(L("Apply Color")) { store.updateSelectedInk() }
             deleteButton
         }
     }
 
     private var deleteButton: some View {
-        Button("Xóa chú thích", role: .destructive) { onDelete() }
+        Button(L("Delete Annotation"), role: .destructive) { onDelete() }
     }
 }

@@ -6,8 +6,8 @@ struct TextAnnotationSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Thêm chữ vào PDF").font(.title3.weight(.semibold))
-            Text("Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt hộp chữ tại vị trí mong muốn.")
+            Text(L("Add Text to PDF")).font(.title3.weight(.semibold))
+            Text(L("After confirming, click directly on the PDF to place the text box where you want it."))
                 .foregroundStyle(.secondary)
             TextEditor(text: $store.draftTextAnnotation)
                 .font(.body)
@@ -15,8 +15,8 @@ struct TextAnnotationSheet: View {
                 .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
             HStack {
                 Spacer()
-                Button("Hủy") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Thêm chữ") { store.addTextAnnotation() }
+                Button(L("Cancel")) { dismiss() }.keyboardShortcut(.cancelAction)
+                Button(L("Add Text")) { store.addTextAnnotation() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(store.draftTextAnnotation.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)

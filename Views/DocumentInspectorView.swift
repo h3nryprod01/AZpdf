@@ -13,58 +13,58 @@ struct DocumentInspectorView: View {
         // instead of showing a stale annotation count.
         let _ = store.documentRevision
         Form {
-            Section("Trang hiện tại") {
-                LabeledContent("Vị trí") { Text("\(store.selectedPageIndex + 1) / \(store.pageCount)") }
+            Section(L("Current Page")) {
+                LabeledContent(L("Position")) { Text("\(store.selectedPageIndex + 1) / \(store.pageCount)") }
                 if let page = store.document?.page(at: store.selectedPageIndex) {
                     let size = page.bounds(for: .mediaBox).size
-                    LabeledContent("Kích thước") { Text("\(Int(size.width)) × \(Int(size.height)) pt") }
-                    LabeledContent("Góc xoay") { Text("\(page.rotation)°") }
+                    LabeledContent(L("Dimensions")) { Text("\(Int(size.width)) × \(Int(size.height)) pt") }
+                    LabeledContent(L("Rotation")) { Text("\(page.rotation)°") }
                 }
                 HStack {
-                    Button("Xoay") { store.rotateCurrentPage() }
-                    Button("Nhân đôi") { store.duplicateCurrentPage() }
-                    Button("Xuất trang") { store.prepareCurrentPageExport() }
-                    Button("Xóa", role: .destructive) { store.deleteCurrentPage() }
+                    Button(L("Rotate")) { store.rotateCurrentPage() }
+                    Button(L("Duplicate")) { store.duplicateCurrentPage() }
+                    Button(L("Export Page")) { store.prepareCurrentPageExport() }
+                    Button(L("Delete"), role: .destructive) { store.deleteCurrentPage() }
                         .disabled(store.pageCount <= 1)
                 }
             }
 
-            Section("Tài liệu") {
-                LabeledContent("Trạng thái") { Text(store.isModified ? "Đã chỉnh sửa, chưa lưu" : "Đã lưu") }
-                inspectorRow("Tiêu đề", key: PDFDocumentAttribute.titleAttribute)
-                inspectorRow("Tác giả", key: PDFDocumentAttribute.authorAttribute)
-                inspectorRow("Chủ đề", key: PDFDocumentAttribute.subjectAttribute)
-                inspectorRow("Nhà tạo", key: PDFDocumentAttribute.creatorAttribute)
-                LabeledContent("Bảo mật") { Text(store.document?.isEncrypted == true ? "Đã mã hóa" : "Không") }
+            Section(L("Document")) {
+                LabeledContent(L("Status")) { Text(store.isModified ? L("Modified, unsaved") : L("Saved")) }
+                inspectorRow(L("Title"), key: PDFDocumentAttribute.titleAttribute)
+                inspectorRow(L("Author"), key: PDFDocumentAttribute.authorAttribute)
+                inspectorRow(L("Subject"), key: PDFDocumentAttribute.subjectAttribute)
+                inspectorRow(L("Creator"), key: PDFDocumentAttribute.creatorAttribute)
+                LabeledContent(L("Security")) { Text(store.document?.isEncrypted == true ? L("Encrypted") : L("No")) }
                 if store.document?.isLocked == true {
-                    Button("Mở khóa tài liệu") { store.isPasswordPromptPresented = true }
+                    Button(L("Unlock Document")) { store.isPasswordPromptPresented = true }
                 }
-                Button("Kiểm tra PDF/A & PDF/UA…") { store.beginConformanceCheck() }
+                Button(L("Validate PDF/A & PDF/UA…")) { store.beginConformanceCheck() }
             }
 
-            Section("Biểu mẫu PDF") {
-                LabeledContent("Trường tương tác") { Text("\(store.formFieldCount)") }
+            Section(L("PDF Forms")) {
+                LabeledContent(L("Form Fields")) { Text("\(store.formFieldCount)") }
                 Text(store.formFieldCount == 0
-                     ? "Tài liệu này không có trường form PDF được phát hiện."
-                     : "Nhấp trực tiếp vào trường form trong tài liệu để nhập hoặc chọn giá trị. Dữ liệu được giữ trên máy.")
+                     ? L("This document has no detectable PDF form fields.")
+                     : L("Click a form field in the document to enter or choose a value. Data stays on this Mac."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
 
             if let page = store.document?.page(at: store.selectedPageIndex) {
-                Section("Chú thích — \(page.annotations.count)") {
+                Section(L("Annotations — \(page.annotations.count)")) {
                     if page.annotations.isEmpty {
-                        Text("Không có chú thích trên trang này.").foregroundStyle(.secondary)
+                        Text(L("No annotations on this page.")).foregroundStyle(.secondary)
                     } else {
                         ForEach(page.annotations.indices, id: \.self) { index in
                             let annotation = page.annotations[index]
                             HStack {
                                 Image(systemName: annotationSymbol(for: annotation))
                                     .foregroundStyle(.secondary)
-                                Text(annotation.contents?.isEmpty == false ? annotation.contents! : (annotation.type ?? "Chú thích"))
+                                Text(annotation.contents?.isEmpty == false ? annotation.contents! : (annotation.type ?? L("Annotation")))
                                     .lineLimit(2)
                                 Spacer()
-                                Button("Xóa", role: .destructive) { store.deleteAnnotation(at: index) }
+                                Button(L("Delete"), role: .destructive) { store.deleteAnnotation(at: index) }
                                     .buttonStyle(.borderless)
                             }
                         }
@@ -72,13 +72,13 @@ struct DocumentInspectorView: View {
                 }
             }
 
-            Section("Ủng hộ AZpdf") {
-                Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
+            Section(L("Support AZpdf")) {
+                Link(L("Support on Ko-fi"), destination: AZpdfLinks.koFi)
             }
         }
         .formStyle(.grouped)
         .padding(.top, 8)
-        .navigationTitle("Thông tin")
+        .navigationTitle(L("Inspector"))
     }
 
     @ViewBuilder private func inspectorRow(_ label: String, key: PDFDocumentAttribute) -> some View {

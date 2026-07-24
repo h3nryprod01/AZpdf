@@ -10,7 +10,7 @@ struct OCRPageReview: Identifiable, Sendable {
             switch self {
             case .textLayer: "Text layer PDF"
             case .vision: "OCR Vision"
-            case .unavailable: "Không nhận dạng"
+            case .unavailable: L("Not recognized")
             }
         }
     }

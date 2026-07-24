@@ -41,7 +41,7 @@ final class DocumentWorkspace {
     func closeTab(_ id: UUID) {
         guard let index = tabs.firstIndex(where: { $0.id == id }) else { return }
         if tabs[index].store.isModified {
-            tabs[index].store.lastError = "Hãy lưu thay đổi trước khi đóng tab."
+            tabs[index].store.lastError = L("Save your changes before closing the tab.")
             return
         }
         if tabs.count == 1 {

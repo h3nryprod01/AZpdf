@@ -21,7 +21,6 @@
 "Add Text…" = "Add Text…";
 "AZpdf Help" = "AZpdf Help";
 "AZpdf Source Code" = "AZpdf Source Code";
-"Check PDF/A & PDF/UA…" = "Check PDF/A & PDF/UA…";
 "Close Tab" = "Close Tab";
 "Delete Current Page" = "Delete Current Page";
 "Document Properties…" = "Document Properties…";
@@ -53,6 +52,7 @@
 "Sign PDF with PAdES…" = "Sign PDF with PAdES…";
 "Sign with Certificate…" = "Sign with Certificate…";
 "Undo" = "Undo";
+"Validate PDF/A & PDF/UA…" = "Validate PDF/A & PDF/UA…";
 "Verify .p7s Signature…" = "Verify .p7s Signature…";
 "Verify PAdES Signature" = "Verify PAdES Signature";
 "View" = "View";
@@ -160,3 +160,278 @@
 "Show gaps between pages" = "Show gaps between pages";
 "Support on Ko-fi" = "Support on Ko-fi";
 "This Mac only" = "This Mac only";
+
+/* Views/AnnotationEditPopover.swift */
+"Apply Color" = "Apply Color";
+"Apply Formatting" = "Apply Formatting";
+"Apply Note" = "Apply Note";
+"Background" = "Background";
+"Background Color" = "Background Color";
+"Bold" = "Bold";
+"Border" = "Border";
+"Border Color" = "Border Color";
+"Border Width: %lld pt" = "Border Width: %lld pt";
+"Click the note to edit its content, drag it directly to move." = "Click the note to edit its content, drag it directly to move.";
+"Delete Annotation" = "Delete Annotation";
+"Drag the signature directly on the PDF to move it, or press Delete to remove it. You can change the stroke color." = "Drag the signature directly on the PDF to move it, or press Delete to remove it. You can change the stroke color.";
+"Drag the text box on the PDF to move it." = "Drag the text box on the PDF to move it.";
+"Drag to move, drag a corner to resize." = "Drag to move, drag a corner to resize.";
+"Drag to move, drag a handle to resize. Hold Shift to constrain proportions." = "Drag to move, drag a handle to resize. Hold Shift to constrain proportions.";
+"Edit %@" = "Edit %@";
+"Edit Image" = "Edit Image";
+"Edit Note" = "Edit Note";
+"Edit Signature" = "Edit Signature";
+"Edit Text Box" = "Edit Text Box";
+"Fill" = "Fill";
+"Font" = "Font";
+"Font Size: %lld pt" = "Font Size: %lld pt";
+"Italic" = "Italic";
+"Line Width: %lld pt" = "Line Width: %lld pt";
+"Replace Image…" = "Replace Image…";
+"Signature Color" = "Signature Color";
+"Stroke Color" = "Stroke Color";
+"Text Color" = "Text Color";
+
+/* Views/OCRSheet.swift */
+"AZpdf prefers the PDF's existing text layer; scanned pages use Vision at 3× resolution. All processing happens on your Mac — review the result before using it." = "AZpdf prefers the PDF's existing text layer; scanned pages use Vision at 3× resolution. All processing happens on your Mac — review the result before using it.";
+"Copy" = "Copy";
+"Creating PDF…" = "Creating PDF…";
+"Export .txt" = "Export .txt";
+"Export Searchable PDF…" = "Export Searchable PDF…";
+"OCR Current Page" = "OCR Current Page";
+"OCR Entire Document" = "OCR Entire Document";
+"OCR This Page" = "OCR This Page";
+"Quality Check" = "Quality Check";
+"Ready for review" = "Ready for review";
+"Recognizing Vietnamese and English — %lld/%lld pages…" = "Recognizing Vietnamese and English — %lld/%lld pages…";
+"The preview lets you review before exporting. Edits here apply to the .txt file; the searchable PDF is rebuilt locally by OCRmyPDF to keep a standard PDF structure." = "The preview lets you review before exporting. Edits here apply to the .txt file; the searchable PDF is rebuilt locally by OCRmyPDF to keep a standard PDF structure.";
+
+/* Views/PDFConformanceSheet.swift */
+"AZpdf uses veraPDF locally to validate PDF/A and PDF/UA. The automatic profile reads the XMP claim; a PDF with no claim is checked against the PDF/A-1b fallback. The result is not a compliance assertion if the validator is unavailable." = "AZpdf uses veraPDF locally to validate PDF/A and PDF/UA. The automatic profile reads the XMP claim; a PDF with no claim is checked against the PDF/A-1b fallback. The result is not a compliance assertion if the validator is unavailable.";
+"Issues to Fix" = "Issues to Fix";
+"Profile" = "Profile";
+"Raw veraPDF Output" = "Raw veraPDF Output";
+"Result" = "Result";
+"Validate" = "Validate";
+"Validate PDF Conformance" = "Validate PDF Conformance";
+"Validating on this Mac…" = "Validating on this Mac…";
+
+/* Views/PAdESSigningSheet.swift */
+"Baseline B works offline. LT/LTA fetch a timestamp and revocation data from the TSA you specify; the certificate and password are still processed only on this Mac." = "Baseline B works offline. LT/LTA fetch a timestamp and revocation data from the TSA you specify; the certificate and password are still processed only on this Mac.";
+"Choose PKCS#12…" = "Choose PKCS#12…";
+"LT embeds OCSP/CRL into the DSS; LTA adds a DocumentTimeStamp to begin the long-term archive chain." = "LT embeds OCSP/CRL into the DSS; LTA adds a DocumentTimeStamp to begin the long-term archive chain.";
+"PAdES Baseline B · SHA-256 · the entire PDF is signed" = "PAdES Baseline B · SHA-256 · the entire PDF is signed";
+"PAdES Digital Signing" = "PAdES Digital Signing";
+"PKCS#12 Password" = "PKCS#12 Password";
+"Save Signed PDF…" = "Save Signed PDF…";
+"The selected TSA must be reachable while signing; AZpdf does not store the URL or password beyond this session." = "The selected TSA must be reachable while signing; AZpdf does not store the URL or password beyond this session.";
+
+/* Views/SignatureSheet.swift */
+"Clear Strokes" = "Clear Strokes";
+"Draw your signature with a mouse or trackpad. After confirming, click directly on the PDF to place it; all data is processed on this Mac." = "Draw your signature with a mouse or trackpad. After confirming, click directly on the PDF to place it; all data is processed on this Mac.";
+"Handwritten Signature" = "Handwritten Signature";
+"Insert Signature" = "Insert Signature";
+
+/* Views/PasswordProtectSheet.swift */
+"Choose Save Location…" = "Choose Save Location…";
+"Export Protected PDF" = "Export Protected PDF";
+"The new copy will require a password to open. The password is not saved." = "The new copy will require a password to open. The password is not saved.";
+
+/* Views/CertificateSignatureSheet.swift */
+"AZpdf creates a detached CMS/PKCS#7 signature (.p7s) for the exact current PDF. The original PDF is not modified; when verifying, keep both the PDF and the .p7s file intact." = "AZpdf creates a detached CMS/PKCS#7 signature (.p7s) for the exact current PDF. The original PDF is not modified; when verifying, keep both the PDF and the .p7s file intact.";
+"Certificate" = "Certificate";
+"Export .p7s Signature" = "Export .p7s Signature";
+"Sign with a Certificate" = "Sign with a Certificate";
+"Verify .p7s…" = "Verify .p7s…";
+
+/* Views/TextAnnotationSheet.swift */
+"Add Text" = "Add Text";
+"Add Text to PDF" = "Add Text to PDF";
+"After confirming, click directly on the PDF to place the text box where you want it." = "After confirming, click directly on the PDF to place the text box where you want it.";
+
+/* Views/DocumentInspectorView.swift */
+"Annotation" = "Annotation";
+"Annotations — %lld" = "Annotations — %lld";
+"Click a form field in the document to enter or choose a value. Data stays on this Mac." = "Click a form field in the document to enter or choose a value. Data stays on this Mac.";
+"Creator" = "Creator";
+"Current Page" = "Current Page";
+"Delete" = "Delete";
+"Dimensions" = "Dimensions";
+"Document" = "Document";
+"Encrypted" = "Encrypted";
+"Form Fields" = "Form Fields";
+"Modified, unsaved" = "Modified, unsaved";
+"No" = "No";
+"No annotations on this page." = "No annotations on this page.";
+"PDF Forms" = "PDF Forms";
+"Position" = "Position";
+"Rotation" = "Rotation";
+"Saved" = "Saved";
+"Security" = "Security";
+"Status" = "Status";
+"Support AZpdf" = "Support AZpdf";
+"This document has no detectable PDF form fields." = "This document has no detectable PDF form fields.";
+"Unlock Document" = "Unlock Document";
+
+/* Views/HelpView.swift */
+"AZpdf processes PDFs, passwords, and document history on your Mac. Redact is destructive: the page is rasterized to remove the original content." = "AZpdf processes PDFs, passwords, and document history on your Mac. Redact is destructive: the page is rasterized to remove the original content.";
+"Choose OCR Current Page to have Vision recognize Vietnamese and English on your Mac. You can edit, copy, or export the .txt result; AZpdf does not modify the PDF itself." = "Choose OCR Current Page to have Vision recognize Vietnamese and English on your Mac. You can edit, copy, or export the .txt result; AZpdf does not modify the PDF itself.";
+"Data Safety" = "Data Safety";
+"Digital Signatures and Plugins" = "Digital Signatures and Plugins";
+"Getting Started" = "Getting Started";
+"Keyboard Shortcuts" = "Keyboard Shortcuts";
+"Local-first OCR" = "Local-first OCR";
+"Note / Highlight" = "Note / Highlight";
+"Previous / Next Page" = "Previous / Next Page";
+"Print Document" = "Print Document";
+"Signing with a certificate exports a detached CMS/PKCS#7 .p7s file. Plugins run only locally after explicit permission; v1 does not enable arbitrary plugin execution." = "Signing with a certificate exports a detached CMS/PKCS#7 .p7s file. Plugins run only locally after explicit permission; v1 does not enable arbitrary plugin execution.";
+"Source code and development guide" = "Source code and development guide";
+"Support online via Ko-fi" = "Support online via Ko-fi";
+"Use ⌘O to open a PDF, or drag a PDF file into the window. Each document opens in its own tab." = "Use ⌘O to open a PDF, or drag a PDF file into the window. Each document opens in its own tab.";
+
+/* Views/PDFReaderView.swift */
+"Could not redact the selected region." = "Could not redact the selected region.";
+"PDF Reader" = "PDF Reader";
+"Select some text before highlighting." = "Select some text before highlighting.";
+"Select text to highlight or redact. Select an annotation to edit it directly on the page." = "Select text to highlight or redact. Select an annotation to edit it directly on the page.";
+"Select the content to redact first." = "Select the content to redact first.";
+"Type a note…" = "Type a note…";
+
+/* Views/WorkspaceView.swift */
+"Open a PDF in a new tab" = "Open a PDF in a new tab";
+
+/* Views/AboutView.swift */
+"A local-first, free, and open-source PDF reader and editor." = "A local-first, free, and open-source PDF reader and editor.";
+"Version %@ • macOS 14+" = "Version %@ • macOS 14+";
+
+/* Stores/DocumentStore.swift */
+"%@ — Edited" = "%@ — Edited";
+"Could not perform this PDF operation." = "Could not perform this PDF operation.";
+"Could not read this PDF file." = "Could not read this PDF file.";
+"Incorrect password. Please try again." = "Incorrect password. Please try again.";
+"No Document Open" = "No Document Open";
+
+/* Stores/DocumentStore+OCR.swift */
+"## Page %lld" = "## Page %lld";
+"## Page %lld · %@" = "## Page %lld · %@";
+"## Page %lld · Vision OCR Region" = "## Page %lld · Vision OCR Region";
+"Could not export the OCR text: %@" = "Could not export the OCR text: %@";
+"Could not save the searchable PDF: %@" = "Could not save the searchable PDF: %@";
+"Drag on the PDF to select the region to OCR." = "Drag on the PDF to select the region to OCR.";
+"Low confidence; double-check the reading order and characters before exporting." = "Low confidence; double-check the reading order and characters before exporting.";
+"No reviewable lines of text found." = "No reviewable lines of text found.";
+"No text recognized in the selected region." = "No text recognized in the selected region.";
+"No text recognized on this page." = "No text recognized on this page.";
+"OCR failed: %@" = "OCR failed: %@";
+"Possible multi-column layout; check the reading order before exporting." = "Possible multi-column layout; check the reading order before exporting.";
+"Region OCR failed: %@" = "Region OCR failed: %@";
+"Unavailable" = "Unavailable";
+"[No text recognized]" = "[No text recognized]";
+
+/* Stores/DocumentStore+Annotations.swift */
+"Click the PDF to place the %@." = "Click the PDF to place the %@.";
+"Click the PDF to place the image. Then drag the image to move it, or select it to resize." = "Click the PDF to place the image. Then drag the image to move it, or select it to resize.";
+"Click the PDF to place the signature." = "Click the PDF to place the signature.";
+"Click the PDF to place the text box." = "Click the PDF to place the text box.";
+"Could not prepare the image for insertion: %@" = "Could not prepare the image for insertion: %@";
+"Could not read the image to insert." = "Could not read the image to insert.";
+"Could not read the replacement image." = "Could not read the replacement image.";
+"Draw a signature before inserting." = "Draw a signature before inserting.";
+
+/* Stores/DocumentStore+Signing.swift */
+"Could not create the digital signature: %@" = "Could not create the digital signature: %@";
+"Could not read PKCS#12: %@" = "Could not read PKCS#12: %@";
+"Could not verify PAdES: %@" = "Could not verify PAdES: %@";
+"Could not verify the signature: %@" = "Could not verify the signature: %@";
+
+/* Stores/DocumentStore+FileIo.swift */
+"Could not create the protected PDF." = "Could not create the protected PDF.";
+"Could not export the PDF." = "Could not export the PDF.";
+"Could not save the PDF copy." = "Could not save the PDF copy.";
+"Could not save the changes." = "Could not save the changes.";
+
+/* Stores/DocumentStore+Pages.swift */
+"Could not read the PDF to insert." = "Could not read the PDF to insert.";
+
+/* Stores/DocumentWorkspace.swift */
+"Save your changes before closing the tab." = "Save your changes before closing the tab.";
+
+/* Services/PDFConformanceService.swift */
+"Add XMP metadata, a title, and a profile/claim matching the target standard." = "Add XMP metadata, a title, and a profile/claim matching the target standard.";
+"Add meaningful alternate text for images, charts, and non-text content." = "Add meaningful alternate text for images, charts, and non-text content.";
+"Add semantic tags and check the reading order; this is the focus of PDF/UA-2." = "Add semantic tags and check the reading order; this is the focus of PDF/UA-2.";
+"Auto-detect claim (fallback PDF/A-1b)" = "Auto-detect claim (fallback PDF/A-1b)";
+"Compliant" = "Compliant";
+"Could not create the temporary PDF for conformance validation." = "Could not create the temporary PDF for conformance validation.";
+"Declare the document language, and the language of individual passages where needed." = "Declare the document language, and the language of individual passages where needed.";
+"Embed every font used for rendering and check the Unicode mapping." = "Embed every font used for rendering and check the Unicode mapping.";
+"Fix needed" = "Fix needed";
+"No veraPDF runtime found. Install veraPDF, or use an AZpdf build that bundles the validator, to validate PDF conformance." = "No veraPDF runtime found. Install veraPDF, or use an AZpdf build that bundles the validator, to validate PDF conformance.";
+"Non-compliant" = "Non-compliant";
+"Open the raw data to identify the failed assertion, then check fonts, metadata, tags, and page structure." = "Open the raw data to identify the failed assertion, then check fonts, metadata, tags, and page structure.";
+"PDF/A does not allow encryption; export an unencrypted archival copy if needed." = "PDF/A does not allow encryption; export an unencrypted archival copy if needed.";
+"Read the assertion from veraPDF, fix it in the source document, then re-run this profile check." = "Read the assertion from veraPDF, fix it in the source document, then re-run this profile check.";
+"Review needed" = "Review needed";
+"The document does not conform to the selected profile." = "The document does not conform to the selected profile.";
+"The validator found %lld items to fix or review." = "The validator found %lld items to fix or review.";
+"The validator found no issues with the selected profile." = "The validator found no issues with the selected profile.";
+"The validator returned no conclusive status; check the raw data to compare." = "The validator returned no conclusive status; check the raw data to compare.";
+"Unknown" = "Unknown";
+"veraPDF could not validate the document: %@" = "veraPDF could not validate the document: %@";
+"veraPDF returned no JSON report." = "veraPDF returned no JSON report.";
+
+/* Services/PAdESSigningService.swift */
+"A timestamp is present in the document." = "A timestamp is present in the document.";
+"Certificate: not trusted on this Mac." = "Certificate: not trusted on this Mac.";
+"Certificate: trust status could not be determined." = "Certificate: trust status could not be determined.";
+"Certificate: trusted on this Mac." = "Certificate: trusted on this Mac.";
+"Could not determine signature integrity." = "Could not determine signature integrity.";
+"Could not sign PAdES: %@" = "Could not sign PAdES: %@";
+"Could not verify PAdES: %@" = "Could not verify PAdES: %@";
+"No PAdES runtime found. AZpdf releases must bundle the pyHanko runtime." = "No PAdES runtime found. AZpdf releases must bundle the pyHanko runtime.";
+"No timestamp was found in the validator result." = "No timestamp was found in the validator result.";
+"No validation/DSS data was found." = "No validation/DSS data was found.";
+"PAdES-LT/LTA requires a valid RFC 3161 TSA URL to obtain a trusted timestamp." = "PAdES-LT/LTA requires a valid RFC 3161 TSA URL to obtain a trusted timestamp.";
+"Signature integrity: invalid." = "Signature integrity: invalid.";
+"Signature integrity: valid." = "Signature integrity: valid.";
+"Signer: %@." = "Signer: %@.";
+"The PDF has no embedded digital signature." = "The PDF has no embedded digital signature.";
+"The verifier returned no result." = "The verifier returned no result.";
+"Validation/DSS data is present." = "Validation/DSS data is present.";
+
+/* Services/CertificateSigningService.swift */
+"Could not verify this CMS format." = "Could not verify this CMS format.";
+"No signing certificate was found in Keychain. Install a certificate with a private key first." = "No signing certificate was found in Keychain. Install a certificate with a private key first.";
+"Security.framework error: %lld." = "Security.framework error: %lld.";
+"Signer: %@. " = "Signer: %@. ";
+"The .p7s file does not contain a valid CMS signature." = "The .p7s file does not contain a valid CMS signature.";
+"The signature does not match the open PDF, or the signature data has been changed." = "The signature does not match the open PDF, or the signature data has been changed.";
+"The signature file is not valid CMS/PKCS#7." = "The signature file is not valid CMS/PKCS#7.";
+"The signature is valid and the certificate is trusted by the system." = "The signature is valid and the certificate is trusted by the system.";
+"The signature matches the data, but the certificate is not trusted by the system or has expired." = "The signature matches the data, but the certificate is not trusted by the system or has expired.";
+"Untitled Certificate" = "Untitled Certificate";
+
+/* Services/MuPDFImageOverlayService.swift */
+"Could not find the AZpdf image-overlay script." = "Could not find the AZpdf image-overlay script.";
+"Could not prepare the temporary PDF for image insertion." = "Could not prepare the temporary PDF for image insertion.";
+"Could not read the PDF after inserting the image." = "Could not read the PDF after inserting the image.";
+"MuPDF could not insert the image: %@" = "MuPDF could not insert the image: %@";
+"MuPDF runtime missing. Install it via Homebrew, or use an AZpdf build that bundles the runtime." = "MuPDF runtime missing. Install it via Homebrew, or use an AZpdf build that bundles the runtime.";
+
+/* Services/OCRService.swift */
+"Could not render the PDF page to an image for OCR." = "Could not render the PDF page to an image for OCR.";
+"Possible multi-column layout" = "Possible multi-column layout";
+"Single-column / simple layout" = "Single-column / simple layout";
+
+/* Services/OCRMyPDFService.swift */
+"Could not create the searchable PDF: %@" = "Could not create the searchable PDF: %@";
+"No OCRmyPDF runtime found. AZpdf releases must bundle OCRmyPDF, Tesseract, Ghostscript, and language data." = "No OCRmyPDF runtime found. AZpdf releases must bundle OCRmyPDF, Tesseract, Ghostscript, and language data.";
+
+/* Services/PDFKitDocumentEngine.swift */
+"Could not render the PDF page." = "Could not render the PDF page.";
+
+/* Models/OCRPageReview.swift */
+"Not recognized" = "Not recognized";
+
+/* Models/EditableImageAnnotation.swift */
+"Image inserted by AZpdf" = "Image inserted by AZpdf";

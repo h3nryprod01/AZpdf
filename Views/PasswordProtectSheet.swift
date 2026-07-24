@@ -6,15 +6,15 @@ struct PasswordProtectSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Xuất PDF được bảo vệ").font(.title3.weight(.semibold))
-            Text("Bản sao mới sẽ yêu cầu mật khẩu để mở. Mật khẩu không được lưu lại.")
+            Text(L("Export Protected PDF")).font(.title3.weight(.semibold))
+            Text(L("The new copy will require a password to open. The password is not saved."))
                 .foregroundStyle(.secondary)
-            SecureField("Mật khẩu", text: $store.exportPassword)
+            SecureField(L("Password"), text: $store.exportPassword)
                 .textFieldStyle(.roundedBorder)
             HStack {
                 Spacer()
-                Button("Hủy") { dismiss() }.keyboardShortcut(.cancelAction)
-                Button("Chọn nơi lưu…") { store.savePasswordProtectedExport() }
+                Button(L("Cancel")) { dismiss() }.keyboardShortcut(.cancelAction)
+                Button(L("Choose Save Location…")) { store.savePasswordProtectedExport() }
                     .keyboardShortcut(.defaultAction)
                     .buttonStyle(.borderedProminent)
                     .disabled(store.exportPassword.isEmpty)

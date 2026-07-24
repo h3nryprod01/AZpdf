@@ -6,31 +6,31 @@ struct OCRSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text(store.ocrTotalPages > 1 ? "OCR toàn bộ tài liệu" : "OCR trang hiện tại").font(.title2.weight(.semibold))
-            Text("AZpdf ưu tiên text layer sẵn có của PDF; trang scan dùng Vision ở 3× resolution. Mọi xử lý diễn ra trên máy — hãy kiểm tra kết quả trước khi sử dụng.")
+            Text(store.ocrTotalPages > 1 ? L("OCR Entire Document") : L("OCR Current Page")).font(.title2.weight(.semibold))
+            Text(L("AZpdf prefers the PDF's existing text layer; scanned pages use Vision at 3× resolution. All processing happens on your Mac — review the result before using it."))
                 .foregroundStyle(.secondary)
             if store.isOCRProcessing {
                 HStack(spacing: 10) {
                     ProgressView()
-                    Text("Đang nhận dạng tiếng Việt và tiếng Anh — \(store.ocrCompletedPages)/\(store.ocrTotalPages) trang…")
+                    Text(L("Recognizing Vietnamese and English — \(store.ocrCompletedPages)/\(store.ocrTotalPages) pages…"))
                 }
                 .frame(maxWidth: .infinity, minHeight: 230)
             } else {
                 if !store.ocrReviews.isEmpty {
-                    GroupBox("Kiểm tra chất lượng") {
+                    GroupBox(L("Quality Check")) {
                         VStack(alignment: .leading, spacing: 8) {
                             ForEach(store.ocrReviews) { review in
                                 HStack(spacing: 8) {
                                     Image(systemName: review.needsReview ? "exclamationmark.triangle.fill" : "checkmark.circle.fill")
                                         .foregroundStyle(review.needsReview ? .orange : .green)
-                                    Text("Trang \(review.pageIndex + 1)")
+                                    Text(L("Page \(review.pageIndex + 1)"))
                                     Text(review.source.displayName).foregroundStyle(.secondary)
                                     if let confidence = review.confidencePercent {
                                         Text("\(confidence)%").monospacedDigit().foregroundStyle(.secondary)
                                     }
                                     Text(review.layoutSummary).foregroundStyle(.secondary)
                                     Spacer()
-                                    Text(review.warning ?? "Sẵn sàng review")
+                                    Text(review.warning ?? L("Ready for review"))
                                         .lineLimit(1)
                                         .foregroundStyle(review.needsReview ? .orange : .secondary)
                                 }
@@ -43,7 +43,7 @@ struct OCRSheet: View {
                     .font(.body)
                     .frame(minHeight: 260)
                     .overlay(RoundedRectangle(cornerRadius: 6).stroke(.quaternary))
-                Text("Preview dùng để review trước khi xuất. Chỉnh sửa tại đây áp dụng cho file .txt; PDF có lớp chữ được OCRmyPDF tạo lại cục bộ để giữ cấu trúc PDF chuẩn.")
+                Text(L("The preview lets you review before exporting. Edits here apply to the .txt file; the searchable PDF is rebuilt locally by OCRmyPDF to keep a standard PDF structure."))
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -51,23 +51,23 @@ struct OCRSheet: View {
             // macOS truncates the labels to "OCR tran…", "Xuất PDF…".
             VStack(spacing: 10) {
                 HStack {
-                    Button("OCR trang này") { store.beginOCRCurrentPage() }
+                    Button(L("OCR This Page")) { store.beginOCRCurrentPage() }
                         .disabled(store.isOCRProcessing)
-                    Button("OCR vùng…") { store.beginOCRRegionSelection() }
+                    Button(L("OCR Region…")) { store.beginOCRRegionSelection() }
                         .disabled(store.isOCRProcessing)
-                    Button("OCR toàn bộ") { store.beginOCRDocument() }
+                    Button(L("OCR All")) { store.beginOCRDocument() }
                         .disabled(store.isOCRProcessing)
                     Spacer()
                 }
                 HStack {
                     Spacer()
-                    Button("Sao chép") { store.copyOCRText() }
+                    Button(L("Copy")) { store.copyOCRText() }
                         .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
-                    Button("Xuất .txt") { store.exportOCRText() }
+                    Button(L("Export .txt")) { store.exportOCRText() }
                         .disabled(store.ocrText.isEmpty || store.isOCRProcessing)
-                    Button(store.isSearchablePDFExporting ? "Đang tạo PDF…" : "Xuất PDF có lớp chữ…") { store.exportSearchablePDF() }
+                    Button(store.isSearchablePDFExporting ? L("Creating PDF…") : L("Export Searchable PDF…")) { store.exportSearchablePDF() }
                         .disabled(store.ocrText.isEmpty || store.isOCRProcessing || store.isSearchablePDFExporting)
-                    Button("Đóng") { dismiss() }
+                    Button(L("Close")) { dismiss() }
                 }
             }
         }

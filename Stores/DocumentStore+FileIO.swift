@@ -20,7 +20,7 @@ extension DocumentStore {
 
     func save() {
         guard let document, let fileURL else { return }
-        guard document.write(to: fileURL) else { lastError = "Không thể lưu thay đổi."; return }
+        guard document.write(to: fileURL) else { lastError = L("Could not save the changes."); return }
         isModified = false
     }
 
@@ -31,7 +31,7 @@ extension DocumentStore {
         panel.allowedContentTypes = [.pdf]
         panel.nameFieldStringValue = "\(title).pdf"
         guard panel.runModal() == .OK, let url = panel.url else { return }
-        guard document.write(to: url) else { lastError = "Không thể lưu bản sao PDF."; return }
+        guard document.write(to: url) else { lastError = L("Could not save the PDF copy."); return }
         fileURL = url
         isModified = false
         addToRecentDocuments(url)
@@ -39,7 +39,7 @@ extension DocumentStore {
 
     func export(to url: URL) {
         guard let document else { return }
-        guard document.write(to: url) else { lastError = "Không thể xuất PDF."; return }
+        guard document.write(to: url) else { lastError = L("Could not export the PDF."); return }
     }
 
     @MainActor
@@ -66,7 +66,7 @@ extension DocumentStore {
         panel.nameFieldStringValue = "\(title)-bao-ve.pdf"
         guard panel.runModal() == .OK, let url = panel.url else { return }
         guard writeProtectedCopy(to: url, password: password) else {
-            lastError = "Không thể tạo PDF được bảo vệ."
+            lastError = L("Could not create the protected PDF.")
             return
         }
         exportPassword = ""

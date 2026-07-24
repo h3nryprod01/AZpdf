@@ -12,7 +12,7 @@
 /* Models/ShapeAnnotation.swift — ShapeKind.label */
 "Arrow" = "Mũi tên";
 "Line" = "Đường kẻ";
-"Oval" = "Hình tròn";
+"Oval" = "Hình bầu dục";
 "Rectangle" = "Chữ nhật";
 "Star" = "Ngôi sao";
 "Triangle" = "Tam giác";
@@ -23,7 +23,6 @@
 "Add Text…" = "Thêm chữ…";
 "AZpdf Help" = "Trợ giúp AZpdf";
 "AZpdf Source Code" = "Mã nguồn AZpdf";
-"Check PDF/A & PDF/UA…" = "Kiểm tra PDF/A & PDF/UA…";
 "Close Tab" = "Đóng tab";
 "Delete Current Page" = "Xóa trang hiện tại";
 "Document Properties…" = "Thuộc tính tài liệu…";
@@ -55,6 +54,7 @@
 "Sign PDF with PAdES…" = "Ký PAdES vào PDF…";
 "Sign with Certificate…" = "Ký bằng certificate…";
 "Undo" = "Hoàn tác";
+"Validate PDF/A & PDF/UA…" = "Kiểm tra PDF/A & PDF/UA…";
 "Verify .p7s Signature…" = "Xác minh chữ ký .p7s…";
 "Verify PAdES Signature" = "Xác minh chữ ký PAdES";
 "View" = "Hiển thị";
@@ -162,3 +162,278 @@
 "Show gaps between pages" = "Hiển thị khoảng cách giữa các trang";
 "Support on Ko-fi" = "Ủng hộ qua Ko-fi";
 "This Mac only" = "Chỉ trên máy này";
+
+/* Views/AnnotationEditPopover.swift */
+"Apply Color" = "Áp dụng màu";
+"Apply Formatting" = "Áp dụng định dạng";
+"Apply Note" = "Áp dụng ghi chú";
+"Background" = "Nền hộp";
+"Background Color" = "Màu nền";
+"Bold" = "Chữ đậm";
+"Border" = "Khung viền";
+"Border Color" = "Màu viền";
+"Border Width: %lld pt" = "Độ dày: %lld pt";
+"Click the note to edit its content, drag it directly to move." = "Nhấp ghi chú để sửa nội dung, kéo trực tiếp để di chuyển.";
+"Delete Annotation" = "Xóa chú thích";
+"Drag the signature directly on the PDF to move it, or press Delete to remove it. You can change the stroke color." = "Kéo trực tiếp chữ ký trên PDF để di chuyển, hoặc nhấn Delete để xóa. Có thể đổi màu nét.";
+"Drag the text box on the PDF to move it." = "Kéo trực tiếp hộp chữ trên PDF để di chuyển.";
+"Drag to move, drag a corner to resize." = "Kéo để di chuyển, kéo góc để đổi kích thước.";
+"Drag to move, drag a handle to resize. Hold Shift to constrain proportions." = "Kéo để di chuyển, kéo tay cầm để đổi kích thước. Giữ Shift để khoá tỉ lệ.";
+"Edit %@" = "Chỉnh sửa %@";
+"Edit Image" = "Chỉnh sửa ảnh";
+"Edit Note" = "Chỉnh sửa ghi chú";
+"Edit Signature" = "Chỉnh sửa chữ ký";
+"Edit Text Box" = "Chỉnh sửa hộp chữ";
+"Fill" = "Tô nền";
+"Font" = "Phông chữ";
+"Font Size: %lld pt" = "Cỡ chữ: %lld pt";
+"Italic" = "Chữ nghiêng";
+"Line Width: %lld pt" = "Độ dày nét: %lld pt";
+"Replace Image…" = "Thay ảnh…";
+"Signature Color" = "Màu chữ ký";
+"Stroke Color" = "Màu nét";
+"Text Color" = "Màu chữ";
+
+/* Views/OCRSheet.swift */
+"AZpdf prefers the PDF's existing text layer; scanned pages use Vision at 3× resolution. All processing happens on your Mac — review the result before using it." = "AZpdf ưu tiên text layer sẵn có của PDF; trang scan dùng Vision ở 3× resolution. Mọi xử lý diễn ra trên máy — hãy kiểm tra kết quả trước khi sử dụng.";
+"Copy" = "Sao chép";
+"Creating PDF…" = "Đang tạo PDF…";
+"Export .txt" = "Xuất .txt";
+"Export Searchable PDF…" = "Xuất PDF có lớp chữ…";
+"OCR Current Page" = "OCR trang hiện tại";
+"OCR Entire Document" = "OCR toàn bộ tài liệu";
+"OCR This Page" = "OCR trang này";
+"Quality Check" = "Kiểm tra chất lượng";
+"Ready for review" = "Sẵn sàng review";
+"Recognizing Vietnamese and English — %lld/%lld pages…" = "Đang nhận dạng tiếng Việt và tiếng Anh — %lld/%lld trang…";
+"The preview lets you review before exporting. Edits here apply to the .txt file; the searchable PDF is rebuilt locally by OCRmyPDF to keep a standard PDF structure." = "Preview dùng để review trước khi xuất. Chỉnh sửa tại đây áp dụng cho file .txt; PDF có lớp chữ được OCRmyPDF tạo lại cục bộ để giữ cấu trúc PDF chuẩn.";
+
+/* Views/PDFConformanceSheet.swift */
+"AZpdf uses veraPDF locally to validate PDF/A and PDF/UA. The automatic profile reads the XMP claim; a PDF with no claim is checked against the PDF/A-1b fallback. The result is not a compliance assertion if the validator is unavailable." = "AZpdf dùng veraPDF chạy cục bộ để kiểm tra PDF/A và PDF/UA. Profile tự động đọc claim XMP; PDF không có claim sẽ được kiểm tra theo fallback PDF/A-1b. Kết quả không phải lời khẳng định tuân thủ nếu validator không khả dụng.";
+"Issues to Fix" = "Hạng mục cần xử lý";
+"Profile" = "Hồ sơ chuẩn";
+"Raw veraPDF Output" = "Dữ liệu thô từ veraPDF";
+"Result" = "Kết quả";
+"Validate" = "Kiểm tra";
+"Validate PDF Conformance" = "Kiểm tra chuẩn PDF";
+"Validating on this Mac…" = "Đang kiểm tra trên máy…";
+
+/* Views/PAdESSigningSheet.swift */
+"Baseline B works offline. LT/LTA fetch a timestamp and revocation data from the TSA you specify; the certificate and password are still processed only on this Mac." = "Baseline B hoạt động offline. LT/LTA lấy timestamp và revocation data từ TSA bạn chỉ định; certificate và mật khẩu vẫn chỉ xử lý trên máy.";
+"Choose PKCS#12…" = "Chọn PKCS#12…";
+"LT embeds OCSP/CRL into the DSS; LTA adds a DocumentTimeStamp to begin the long-term archive chain." = "LT nhúng OCSP/CRL vào DSS; LTA thêm DocumentTimeStamp để bắt đầu chuỗi lưu trữ dài hạn.";
+"PAdES Baseline B · SHA-256 · the entire PDF is signed" = "PAdES Baseline B · SHA-256 · toàn bộ PDF được ký";
+"PAdES Digital Signing" = "Ký số PAdES";
+"PKCS#12 Password" = "Mật khẩu PKCS#12";
+"Save Signed PDF…" = "Lưu PDF đã ký…";
+"The selected TSA must be reachable while signing; AZpdf does not store the URL or password beyond this session." = "Cần kết nối TSA đã chọn trong lúc ký; AZpdf không lưu URL hay mật khẩu ngoài phiên này.";
+
+/* Views/SignatureSheet.swift */
+"Clear Strokes" = "Xóa nét vẽ";
+"Draw your signature with a mouse or trackpad. After confirming, click directly on the PDF to place it; all data is processed on this Mac." = "Vẽ chữ ký bằng chuột hoặc trackpad. Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt chữ ký; toàn bộ dữ liệu được xử lý trên máy.";
+"Handwritten Signature" = "Chữ ký tay";
+"Insert Signature" = "Chèn chữ ký";
+
+/* Views/PasswordProtectSheet.swift */
+"Choose Save Location…" = "Chọn nơi lưu…";
+"Export Protected PDF" = "Xuất PDF được bảo vệ";
+"The new copy will require a password to open. The password is not saved." = "Bản sao mới sẽ yêu cầu mật khẩu để mở. Mật khẩu không được lưu lại.";
+
+/* Views/CertificateSignatureSheet.swift */
+"AZpdf creates a detached CMS/PKCS#7 signature (.p7s) for the exact current PDF. The original PDF is not modified; when verifying, keep both the PDF and the .p7s file intact." = "AZpdf tạo chữ ký CMS/PKCS#7 tách rời (.p7s) cho đúng bản PDF hiện tại. PDF gốc không bị sửa; khi xác minh, phải giữ nguyên cả PDF và tệp .p7s.";
+"Certificate" = "Chứng thư số";
+"Export .p7s Signature" = "Xuất chữ ký .p7s";
+"Sign with a Certificate" = "Ký số bằng certificate";
+"Verify .p7s…" = "Xác minh .p7s…";
+
+/* Views/TextAnnotationSheet.swift */
+"Add Text" = "Thêm chữ";
+"Add Text to PDF" = "Thêm chữ vào PDF";
+"After confirming, click directly on the PDF to place the text box where you want it." = "Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt hộp chữ tại vị trí mong muốn.";
+
+/* Views/DocumentInspectorView.swift */
+"Annotation" = "Chú thích";
+"Annotations — %lld" = "Chú thích — %lld";
+"Click a form field in the document to enter or choose a value. Data stays on this Mac." = "Nhấp trực tiếp vào trường form trong tài liệu để nhập hoặc chọn giá trị. Dữ liệu được giữ trên máy.";
+"Creator" = "Nhà tạo";
+"Current Page" = "Trang hiện tại";
+"Delete" = "Xóa";
+"Dimensions" = "Kích thước";
+"Document" = "Tài liệu";
+"Encrypted" = "Đã mã hóa";
+"Form Fields" = "Trường tương tác";
+"Modified, unsaved" = "Đã chỉnh sửa, chưa lưu";
+"No" = "Không";
+"No annotations on this page." = "Không có chú thích trên trang này.";
+"PDF Forms" = "Biểu mẫu PDF";
+"Position" = "Vị trí";
+"Rotation" = "Góc xoay";
+"Saved" = "Đã lưu";
+"Security" = "Bảo mật";
+"Status" = "Trạng thái";
+"Support AZpdf" = "Ủng hộ AZpdf";
+"This document has no detectable PDF form fields." = "Tài liệu này không có trường form PDF được phát hiện.";
+"Unlock Document" = "Mở khóa tài liệu";
+
+/* Views/HelpView.swift */
+"AZpdf processes PDFs, passwords, and document history on your Mac. Redact is destructive: the page is rasterized to remove the original content." = "AZpdf xử lý PDF, mật khẩu và lịch sử tài liệu trên máy. Redact là thao tác phá hủy: trang bị raster hóa để loại bỏ nội dung gốc.";
+"Choose OCR Current Page to have Vision recognize Vietnamese and English on your Mac. You can edit, copy, or export the .txt result; AZpdf does not modify the PDF itself." = "Chọn OCR trang hiện tại để Vision nhận dạng tiếng Việt và tiếng Anh trên máy. Bạn có thể sửa, sao chép hoặc xuất kết quả .txt; AZpdf không tự sửa PDF.";
+"Data Safety" = "An toàn dữ liệu";
+"Digital Signatures and Plugins" = "Chữ ký số và plugin";
+"Getting Started" = "Bắt đầu";
+"Keyboard Shortcuts" = "Phím tắt";
+"Local-first OCR" = "OCR cục bộ";
+"Note / Highlight" = "Ghi chú / tô sáng";
+"Previous / Next Page" = "Trang trước / sau";
+"Print Document" = "In tài liệu";
+"Signing with a certificate exports a detached CMS/PKCS#7 .p7s file. Plugins run only locally after explicit permission; v1 does not enable arbitrary plugin execution." = "Ký bằng certificate xuất tệp CMS/PKCS#7 .p7s tách rời. Plugin chỉ chạy cục bộ sau khi được cấp quyền rõ ràng; bản v1 chưa bật thực thi plugin tùy ý.";
+"Source code and development guide" = "Mã nguồn và hướng dẫn phát triển";
+"Support online via Ko-fi" = "Ủng hộ online qua Ko-fi";
+"Use ⌘O to open a PDF, or drag a PDF file into the window. Each document opens in its own tab." = "Dùng ⌘O để mở PDF, hoặc kéo tệp PDF vào cửa sổ. Mỗi tài liệu mở trong một tab riêng.";
+
+/* Views/PDFReaderView.swift */
+"Could not redact the selected region." = "Không thể redact vùng đã chọn.";
+"PDF Reader" = "Trình đọc PDF";
+"Select some text before highlighting." = "Hãy chọn đoạn văn bản trước khi tô sáng.";
+"Select text to highlight or redact. Select an annotation to edit it directly on the page." = "Chọn văn bản để tô sáng hoặc redact. Chọn chú thích để chỉnh sửa ngay trên trang.";
+"Select the content to redact first." = "Hãy chọn nội dung cần redact trước.";
+"Type a note…" = "Nhập ghi chú…";
+
+/* Views/WorkspaceView.swift */
+"Open a PDF in a new tab" = "Mở PDF trong tab mới";
+
+/* Views/AboutView.swift */
+"A local-first, free, and open-source PDF reader and editor." = "Trình đọc và chỉnh sửa PDF local-first, miễn phí và mã nguồn mở.";
+"Version %@ • macOS 14+" = "Phiên bản %@ • macOS 14+";
+
+/* Stores/DocumentStore.swift */
+"%@ — Edited" = "%@ — Đã chỉnh sửa";
+"Could not perform this PDF operation." = "Không thể thực hiện thao tác PDF này.";
+"Could not read this PDF file." = "Không thể đọc tệp PDF này.";
+"Incorrect password. Please try again." = "Mật khẩu không đúng. Vui lòng thử lại.";
+"No Document Open" = "Chưa mở tài liệu";
+
+/* Stores/DocumentStore+OCR.swift */
+"## Page %lld" = "## Trang %lld";
+"## Page %lld · %@" = "## Trang %lld · %@";
+"## Page %lld · Vision OCR Region" = "## Trang %lld · vùng OCR Vision";
+"Could not export the OCR text: %@" = "Không thể xuất văn bản OCR: %@";
+"Could not save the searchable PDF: %@" = "Không thể lưu PDF có lớp chữ: %@";
+"Drag on the PDF to select the region to OCR." = "Kéo trên PDF để chọn vùng cần OCR.";
+"Low confidence; double-check the reading order and characters before exporting." = "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất.";
+"No reviewable lines of text found." = "Không tìm thấy dòng văn bản có thể kiểm tra.";
+"No text recognized in the selected region." = "Không nhận dạng được văn bản trong vùng đã chọn.";
+"No text recognized on this page." = "Không nhận dạng được văn bản trên trang này.";
+"OCR failed: %@" = "OCR thất bại: %@";
+"Possible multi-column layout; check the reading order before exporting." = "Nghi vấn nhiều cột; kiểm tra thứ tự đọc trước khi xuất.";
+"Region OCR failed: %@" = "OCR vùng thất bại: %@";
+"Unavailable" = "Không xác định";
+"[No text recognized]" = "[Không nhận dạng được văn bản]";
+
+/* Stores/DocumentStore+Annotations.swift */
+"Click the PDF to place the %@." = "Nhấp vào PDF để đặt %@.";
+"Click the PDF to place the image. Then drag the image to move it, or select it to resize." = "Nhấp vào PDF để đặt ảnh. Sau đó kéo ảnh để di chuyển hoặc chọn ảnh để đổi kích thước.";
+"Click the PDF to place the signature." = "Nhấp vào PDF để đặt chữ ký.";
+"Click the PDF to place the text box." = "Nhấp vào PDF để đặt hộp chữ.";
+"Could not prepare the image for insertion: %@" = "Không thể chuẩn bị ảnh để chèn: %@";
+"Could not read the image to insert." = "Không thể đọc ảnh để chèn.";
+"Could not read the replacement image." = "Không thể đọc ảnh thay thế.";
+"Draw a signature before inserting." = "Hãy vẽ chữ ký trước khi chèn.";
+
+/* Stores/DocumentStore+Signing.swift */
+"Could not create the digital signature: %@" = "Không thể tạo chữ ký số: %@";
+"Could not read PKCS#12: %@" = "Không thể đọc PKCS#12: %@";
+"Could not verify PAdES: %@" = "Không thể xác minh PAdES: %@";
+"Could not verify the signature: %@" = "Không thể xác minh chữ ký: %@";
+
+/* Stores/DocumentStore+FileIo.swift */
+"Could not create the protected PDF." = "Không thể tạo PDF được bảo vệ.";
+"Could not export the PDF." = "Không thể xuất PDF.";
+"Could not save the PDF copy." = "Không thể lưu bản sao PDF.";
+"Could not save the changes." = "Không thể lưu thay đổi.";
+
+/* Stores/DocumentStore+Pages.swift */
+"Could not read the PDF to insert." = "Không thể đọc PDF cần chèn.";
+
+/* Stores/DocumentWorkspace.swift */
+"Save your changes before closing the tab." = "Hãy lưu thay đổi trước khi đóng tab.";
+
+/* Services/PDFConformanceService.swift */
+"Add XMP metadata, a title, and a profile/claim matching the target standard." = "Bổ sung metadata XMP, tiêu đề và profile/claim phù hợp với chuẩn đích.";
+"Add meaningful alternate text for images, charts, and non-text content." = "Thêm alternate text có ý nghĩa cho hình, biểu đồ và nội dung không phải text.";
+"Add semantic tags and check the reading order; this is the focus of PDF/UA-2." = "Bổ sung semantic tag và kiểm tra reading order; đây là trọng tâm PDF/UA-2.";
+"Auto-detect claim (fallback PDF/A-1b)" = "Tự nhận diện claim (fallback PDF/A-1b)";
+"Compliant" = "Đạt";
+"Could not create the temporary PDF for conformance validation." = "Không thể tạo bản PDF tạm để kiểm tra chuẩn.";
+"Declare the document language, and the language of individual passages where needed." = "Khai báo ngôn ngữ tài liệu và ngôn ngữ của từng đoạn khi cần.";
+"Embed every font used for rendering and check the Unicode mapping." = "Nhúng toàn bộ font được render và kiểm tra ánh xạ Unicode.";
+"Fix needed" = "Cần sửa";
+"No veraPDF runtime found. Install veraPDF, or use an AZpdf build that bundles the validator, to validate PDF conformance." = "Chưa có veraPDF runtime. Cài veraPDF hoặc dùng bản AZpdf đã đóng gói validator để kiểm tra chuẩn PDF.";
+"Non-compliant" = "Không đạt";
+"Open the raw data to identify the failed assertion, then check fonts, metadata, tags, and page structure." = "Mở dữ liệu thô để xác định assertion lỗi, sau đó kiểm tra font, metadata, tag và cấu trúc trang.";
+"PDF/A does not allow encryption; export an unencrypted archival copy if needed." = "PDF/A không cho phép mã hóa; xuất một bản archival không mật khẩu nếu cần lưu trữ.";
+"Read the assertion from veraPDF, fix it in the source document, then re-run this profile check." = "Đọc assertion từ veraPDF, sửa ở tài liệu nguồn rồi chạy kiểm tra lại profile này.";
+"Review needed" = "Cần kiểm tra";
+"The document does not conform to the selected profile." = "Tài liệu không đạt profile đã chọn.";
+"The validator found %lld items to fix or review." = "Validator phát hiện %lld hạng mục cần xử lý hoặc kiểm tra.";
+"The validator found no issues with the selected profile." = "Validator không phát hiện lỗi với profile đã chọn.";
+"The validator returned no conclusive status; check the raw data to compare." = "Validator không trả về trạng thái kết luận; xem dữ liệu thô để đối chiếu.";
+"Unknown" = "Không xác định";
+"veraPDF could not validate the document: %@" = "veraPDF không thể kiểm tra tài liệu: %@";
+"veraPDF returned no JSON report." = "veraPDF không trả về báo cáo JSON.";
+
+/* Services/PAdESSigningService.swift */
+"A timestamp is present in the document." = "Có timestamp trong tài liệu.";
+"Certificate: not trusted on this Mac." = "Certificate: chưa được tin cậy trên máy này.";
+"Certificate: trust status could not be determined." = "Certificate: không xác định được trạng thái tin cậy.";
+"Certificate: trusted on this Mac." = "Certificate: được tin cậy trên máy này.";
+"Could not determine signature integrity." = "Không xác định được tính toàn vẹn chữ ký.";
+"Could not sign PAdES: %@" = "Không thể ký PAdES: %@";
+"Could not verify PAdES: %@" = "Không thể xác minh PAdES: %@";
+"No PAdES runtime found. AZpdf releases must bundle the pyHanko runtime." = "Chưa có PAdES runtime. Bản phát hành AZpdf phải đi kèm pyHanko runtime đã đóng gói.";
+"No timestamp was found in the validator result." = "Chưa phát hiện timestamp trong kết quả validator.";
+"No validation/DSS data was found." = "Chưa phát hiện dữ liệu validation/DSS.";
+"PAdES-LT/LTA requires a valid RFC 3161 TSA URL to obtain a trusted timestamp." = "PAdES-LT/LTA cần URL TSA RFC 3161 hợp lệ để lấy timestamp tin cậy.";
+"Signature integrity: invalid." = "Tính toàn vẹn chữ ký: không hợp lệ.";
+"Signature integrity: valid." = "Tính toàn vẹn chữ ký: hợp lệ.";
+"Signer: %@." = "Người ký: %@.";
+"The PDF has no embedded digital signature." = "PDF không có chữ ký số nhúng.";
+"The verifier returned no result." = "Trình xác minh không trả kết quả.";
+"Validation/DSS data is present." = "Có dữ liệu validation/DSS.";
+
+/* Services/CertificateSigningService.swift */
+"Could not verify this CMS format." = "Không thể xác minh định dạng CMS này.";
+"No signing certificate was found in Keychain. Install a certificate with a private key first." = "Không tìm thấy certificate ký trong Keychain. Hãy cài certificate có private key trước.";
+"Security.framework error: %lld." = "Lỗi Security.framework: %lld.";
+"Signer: %@. " = "Người ký: %@. ";
+"The .p7s file does not contain a valid CMS signature." = "Tệp .p7s không chứa chữ ký CMS hợp lệ.";
+"The signature does not match the open PDF, or the signature data has been changed." = "Chữ ký không khớp với PDF đang mở hoặc dữ liệu chữ ký đã bị thay đổi.";
+"The signature file is not valid CMS/PKCS#7." = "Tệp chữ ký không phải CMS/PKCS#7 hợp lệ.";
+"The signature is valid and the certificate is trusted by the system." = "Chữ ký hợp lệ và certificate được hệ thống tin cậy.";
+"The signature matches the data, but the certificate is not trusted by the system or has expired." = "Chữ ký đúng dữ liệu nhưng certificate không được hệ thống tin cậy/đã hết hạn.";
+"Untitled Certificate" = "Certificate không tên";
+
+/* Services/MuPDFImageOverlayService.swift */
+"Could not find the AZpdf image-overlay script." = "Không tìm thấy script ảnh overlay của AZpdf.";
+"Could not prepare the temporary PDF for image insertion." = "Không thể chuẩn bị bản PDF tạm để chèn ảnh.";
+"Could not read the PDF after inserting the image." = "Không thể đọc PDF sau khi chèn ảnh.";
+"MuPDF could not insert the image: %@" = "MuPDF không thể chèn ảnh: %@";
+"MuPDF runtime missing. Install it via Homebrew, or use an AZpdf build that bundles the runtime." = "Thiếu MuPDF runtime. Cài bằng Homebrew hoặc dùng bản AZpdf đã đóng gói runtime.";
+
+/* Services/OCRService.swift */
+"Could not render the PDF page to an image for OCR." = "Không thể tạo ảnh từ trang PDF để OCR.";
+"Possible multi-column layout" = "Nghi vấn bố cục đa cột";
+"Single-column / simple layout" = "Bố cục một cột/đơn giản";
+
+/* Services/OCRMyPDFService.swift */
+"Could not create the searchable PDF: %@" = "Không thể tạo PDF có lớp chữ: %@";
+"No OCRmyPDF runtime found. AZpdf releases must bundle OCRmyPDF, Tesseract, Ghostscript, and language data." = "Chưa có OCRmyPDF runtime. Bản phát hành AZpdf phải đi kèm OCRmyPDF, Tesseract, Ghostscript và language data.";
+
+/* Services/PDFKitDocumentEngine.swift */
+"Could not render the PDF page." = "Không thể render trang PDF.";
+
+/* Models/OCRPageReview.swift */
+"Not recognized" = "Không nhận dạng";
+
+/* Models/EditableImageAnnotation.swift */
+"Image inserted by AZpdf" = "Ảnh chèn bởi AZpdf";

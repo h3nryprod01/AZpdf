@@ -7,9 +7,9 @@ enum OCRMyPDFError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .runtimeUnavailable:
-            "Chưa có OCRmyPDF runtime. Bản phát hành AZpdf phải đi kèm OCRmyPDF, Tesseract, Ghostscript và language data."
+            L("No OCRmyPDF runtime found. AZpdf releases must bundle OCRmyPDF, Tesseract, Ghostscript, and language data.")
         case let .exportFailed(message):
-            "Không thể tạo PDF có lớp chữ: \(message)"
+            L("Could not create the searchable PDF: \(message)")
         }
     }
 }

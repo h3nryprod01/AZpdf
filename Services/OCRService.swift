@@ -8,8 +8,8 @@ enum OCRServiceError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .unableToRenderPage: "Không thể tạo ảnh từ trang PDF để OCR."
-        case .noTextFound: "Không nhận dạng được văn bản trên trang này."
+        case .unableToRenderPage: L("Could not render the PDF page to an image for OCR.")
+        case .noTextFound: L("No text recognized on this page.")
         }
     }
 }
@@ -131,7 +131,7 @@ enum OCRService {
         let leftColumnLines = observations.filter { $0.boundingBox.midX < 0.45 }.count
         let rightColumnLines = observations.filter { $0.boundingBox.midX > 0.55 }.count
         let hasMultipleColumns = leftColumnLines >= 3 && rightColumnLines >= 3
-        let layoutSummary = hasMultipleColumns ? "Nghi vấn bố cục đa cột" : "Bố cục một cột/đơn giản"
+        let layoutSummary = hasMultipleColumns ? L("Possible multi-column layout") : L("Single-column / simple layout")
         return Recognition(text: text, confidence: confidence, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
     }
 }

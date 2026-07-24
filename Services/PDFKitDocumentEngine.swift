@@ -170,7 +170,7 @@ struct PDFKitDocumentEngine: PDFDocumentReadingEngine,
             let bitmap = NSBitmapImageRep(data: tiff),
             let data = bitmap.representation(using: .png, properties: [:])
         else {
-            throw PDFEngineError.ioFailure("Không thể render trang PDF.")
+            throw PDFEngineError.ioFailure(L("Could not render the PDF page."))
         }
         return PDFRenderedPage(
             size: PDFSize(width: Double(size.width), height: Double(size.height)),

@@ -8,13 +8,13 @@ struct AboutView: View {
             Image(nsImage: NSApp.applicationIconImage)
                 .resizable().interpolation(.high).frame(width: 96, height: 96)
             Text("AZpdf").font(.title.weight(.bold))
-            Text("Phiên bản \(version) • macOS 14+").foregroundStyle(.secondary)
-            Text("Trình đọc và chỉnh sửa PDF local-first, miễn phí và mã nguồn mở.")
+            Text(L("Version \(version) • macOS 14+")).foregroundStyle(.secondary)
+            Text(L("A local-first, free, and open-source PDF reader and editor."))
                 .multilineTextAlignment(.center)
             Text("AGPL-3.0-only").font(.caption).foregroundStyle(.secondary)
             HStack {
                 Link("GitHub", destination: AZpdfLinks.repository)
-                Link("Ủng hộ qua Ko-fi", destination: AZpdfLinks.koFi)
+                Link(L("Support on Ko-fi"), destination: AZpdfLinks.koFi)
             }
         }
         .padding(28)

@@ -13,8 +13,8 @@ struct PDFReaderView: NSViewRepresentable {
         view.displayMode = .singlePageContinuous
         view.displayDirection = .vertical
         view.displaysPageBreaks = true
-        view.setAccessibilityLabel("Trình đọc PDF")
-        view.setAccessibilityHelp("Chọn văn bản để tô sáng hoặc redact. Chọn chú thích để chỉnh sửa ngay trên trang.")
+        view.setAccessibilityLabel(L("PDF Reader"))
+        view.setAccessibilityHelp(L("Select text to highlight or redact. Select an annotation to edit it directly on the page."))
         view.document = store.document
         view.onPlace = { action, page, bounds in
             place(action, on: page, bounds: bounds)
@@ -105,7 +105,7 @@ struct PDFReaderView: NSViewRepresentable {
             let cropBox = page.bounds(for: .cropBox)
             let noteBounds = CGRect(x: cropBox.minX + 40, y: cropBox.maxY - 132, width: 190, height: 76)
             let annotation = PDFAnnotation(bounds: noteBounds, forType: .freeText, withProperties: nil)
-            annotation.contents = "Nhập ghi chú…"
+            annotation.contents = L("Type a note…")
             annotation.userName = "AZpdf Note"
             annotation.font = .systemFont(ofSize: 13)
             annotation.fontColor = .labelColor
@@ -116,7 +116,7 @@ struct PDFReaderView: NSViewRepresentable {
             store.record(.addAnnotation(kind: .note, page: store.selectedPageIndex))
         case .highlightSelection:
             guard let selection = view.currentSelection else {
-                store.lastError = "Hãy chọn đoạn văn bản trước khi tô sáng."
+                store.lastError = L("Select some text before highlighting.")
                 return
             }
             for selectionPage in selection.pages {
@@ -134,7 +134,7 @@ struct PDFReaderView: NSViewRepresentable {
             view.armOCRRegionSelection()
         case .redactSelection:
             guard let selection = view.currentSelection else {
-                store.lastError = "Hãy chọn nội dung cần redact trước."
+                store.lastError = L("Select the content to redact first.")
                 return
             }
             let regions = selection.pages.compactMap { selectionPage -> (pageIndex: Int, bounds: CGRect)? in
@@ -144,7 +144,7 @@ struct PDFReaderView: NSViewRepresentable {
                 return (index, bounds.insetBy(dx: -1, dy: -1))
             }
             guard store.permanentlyRedact(regions) else {
-                store.lastError = "Không thể redact vùng đã chọn."
+                store.lastError = L("Could not redact the selected region.")
                 return
             }
             view.clearSelection()
@@ -529,7 +529,7 @@ final class PlacementPDFView: PDFView {
         onSelectAnnotation?(annotation, page)
         window?.makeFirstResponder(self)
         let menu = NSMenu()
-        let delete = NSMenuItem(title: "Xóa chú thích", action: #selector(deleteSelectedFromMenu), keyEquivalent: "")
+        let delete = NSMenuItem(title: L("Delete Annotation"), action: #selector(deleteSelectedFromMenu), keyEquivalent: "")
         delete.target = self
         menu.addItem(delete)
         return menu

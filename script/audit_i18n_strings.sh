@@ -17,6 +17,35 @@ SWEPT_FILES=(
   "Views/EmptyDocumentView.swift"
   "Views/SidebarView.swift"
   "Views/SettingsView.swift"
+  "Views/AnnotationEditPopover.swift"
+  "Views/OCRSheet.swift"
+  "Views/PDFConformanceSheet.swift"
+  "Views/PAdESSigningSheet.swift"
+  "Views/SignatureSheet.swift"
+  "Views/PasswordProtectSheet.swift"
+  "Views/CertificateSignatureSheet.swift"
+  "Views/TextAnnotationSheet.swift"
+  "Views/DocumentInspectorView.swift"
+  "Views/HelpView.swift"
+  "Views/PDFReaderView.swift"
+  "Views/WorkspaceView.swift"
+  "Views/AboutView.swift"
+  "Stores/DocumentStore.swift"
+  "Stores/DocumentStore+OCR.swift"
+  "Stores/DocumentStore+Annotations.swift"
+  "Stores/DocumentStore+Signing.swift"
+  "Stores/DocumentStore+FileIO.swift"
+  "Stores/DocumentStore+Pages.swift"
+  "Stores/DocumentWorkspace.swift"
+  "Services/PDFConformanceService.swift"
+  "Services/PAdESSigningService.swift"
+  "Services/CertificateSigningService.swift"
+  "Services/MuPDFImageOverlayService.swift"
+  "Services/OCRService.swift"
+  "Services/OCRMyPDFService.swift"
+  "Services/PDFKitDocumentEngine.swift"
+  "Models/OCRPageReview.swift"
+  "Models/EditableImageAnnotation.swift"
 )
 
 # Uppercase + lowercase Vietnamese diacritics, spelled out explicitly: BSD
@@ -64,7 +93,23 @@ scan_missing_keys() {
   } || true
 }
 
+# A path in SWEPT_FILES that does not exist made the gate print a `sed:` error
+# to stderr and still exit 0 — "audit passed" while that file was in fact no
+# longer being scanned at all. Renaming a swept file would have silently
+# dropped its protection. Fail loudly instead.
+check_list_is_valid() {
+  local missing=0
+  for file in "${SWEPT_FILES[@]}"; do
+    if [[ ! -f "$file" ]]; then
+      echo "SWEPT_FILES lists a path that does not exist: $file" >&2
+      missing=1
+    fi
+  done
+  return $missing
+}
+
 run_audit() {
+  check_list_is_valid || return 1
   local hits=0
   for file in "${SWEPT_FILES[@]}"; do
     local out
@@ -103,6 +148,12 @@ self_test() {
   fi
   if [[ -n "$(scan_missing_keys "$tmp/must_pass_key.swift")" ]]; then
     echo "self-test failed: L(_:) key that exists in $EN_STRINGS was flagged as missing" >&2
+    exit 1
+  fi
+  # Pins the loud-failure behaviour above: a bogus entry must make the audit
+  # fail, not pass with a stderr warning nobody reads.
+  if ( SWEPT_FILES=("Views/DoesNotExist.swift"); check_list_is_valid ) 2>/dev/null; then
+    echo "self-test failed: a SWEPT_FILES path that does not exist was accepted" >&2
     exit 1
   fi
   if ! run_audit; then

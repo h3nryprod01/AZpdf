@@ -47,7 +47,7 @@ extension DocumentStore {
     func insertPages(from url: URL) {
         guard let document else { return }
         guard let source = PDFDocument(url: url), source.pageCount > 0 else {
-            lastError = "Không thể đọc PDF cần chèn."
+            lastError = L("Could not read the PDF to insert.")
             return
         }
         let pages = (0..<source.pageCount).compactMap { source.page(at: $0)?.copy() as? PDFPage }

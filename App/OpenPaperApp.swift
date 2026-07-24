@@ -101,7 +101,7 @@ struct AZpdfApp: App {
                 Button(L("Verify .p7s Signature…")) { workspace.activeStore.beginCertificateSignatureVerification() }
                 Button(L("Sign PDF with PAdES…")) { workspace.activeStore.beginPAdESSigning() }
                 Button(L("Verify PAdES Signature")) { workspace.activeStore.verifyPAdESSignatures() }
-                Button(L("Check PDF/A & PDF/UA…")) { workspace.activeStore.beginConformanceCheck() }
+                Button(L("Validate PDF/A & PDF/UA…")) { workspace.activeStore.beginConformanceCheck() }
                     .keyboardShortcut("k", modifiers: [.command, .shift])
                 Button(L("Document Properties…")) { workspace.activeStore.beginDocumentProperties() }
                     .keyboardShortcut("m", modifiers: [.command, .shift])

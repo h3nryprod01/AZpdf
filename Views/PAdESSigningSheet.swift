@@ -6,11 +6,11 @@ struct PAdESSigningSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Ký số PAdES")
+            Text(L("PAdES Digital Signing"))
                 .font(.title2.weight(.semibold))
-            Text("Baseline B hoạt động offline. LT/LTA lấy timestamp và revocation data từ TSA bạn chỉ định; certificate và mật khẩu vẫn chỉ xử lý trên máy.")
+            Text(L("Baseline B works offline. LT/LTA fetch a timestamp and revocation data from the TSA you specify; the certificate and password are still processed only on this Mac."))
                 .foregroundStyle(.secondary)
-            Picker("Profile", selection: $store.padesProfile) {
+            Picker(L("Profile"), selection: $store.padesProfile) {
                 ForEach(PAdESProfile.allCases) { profile in
                     Text(profile.displayName).tag(profile)
                 }
@@ -18,27 +18,27 @@ struct PAdESSigningSheet: View {
             if store.padesProfile.requiresTimestamp {
                 TextField("URL TSA RFC 3161", text: $store.padesTimestampURL)
                     .textContentType(.URL)
-                Text("LT nhúng OCSP/CRL vào DSS; LTA thêm DocumentTimeStamp để bắt đầu chuỗi lưu trữ dài hạn.")
+                Text(L("LT embeds OCSP/CRL into the DSS; LTA adds a DocumentTimeStamp to begin the long-term archive chain."))
                     .font(.caption).foregroundStyle(.secondary)
             }
             LabeledContent("Certificate") {
-                Button(store.padesCertificateName.isEmpty ? "Chọn PKCS#12…" : store.padesCertificateName) {
+                Button(store.padesCertificateName.isEmpty ? L("Choose PKCS#12…") : store.padesCertificateName) {
                     store.choosePAdESCertificate()
                 }
             }
-            SecureField("Mật khẩu PKCS#12", text: $store.padesPassword)
-            Text(store.padesProfile == .baselineB ? "PAdES Baseline B · SHA-256 · toàn bộ PDF được ký" : "Cần kết nối TSA đã chọn trong lúc ký; AZpdf không lưu URL hay mật khẩu ngoài phiên này.")
+            SecureField(L("PKCS#12 Password"), text: $store.padesPassword)
+            Text(store.padesProfile == .baselineB ? L("PAdES Baseline B · SHA-256 · the entire PDF is signed") : L("The selected TSA must be reachable while signing; AZpdf does not store the URL or password beyond this session."))
                 .font(.caption)
                 .foregroundStyle(.secondary)
             HStack {
-                Button("Hủy", role: .cancel) {
+                Button(L("Cancel"), role: .cancel) {
                     store.padesPassword = ""
                     store.padesTimestampURL = ""
                     store.padesProfile = .baselineB
                     dismiss()
                 }
                 Spacer()
-                Button("Lưu PDF đã ký…") { store.exportPAdESSignedPDF() }
+                Button(L("Save Signed PDF…")) { store.exportPAdESSignedPDF() }
                     .buttonStyle(.borderedProminent)
                     .disabled(store.padesPKCS12Data == nil || (store.padesProfile.requiresTimestamp && store.padesTimestampURL.isEmpty))
             }

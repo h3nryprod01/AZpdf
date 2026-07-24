@@ -5,23 +5,23 @@ struct CertificateSignatureSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Ký số bằng certificate")
+            Text(L("Sign with a Certificate"))
                 .font(.title2.weight(.semibold))
-            Text("AZpdf tạo chữ ký CMS/PKCS#7 tách rời (.p7s) cho đúng bản PDF hiện tại. PDF gốc không bị sửa; khi xác minh, phải giữ nguyên cả PDF và tệp .p7s.")
+            Text(L("AZpdf creates a detached CMS/PKCS#7 signature (.p7s) for the exact current PDF. The original PDF is not modified; when verifying, keep both the PDF and the .p7s file intact."))
                 .foregroundStyle(.secondary)
-            Picker("Certificate", selection: $store.selectedCertificateIdentityID) {
+            Picker(L("Certificate"), selection: $store.selectedCertificateIdentityID) {
                 ForEach(store.certificateSigningIdentities) { identity in
                     Text(identity.displayName).tag(identity.id)
                 }
             }
             HStack {
-                Button("Xác minh .p7s…") {
+                Button(L("Verify .p7s…")) {
                     store.isCertificateSigningSheetPresented = false
                     store.beginCertificateSignatureVerification()
                 }
                 Spacer()
-                Button("Hủy", role: .cancel) { store.isCertificateSigningSheetPresented = false }
-                Button("Xuất chữ ký .p7s") { store.exportDetachedCertificateSignature() }
+                Button(L("Cancel"), role: .cancel) { store.isCertificateSigningSheetPresented = false }
+                Button(L("Export .p7s Signature")) { store.exportDetachedCertificateSignature() }
                     .buttonStyle(.borderedProminent)
                     .disabled(store.selectedCertificateIdentityID.isEmpty)
             }

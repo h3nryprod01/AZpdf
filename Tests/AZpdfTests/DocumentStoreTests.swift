@@ -118,7 +118,7 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(store.readerAction, .freeText("Xin chào AZpdf"))
         XCTAssertEqual(store.readerActionID, 1)
         XCTAssertFalse(store.isTextAnnotationSheetPresented)
-        XCTAssertEqual(store.placementInstruction, "Nhấp vào PDF để đặt hộp chữ.")
+        XCTAssertEqual(store.placementInstruction, L("Click the PDF to place the text box."))
         XCTAssertFalse(store.isModified)
     }
 
@@ -163,7 +163,7 @@ final class DocumentStoreTests: XCTestCase {
         store.beginOCRRegionSelection()
 
         XCTAssertEqual(store.readerAction, .ocrRegion)
-        XCTAssertEqual(store.placementInstruction, "Kéo trên PDF để chọn vùng cần OCR.")
+        XCTAssertEqual(store.placementInstruction, L("Drag on the PDF to select the region to OCR."))
         XCTAssertFalse(store.isModified)
     }
 
@@ -177,7 +177,7 @@ final class DocumentStoreTests: XCTestCase {
         XCTAssertEqual(store.readerAction, .signature([SignatureStroke(points: [CGPoint(x: 4, y: 5), CGPoint(x: 12, y: 18)])]))
         XCTAssertEqual(store.readerActionID, 1)
         XCTAssertFalse(store.isSignatureSheetPresented)
-        XCTAssertEqual(store.placementInstruction, "Nhấp vào PDF để đặt chữ ký.")
+        XCTAssertEqual(store.placementInstruction, L("Click the PDF to place the signature."))
         XCTAssertFalse(store.isModified)
     }
 
@@ -234,7 +234,7 @@ final class DocumentStoreTests: XCTestCase {
 
         store.duplicateCurrentPage()
         XCTAssertTrue(store.isModified)
-        XCTAssertEqual(store.windowTitle, "Chưa mở tài liệu — Đã chỉnh sửa")
+        XCTAssertEqual(store.windowTitle, L("\(store.title) — Edited"))
     }
 
     func testDeleteAnnotationCanBeUndone() {
@@ -481,7 +481,7 @@ final class DocumentStoreTests: XCTestCase {
 
     func testDetachedSignatureVerificationSummaryIsExplicit() {
         let verification = CertificateSignatureVerification(status: .invalidSignature, signerName: "AZpdf Test")
-        XCTAssertTrue(verification.summary.contains("không khớp"))
+        XCTAssertTrue(verification.summary.contains(L("The signature does not match the open PDF, or the signature data has been changed.")))
         XCTAssertTrue(verification.summary.contains("AZpdf Test"))
     }
 

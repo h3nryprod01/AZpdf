@@ -9,7 +9,7 @@ enum PDFConformanceProfile: String, CaseIterable, Identifiable, Sendable {
 
     var displayName: String {
         switch self {
-        case .automatic: "Tự nhận diện claim (fallback PDF/A-1b)"
+        case .automatic: L("Auto-detect claim (fallback PDF/A-1b)")
         case .pdfA4: "PDF/A-4"
         case .pdfUA2: "PDF/UA-2"
         }
@@ -32,9 +32,9 @@ struct PDFConformanceReport: Sendable {
 
         var displayName: String {
             switch self {
-            case .compliant: "Đạt"
-            case .nonCompliant: "Không đạt"
-            case .unknown: "Không xác định"
+            case .compliant: L("Compliant")
+            case .nonCompliant: L("Non-compliant")
+            case .unknown: L("Unknown")
             }
         }
     }
@@ -44,7 +44,7 @@ struct PDFConformanceReport: Sendable {
             case error
             case warning
 
-            var displayName: String { self == .error ? "Cần sửa" : "Cần kiểm tra" }
+            var displayName: String { self == .error ? L("Fix needed") : L("Review needed") }
         }
 
         let rule: String
@@ -61,9 +61,9 @@ struct PDFConformanceReport: Sendable {
 
     var summary: String {
         switch status {
-        case .compliant: "Validator không phát hiện lỗi với profile đã chọn."
-        case .nonCompliant: "Validator phát hiện \(findings.count) hạng mục cần xử lý hoặc kiểm tra."
-        case .unknown: "Validator không trả về trạng thái kết luận; xem dữ liệu thô để đối chiếu."
+        case .compliant: L("The validator found no issues with the selected profile.")
+        case .nonCompliant: L("The validator found \(findings.count) items to fix or review.")
+        case .unknown: L("The validator returned no conclusive status; check the raw data to compare.")
         }
     }
 }
@@ -76,11 +76,11 @@ enum PDFConformanceError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .runtimeUnavailable:
-            "Chưa có veraPDF runtime. Cài veraPDF hoặc dùng bản AZpdf đã đóng gói validator để kiểm tra chuẩn PDF."
+            L("No veraPDF runtime found. Install veraPDF, or use an AZpdf build that bundles the validator, to validate PDF conformance.")
         case .cannotWriteInput:
-            "Không thể tạo bản PDF tạm để kiểm tra chuẩn."
+            L("Could not create the temporary PDF for conformance validation.")
         case let .validationFailed(message):
-            "veraPDF không thể kiểm tra tài liệu: \(message)"
+            L("veraPDF could not validate the document: \(message)")
         }
     }
 }
@@ -126,7 +126,7 @@ enum PDFConformanceService {
             .flatMap { try? JSONSerialization.data(withJSONObject: $0, options: [.prettyPrinted, .sortedKeys]) }
             .flatMap { String(data: $0, encoding: .utf8) }
             ?? String(data: data, encoding: .utf8)
-            ?? "veraPDF không trả về báo cáo JSON."
+            ?? L("veraPDF returned no JSON report.")
         let object = try? JSONSerialization.jsonObject(with: data)
         let status: PDFConformanceReport.Status
         if let compliant = findCompliance(in: object) {
@@ -154,8 +154,8 @@ enum PDFConformanceService {
         if findings.isEmpty, status == .nonCompliant {
             return [PDFConformanceReport.Finding(
                 rule: "veraPDF",
-                message: "Tài liệu không đạt profile đã chọn.",
-                guidance: "Mở dữ liệu thô để xác định assertion lỗi, sau đó kiểm tra font, metadata, tag và cấu trúc trang.",
+                message: L("The document does not conform to the selected profile."),
+                guidance: L("Open the raw data to identify the failed assertion, then check fonts, metadata, tags, and page structure."),
                 severity: .error
             )]
         }
@@ -178,13 +178,13 @@ enum PDFConformanceService {
 
     private static func guidance(for value: String) -> String {
         let text = value.lowercased()
-        if text.contains("font") { return "Nhúng toàn bộ font được render và kiểm tra ánh xạ Unicode." }
-        if text.contains("tag") || text.contains("structure") { return "Bổ sung semantic tag và kiểm tra reading order; đây là trọng tâm PDF/UA-2." }
-        if text.contains("alternate") || text.contains("alt") { return "Thêm alternate text có ý nghĩa cho hình, biểu đồ và nội dung không phải text." }
-        if text.contains("metadata") || text.contains("xmp") { return "Bổ sung metadata XMP, tiêu đề và profile/claim phù hợp với chuẩn đích." }
-        if text.contains("language") || text.contains("lang") { return "Khai báo ngôn ngữ tài liệu và ngôn ngữ của từng đoạn khi cần." }
-        if text.contains("encrypt") || text.contains("security") { return "PDF/A không cho phép mã hóa; xuất một bản archival không mật khẩu nếu cần lưu trữ." }
-        return "Đọc assertion từ veraPDF, sửa ở tài liệu nguồn rồi chạy kiểm tra lại profile này." }
+        if text.contains("font") { return L("Embed every font used for rendering and check the Unicode mapping.") }
+        if text.contains("tag") || text.contains("structure") { return L("Add semantic tags and check the reading order; this is the focus of PDF/UA-2.") }
+        if text.contains("alternate") || text.contains("alt") { return L("Add meaningful alternate text for images, charts, and non-text content.") }
+        if text.contains("metadata") || text.contains("xmp") { return L("Add XMP metadata, a title, and a profile/claim matching the target standard.") }
+        if text.contains("language") || text.contains("lang") { return L("Declare the document language, and the language of individual passages where needed.") }
+        if text.contains("encrypt") || text.contains("security") { return L("PDF/A does not allow encryption; export an unencrypted archival copy if needed.") }
+        return L("Read the assertion from veraPDF, fix it in the source document, then re-run this profile check.") }
 
     private static func findCompliance(in value: Any?) -> Bool? {
         if let dictionary = value as? [String: Any] {

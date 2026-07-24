@@ -9,7 +9,7 @@ final class EditableImageAnnotation: PDFAnnotation {
     init(image: NSImage, bounds: CGRect) {
         self.image = image
         super.init(bounds: bounds, forType: .stamp, withProperties: nil)
-        contents = "Ảnh chèn bởi AZpdf"
+        contents = L("Image inserted by AZpdf")
         color = .clear
     }
 

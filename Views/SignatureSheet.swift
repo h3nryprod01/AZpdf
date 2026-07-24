@@ -13,18 +13,18 @@ struct SignatureSheet: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Chữ ký tay")
+            Text(L("Handwritten Signature"))
                 .font(.title2.weight(.semibold))
-            Text("Vẽ chữ ký bằng chuột hoặc trackpad. Sau khi xác nhận, nhấp trực tiếp vào PDF để đặt chữ ký; toàn bộ dữ liệu được xử lý trên máy.")
+            Text(L("Draw your signature with a mouse or trackpad. After confirming, click directly on the PDF to place it; all data is processed on this Mac."))
                 .foregroundStyle(.secondary)
             SignatureCanvas(strokes: $store.draftSignatureStrokes)
                 .frame(width: SignatureCanvasMetrics.size.width, height: SignatureCanvasMetrics.size.height)
             HStack {
-                Button("Xóa nét vẽ") { store.draftSignatureStrokes = [] }
+                Button(L("Clear Strokes")) { store.draftSignatureStrokes = [] }
                     .disabled(store.draftSignatureStrokes.isEmpty)
                 Spacer()
-                Button("Hủy", role: .cancel) { store.isSignatureSheetPresented = false }
-                Button("Chèn chữ ký") { store.addSignature() }
+                Button(L("Cancel"), role: .cancel) { store.isSignatureSheetPresented = false }
+                Button(L("Insert Signature")) { store.addSignature() }
                     .keyboardShortcut(.defaultAction)
                     .disabled(store.draftSignatureStrokes.allSatisfy { $0.points.count < 2 })
             }

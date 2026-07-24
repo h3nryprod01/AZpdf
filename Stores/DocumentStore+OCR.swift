@@ -20,7 +20,7 @@ extension DocumentStore {
 
     func beginOCRRegionSelection() {
         guard document != nil else { return }
-        placementInstruction = "Kéo trên PDF để chọn vùng cần OCR."
+        placementInstruction = L("Drag on the PDF to select the region to OCR.")
         sendReaderAction(.ocrRegion, recordsUndo: false)
     }
 
@@ -44,17 +44,17 @@ extension DocumentStore {
                     self.ocrCompletedPages = 1
                     switch result {
                     case let .success(recognition):
-                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n\(recognition.text)"
+                        self.ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + recognition.text
                         self.ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
                     case .failure:
-                        self.ocrText = "## Trang \(pageIndex + 1) · vùng OCR Vision\n[Không nhận dạng được văn bản]"
-                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: "Không xác định", warning: "Không nhận dạng được văn bản trong vùng đã chọn.")]
+                        self.ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + L("[No text recognized]")
+                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized in the selected region."))]
                     }
                 }
             }
         } catch {
             isOCRProcessing = false
-            lastError = "OCR vùng thất bại: \(error.localizedDescription)"
+            lastError = L("Region OCR failed: \(error.localizedDescription)")
         }
     }
 
@@ -84,17 +84,17 @@ extension DocumentStore {
                     let pageText: String
                     let review: OCRPageReview
                     if !textLayer.isEmpty {
-                        pageText = "## Trang \(index + 1) · \(OCRService.Source.textLayer.displayName)\n\(textLayer)"
+                        pageText = L("## Page \(index + 1) · \(OCRService.Source.textLayer.displayName)") + "\n" + textLayer
                         review = Self.makeOCRReview(pageIndex: index, source: .textLayer, confidence: nil, lineCount: textLayer.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
                     } else {
                         let result = Result { try OCRService.recognizeDetailed(image!) }
                         switch result {
                         case let .success(recognition):
-                            pageText = "## Trang \(index + 1) · \(OCRService.Source.vision.displayName)\n\(recognition.text)"
+                            pageText = L("## Page \(index + 1) · \(OCRService.Source.vision.displayName)") + "\n" + recognition.text
                             review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
                         case .failure:
-                            pageText = "## Trang \(index + 1)\n[Không nhận dạng được văn bản]"
-                            review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: "Không xác định", warning: "Không nhận dạng được văn bản trên trang này.")
+                            pageText = L("## Page \(index + 1)") + "\n" + L("[No text recognized]")
+                            review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized on this page."))
                         }
                     }
                     pages.append(pageText)
@@ -113,18 +113,18 @@ extension DocumentStore {
             }
         } catch {
             isOCRProcessing = false
-            lastError = "OCR thất bại: \(error.localizedDescription)"
+            lastError = L("OCR failed: \(error.localizedDescription)")
         }
     }
 
     nonisolated private static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
         let warning: String?
         if needsLayoutReview {
-            warning = "Nghi vấn nhiều cột; kiểm tra thứ tự đọc trước khi xuất."
+            warning = L("Possible multi-column layout; check the reading order before exporting.")
         } else if source == .vision, let confidence, confidence < 0.85 {
-            warning = "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất."
+            warning = L("Low confidence; double-check the reading order and characters before exporting.")
         } else if lineCount == 0 {
-            warning = "Không tìm thấy dòng văn bản có thể kiểm tra."
+            warning = L("No reviewable lines of text found.")
         } else {
             warning = nil
         }
@@ -147,7 +147,7 @@ extension DocumentStore {
         do {
             try ocrText.write(to: url, atomically: true, encoding: .utf8)
         } catch {
-            lastError = "Không thể xuất văn bản OCR: \(error.localizedDescription)"
+            lastError = L("Could not export the OCR text: \(error.localizedDescription)")
         }
     }
 
@@ -171,7 +171,7 @@ extension DocumentStore {
                         self.isOCRSheetPresented = false
                         self.open(url)
                     } catch {
-                        self.lastError = "Không thể lưu PDF có lớp chữ: \(error.localizedDescription)"
+                        self.lastError = L("Could not save the searchable PDF: \(error.localizedDescription)")
                     }
                 case let .failure(error):
                     self.lastError = error.localizedDescription

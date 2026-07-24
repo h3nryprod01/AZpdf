@@ -10,11 +10,11 @@ enum MuPDFImageOverlayError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
-        case .runtimeUnavailable: "Thiếu MuPDF runtime. Cài bằng Homebrew hoặc dùng bản AZpdf đã đóng gói runtime."
-        case .scriptUnavailable: "Không tìm thấy script ảnh overlay của AZpdf."
-        case .cannotWriteInput: "Không thể chuẩn bị bản PDF tạm để chèn ảnh."
-        case let .processFailed(message): "MuPDF không thể chèn ảnh: \(message)"
-        case .cannotReadOutput: "Không thể đọc PDF sau khi chèn ảnh."
+        case .runtimeUnavailable: L("MuPDF runtime missing. Install it via Homebrew, or use an AZpdf build that bundles the runtime.")
+        case .scriptUnavailable: L("Could not find the AZpdf image-overlay script.")
+        case .cannotWriteInput: L("Could not prepare the temporary PDF for image insertion.")
+        case let .processFailed(message): L("MuPDF could not insert the image: \(message)")
+        case .cannotReadOutput: L("Could not read the PDF after inserting the image.")
         }
     }
 }
