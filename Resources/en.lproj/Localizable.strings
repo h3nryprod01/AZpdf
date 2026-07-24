@@ -60,7 +60,6 @@
 "Zoom Out" = "Zoom Out";
 
 /* Views/ContentView.swift — toolbar, edit bar, find bar, alerts, drop overlay */
-"%@-page-%lld" = "%@-page-%lld";
 "AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session." = "AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session.";
 "Close" = "Close";
 "Done" = "Done";
@@ -83,11 +82,12 @@
 "Inspector" = "Inspector";
 "Next result" = "Next result";
 "Next result (⌘G)" = "Next result (⌘G)";
-"None" = "None";
+"No results" = "No results";
 "Note" = "Note";
 "OCR All" = "OCR All";
 "OCR Page" = "OCR Page";
 "OCR Region" = "OCR Region";
+"OK" = "OK";
 "Page %lld of %lld" = "Page %lld of %lld";
 "Password" = "Password";
 "Previous result" = "Previous result";
@@ -143,6 +143,7 @@
 "Title" = "Title";
 
 /* Views/SettingsView.swift */
+"Applies immediately — no restart needed." = "Applies immediately — no restart needed.";
 "AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server." = "AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server.";
 "AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac." = "AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac.";
 "Detected plugins" = "Detected plugins";
@@ -155,8 +156,7 @@
 "Match macOS" = "Match macOS";
 "Privacy" = "Privacy";
 "Project" = "Project";
-"Reload plugins" = "Reload plugins";
+"Reload Plugins" = "Reload Plugins";
 "Show gaps between pages" = "Show gaps between pages";
 "Support on Ko-fi" = "Support on Ko-fi";
 "This Mac only" = "This Mac only";
-"Applies immediately — no restart needed." = "Applies immediately — no restart needed.";

@@ -39,7 +39,7 @@ struct SettingsView: View {
                 LabeledContent(L("Detected plugins")) { Text("\(pluginRegistry.plugins.count)") }
                 Text(L("AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac."))
                     .font(.caption).foregroundStyle(.secondary)
-                Button(L("Reload plugins")) { pluginRegistry.reload() }
+                Button(L("Reload Plugins")) { pluginRegistry.reload() }
             }
 
             Section(L("Project")) {

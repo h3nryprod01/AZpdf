@@ -120,12 +120,12 @@ struct ContentView: View {
             PAdESSigningSheet(store: store)
         }
         .alert(L("Verify Digital Signature"), isPresented: $store.isCertificateVerificationResultPresented) {
-            Button("OK", role: .cancel) { }
+            Button(L("OK"), role: .cancel) { }
         } message: {
             Text(store.certificateVerificationMessage)
         }
         .alert(L("Verify PAdES"), isPresented: $store.isPAdESVerificationResultPresented) {
-            Button("OK", role: .cancel) { }
+            Button(L("OK"), role: .cancel) { }
         } message: {
             Text(store.padesVerificationMessage)
         }
@@ -156,7 +156,7 @@ struct ContentView: View {
                 .focused($isFindFieldFocused)
                 .onSubmit { store.goToNextSearchResult() }
             if !store.searchText.isEmpty {
-                Text(store.searchResultCount == 0 ? L("None") : "\(store.searchResultIndex)/\(store.searchResultCount)")
+                Text(store.searchResultCount == 0 ? L("No results") : "\(store.searchResultIndex)/\(store.searchResultCount)")
                     .monospacedDigit().foregroundStyle(.secondary)
                 Button { store.goToPreviousSearchResult() } label: { Image(systemName: "chevron.up") }
                     .disabled(store.searchResultCount == 0)

@@ -40,7 +40,9 @@ EN_STRINGS="Resources/en.lproj/Localizable.strings"
 # requires a written reason so it cannot become a silent mute button.
 scan_file() {
   local file="$1"
-  rg -v 'i18n-exempt:' "$file" | sed 's|//.*$||' | rg -n '"' | rg "[$VN_CHARS]" | sed "s|^|$file:|" || true
+  # Number lines FIRST so reported line numbers stay correct even when
+  # i18n-exempt lines above the hit are filtered out of the pipeline.
+  rg -n '' "$file" | rg -v 'i18n-exempt:' | sed 's|//.*$||' | rg '"' | rg "[$VN_CHARS]" | sed "s|^|$file:|" || true
 }
 
 # Every plain L("...") key must have an entry in the en strings table. A key

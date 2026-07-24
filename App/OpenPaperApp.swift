@@ -5,10 +5,10 @@ struct AZpdfApp: App {
     @State private var workspace = DocumentWorkspace()
     @Environment(\.openWindow) private var openWindow
     // `L(_:)` is a plain function, so switching language in Settings changes
-    // what it returns but nothing tells SwiftUI to ask again. Keying the root
-    // on the choice rebuilds the window's view tree, which is what makes the
-    // switch apply without a relaunch. Menu bar commands are built by the
-    // Scene and are not rebuilt — Settings says so.
+    // what it returns but nothing tells SwiftUI to ask again. Observing the
+    // choice here re-evaluates the Scene body (rebuilding the menu bar
+    // commands), and keying the window root rebuilds its view tree — together
+    // that is what makes the switch apply without a relaunch.
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.system.rawValue
 
     var body: some Scene {

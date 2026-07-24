@@ -62,7 +62,6 @@
 "Zoom Out" = "Thu nhỏ";
 
 /* Views/ContentView.swift — toolbar, edit bar, find bar, alerts, drop overlay */
-"%@-page-%lld" = "%@-trang-%lld";
 "AZpdf will rasterize the page containing the selection and replace the original content with a black box. This can't be recovered once saved — use Undo if you need to go back during this session." = "AZpdf sẽ raster hóa trang chứa vùng chọn và thay nội dung gốc bằng vùng đen. Không thể khôi phục từ bản đã lưu; hãy dùng Undo nếu cần quay lại trong phiên này.";
 "Close" = "Đóng";
 "Done" = "Xong";
@@ -85,11 +84,12 @@
 "Inspector" = "Thông tin";
 "Next result" = "Kết quả sau";
 "Next result (⌘G)" = "Kết quả sau (⌘G)";
-"None" = "Không có";
+"No results" = "Không có";
 "Note" = "Ghi chú";
 "OCR All" = "OCR toàn bộ";
 "OCR Page" = "OCR trang";
 "OCR Region" = "OCR vùng";
+"OK" = "OK";
 "Page %lld of %lld" = "Trang %lld trên %lld";
 "Password" = "Mật khẩu";
 "Previous result" = "Kết quả trước";
@@ -145,6 +145,7 @@
 "Title" = "Tiêu đề";
 
 /* Views/SettingsView.swift */
+"Applies immediately — no restart needed." = "Áp dụng ngay, không cần khởi động lại.";
 "AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server." = "AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.";
 "AZpdf only detects safe local manifests; v1 does not run executables. Built-in OCR still runs entirely on your Mac." = "AZpdf chỉ phát hiện manifest cục bộ an toàn; v1 chưa chạy executable. OCR tích hợp vẫn hoạt động hoàn toàn trên máy.";
 "Detected plugins" = "Plugin phát hiện được";
@@ -157,8 +158,7 @@
 "Match macOS" = "Theo macOS";
 "Privacy" = "Quyền riêng tư";
 "Project" = "Dự án";
-"Reload plugins" = "Tải lại plugin";
+"Reload Plugins" = "Tải lại plugin";
 "Show gaps between pages" = "Hiển thị khoảng cách giữa các trang";
 "Support on Ko-fi" = "Ủng hộ qua Ko-fi";
 "This Mac only" = "Chỉ trên máy này";
-"Applies immediately — no restart needed." = "Áp dụng ngay, không cần khởi động lại.";
