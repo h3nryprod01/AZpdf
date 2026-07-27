@@ -1,75 +1,77 @@
 # AZpdf
 
-Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là nền tảng phát hành đầu tiên; Linux v2 đang ở giai đoạn alpha và Windows nằm trong lộ trình tiếp theo.
+**English** | [Tiếng Việt](README.vi.md)
 
-<img width="254" height="254" alt="Generated image 3" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
+An open-source, local-first PDF reader and editor. macOS is the first release platform; the Linux port (v2) is in alpha and Windows is next on the roadmap.
+
+<img width="254" height="254" alt="AZpdf icon" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
 
-## Có trong bản đầu
-- Mở, đọc, tìm kiếm và điều hướng PDF
-- Mở nhiều PDF trong các tab độc lập, không ghi đè tài liệu đang đọc
-- Điều hướng trang bằng toolbar, sidebar và phím tắt `⌘[` / `⌘]`
-- Hiển thị mục lục/bookmark PDF trong sidebar khi tài liệu có outline
-- Zoom vừa trang mặc định, với điều khiển zoom tay và quay lại vừa trang
-- Tìm kiếm có số kết quả và điều hướng kết quả trước/sau
-- Thumbnail trang, zoom, chọn văn bản
-- Thêm ghi chú/highlight theo vùng chữ đang chọn; xoay, xóa, nhân đôi và sắp xếp lại trang
-- Thêm hộp văn bản (free-text annotation) qua sheet native, chỉnh phông chữ, cỡ, đậm/nghiêng, căn lề, khung viền và nền hộp
-- Vẽ và chèn chữ ký tay thành ink annotation PDF
-- Chèn hình: chữ nhật, hình bầu dục, đường kẻ, mũi tên, ngôi sao, tam giác — mỗi hình là một subtype PDF thật nên trình đọc khác vẫn vẽ đúng, không phải hộp trắng
-- Chỉnh sửa chú thích ngay trên đối tượng: nhấp để chọn (khung nét đứt cho hộp chữ), kéo tay cầm để đổi kích thước, popover neo vào đối tượng để sửa thuộc tính; phím mũi tên để dịch chuyển, Delete để xóa
-- Quản lý và xóa các chú thích trên trang qua Inspector, hỗ trợ undo
-- Chèn toàn bộ trang từ PDF khác để ghép tài liệu, có thể hoàn tác
-- Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, kéo tay cầm ở góc để đổi kích thước (giữ tỉ lệ), lưu thành stamp annotation bền vững
-- In tài liệu (`⌘P`) qua hộp thoại in của hệ thống; annotation in ra và trang xoay in đúng chiều
-- Xuất trang hiện tại thành một PDF riêng biệt
-- Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
-- OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
-- Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
-- Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
-- Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu
-- Kiểm tra PDF/A và PDF/UA bằng veraPDF cục bộ khi runtime validator có sẵn; profile tự động đọc claim XMP và fallback PDF/A-1b nếu không có claim; hiển thị báo cáo gốc, không tự tuyên bố tài liệu compliant
-- Undo/redo tối đa 50 thao tác chỉnh sửa trong phiên làm việc
-- Hiển thị rõ trạng thái chỉnh sửa chưa lưu trên tiêu đề và Inspector
-- Danh sách tối đa 8 tài liệu gần đây để mở lại nhanh
-- Kéo và thả PDF trực tiếp vào cửa sổ để mở
-- Lưu đè hoặc xuất ra PDF mới
-- Giao diện tiếng Anh và tiếng Việt; chọn ngôn ngữ trong Settings, áp dụng ngay không cần khởi động lại
+## In the first release
+- Open, read, search, and navigate PDFs
+- Open multiple PDFs in independent tabs without clobbering the document you are reading
+- Navigate pages from the toolbar, the sidebar, or the `⌘[` / `⌘]` shortcuts
+- Table of contents / PDF bookmarks in the sidebar whenever the document has an outline
+- Fit-to-page zoom by default, with manual zoom controls and a Fit Page control to get back
+- Search with a result count and previous/next result navigation
+- Page thumbnails, zoom, text selection
+- Add notes and highlights to the selected text; rotate, delete, duplicate, and reorder pages
+- Add text boxes (free-text annotations) through a native sheet, with font, size, bold/italic, alignment, border, and background controls
+- Draw a handwritten signature and insert it as a real PDF ink annotation
+- Insert shapes: rectangle, oval, line, arrow, star, triangle — each is written as a standard PDF annotation subtype (Square, Circle, Line, Ink), so other readers render it correctly instead of showing an empty box
+- Edit annotations directly on the object: click to select (a dashed frame for text boxes), drag handles to resize, a popover anchored to the object for its properties; arrow keys to nudge, Delete to remove
+- Manage and delete the page's annotations from the Inspector, with undo
+- Insert all pages from another PDF to merge documents (with undo)
+- Insert images directly onto the page; drag to move, drag a corner handle to resize (aspect ratio preserved), saved as a durable stamp annotation
+- Print (`⌘P`) through the system print dialog; annotations are included, and rotated pages come out the right way up
+- Export the current page as a separate PDF
+- Open password-protected PDFs with a native, on-device prompt
+- OCR a drag-selected region, the current page, or the whole document through a hybrid local-first pipeline: the PDF text layer is preferred, with Apple's Vision framework at 3× render scale for scanned pages; review, edit, copy, or export the result as `.txt`
+- Export a password-protected copy through the native Save panel
+- Redact the selection destructively: the page is rasterized and the original content is removed from the page's content stream
+- Detect PDF forms; type directly into native widget fields in the document
+- Validate PDF/A and PDF/UA with a local veraPDF runtime when available; the target profile is read from the document's XMP metadata, falling back to PDF/A-1b. The veraPDF report is shown verbatim — AZpdf never declares a document compliant on its own
+- Undo/redo for up to 50 editing operations per session
+- Unsaved-changes state clearly shown in the title bar and the Inspector
+- Up to 8 recent documents for quick reopening
+- Drag and drop a PDF onto the window to open it
+- Save in place or export a new PDF
+- English and Vietnamese interface; pick the language in Settings and it applies immediately, no relaunch
 
-## Quyền riêng tư và plugin
+## Privacy and plugins
 
-- **Local-first:** AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.
-- CI kiểm tra source để chặn API client mạng trong app/core.
-- **Plugin-ready:** OCR, dịch và tóm tắt sẽ là plugin cài đặt tùy chọn; bản thân AZpdf không phụ thuộc dịch vụ cloud.
-- Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md) và [mô hình sandbox](docs/PLUGIN_PROTOCOL.md). Bản v1 không thực thi executable bên thứ ba.
-- **OCR searchable PDF:** sau khi review preview, có thể xuất PDF mới qua OCRmyPDF theo chế độ giữ text layer gốc. Bundle Linux alpha đã đóng gói runtime OCR portable cùng Tesseract, Ghostscript, qpdf và language data `vie`/`eng`/`osd`; macOS vẫn dùng pipeline Vision + OCRmyPDF tùy runtime.
+- **Local-first:** AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server.
+- CI scans the source to block networking APIs in the app and core targets.
+- **Plugin-ready:** OCR, translation, and summarization will ship as optional installable plugins; AZpdf itself depends on no cloud service.
+- Plugins are only discovered locally at `~/Library/Application Support/AZpdf/Plugins/`; see [Plugins/README.md](Plugins/README.md) and the [sandbox model](docs/PLUGIN_PROTOCOL.md). v1 does not run third-party binaries.
+- **OCR to searchable PDF:** after reviewing the preview, you can export a new PDF through OCRmyPDF in a mode that preserves the original text layer. The Linux alpha bundle ships a portable OCR runtime with Tesseract, Ghostscript, qpdf, and `vie`/`eng`/`osd` language data; on macOS, OCR itself uses Vision; searchable-PDF export additionally uses OCRmyPDF when its runtime is bundled or installed.
 
-## Ủng hộ
+## Support the project
 
-AZpdf miễn phí theo AGPL-3.0. Nếu dự án hữu ích, bạn có thể [ủng hộ tác giả qua Ko-fi](https://ko-fi.com/h3nryng).
+AZpdf is free under AGPL-3.0. If it is useful to you, you can [support the author on Ko-fi](https://ko-fi.com/h3nryng).
 
-Hoặc quét VietQR để ủng hộ trực tiếp tại Việt Nam:
+Or scan the VietQR code to donate directly in Vietnam:
 
-<img src="Assets/donate-vietqr.jpg" alt="VietQR ủng hộ AZpdf" width="280" />
+<img src="Assets/donate-vietqr.jpg" alt="VietQR — support AZpdf" width="280" />
 
-## Phát triển
+## Development
 
 ### macOS
 
-Yêu cầu macOS 14+ và Xcode 26. Chạy `./script/build_and_run.sh`; CI dùng `./script/build_and_run.sh --bundle` để chỉ tạo `.app`, không mở GUI. Khi chạy từ mã nguồn, cài thêm MuPDF (`brew install mupdf`) để dùng chèn ảnh và veraPDF (`brew install verapdf`) để kiểm tra chuẩn. Bản phát hành phải truyền `MUTOOL_RUNTIME_DIR` và `VERAPDF_RUNTIME_DIR` chứa runtime self-contained, đã kiểm tra giấy phép và tương thích Hardened Runtime; script release sẽ từ chối bundle thiếu runtime.
+Requires macOS 14+ and Xcode 26. Run `./script/build_and_run.sh`; CI uses `./script/build_and_run.sh --bundle` to build the `.app` without opening the GUI. When running from source, install MuPDF (`brew install mupdf`) for image insertion and veraPDF (`brew install verapdf`) for conformance validation. Release builds must pass `MUTOOL_RUNTIME_DIR` and `VERAPDF_RUNTIME_DIR` pointing at self-contained runtimes with vetted licenses and Hardened Runtime compatibility; the release script refuses to bundle without them.
 
-Đóng gói phát hành dùng Developer ID Application, Hardened Runtime và notarization; xem [hướng dẫn release macOS](docs/MACOS_RELEASE.md). AZpdf hỗ trợ chữ ký CMS/PKCS#7 tách rời (`.p7s`) bằng certificate trong Keychain và ký nhúng PAdES từ PKCS#12 (`.p12`/`.pfx`) cục bộ. Có thể chọn Baseline B, LT hoặc LTA; LT/LTA chỉ khả dụng khi cung cấp TSA URL và vẫn cần kiểm thử với trust store/OCSP/CRL production trước khi dùng cho hồ sơ pháp lý dài hạn.
+Release packaging uses a Developer ID Application identity, Hardened Runtime, and notarization; see the [macOS release guide](docs/MACOS_RELEASE.md). AZpdf supports detached CMS/PKCS#7 signatures (`.p7s`) using certificates from the user's keychain, and embedded PAdES signing from a local PKCS#12 (`.p12`/`.pfx`). Baseline B, LT, and LTA profiles are available; LT/LTA require a TSA URL and still need testing against production trust stores/OCSP/CRL before use on long-term legal documents.
 
-Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) và SBOM SPDX theo đúng runtime đã đóng gói.
+macOS releases ship with [third-party license notices](THIRD_PARTY_NOTICES.md) and an SPDX SBOM matching the bundled runtimes.
 
-### Linux v2 alpha
+### Linux (v2 alpha)
 
-Linux dùng Flutter shell gọi cùng core Swift qua JSON-line process. Bundle alpha hiện tự mang engine, MuPDF 1.28.0, OCRmyPDF/Tesseract và pyHanko; các health check, OCR searchable-PDF và ký/xác minh PAdES Baseline B đã chạy thành công trong container Ubuntu 24.04 không có mạng hay dependency cài sẵn. Development Flatpak Freedesktop 25.08 cũng đã qua sandbox probe, runtime health và GTK document-portal E2E với PDF fixture thật; manifest public reproducible/Flathub và portal KDE thật vẫn là bước tiếp theo. Shell review được `DocumentIR`/reading order trực tiếp trên trang. Xem [hướng dẫn shell đa nền tảng](Shell/azpdf_desktop/README.md), [báo cáo UI/UX](qa-report/azpdf-linux-shell-report-2026-07-18.html) và [QA workstation Ubuntu](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
+Linux uses a Flutter shell that talks to the same Swift core over JSON Lines IPC. The alpha bundle is self-contained — engine, MuPDF 1.28.0, OCRmyPDF/Tesseract, and pyHanko; health checks, OCR to searchable PDF, and PAdES Baseline B signing/verification all ran successfully in an Ubuntu 24.04 container with no network and no preinstalled dependencies. A development Flatpak on the Freedesktop 25.08 runtime has passed the sandbox probe, runtime health checks, and a GTK document-portal end-to-end test with real PDF fixtures; a reproducible public manifest for Flathub and real KDE portals are the next steps. The shell can display the document's reading order (`DocumentIR`) as an overlay on the page for review. See the [cross-platform shell guide](Shell/azpdf_desktop/README.md), the [UI/UX report](qa-report/azpdf-linux-shell-report-2026-07-18.html), and the [Ubuntu workstation QA](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
 
-Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
+Technical roadmap and Windows/Linux groundwork: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Local plugin conventions: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
-Định hướng OCR local-first: [docs/OCR_PLAN.md](docs/OCR_PLAN.md).
+Local-first OCR direction: [docs/OCR_PLAN.md](docs/OCR_PLAN.md).
 
 ## License
 
-AGPL-3.0-only. AZpdf luôn miễn phí để sử dụng, chia sẻ và cải tiến; các bản phân phối đã sửa đổi cũng phải công khai mã nguồn theo cùng giấy phép. Xem [văn bản AGPL-3.0 chính thức](https://www.gnu.org/licenses/agpl-3.0.html).
+AGPL-3.0-only. AZpdf is free to use, share, and improve — forever; modified distributions must publish their source under the same license. See the [official AGPL-3.0 text](https://www.gnu.org/licenses/agpl-3.0.html).
