@@ -128,6 +128,19 @@ final class AppLanguageOverrideTests: XCTestCase {
         }
     }
 
+    // The gate deliberately skips interpolated L() keys — their .strings key is
+    // the %lld format string, not the source text — so a missing translation
+    // for one is invisible to it and shows up as English inside a Vietnamese
+    // UI. Tests are the only guard these keys get; pin the ones in use.
+    func testInterpolatedKeysAreTranslatedInBothLanguages() {
+        withLanguage(.english) {
+            XCTAssertEqual(L("Delete annotation \(2)"), "Delete annotation 2")
+        }
+        withLanguage(.vietnamese) {
+            XCTAssertEqual(L("Delete annotation \(2)"), "Xóa chú thích 2")
+        }
+    }
+
     /// A language is listed in its own language so someone who cannot read the
     /// current UI can still find theirs.
     func testConcreteLanguagesAreNamedInTheirOwnLanguage() {

@@ -257,6 +257,7 @@
 "Click a form field in the document to enter or choose a value. Data stays on this Mac." = "Nhấp trực tiếp vào trường form trong tài liệu để nhập hoặc chọn giá trị. Dữ liệu được giữ trên máy.";
 "Creator" = "Nhà tạo";
 "Current Page" = "Trang hiện tại";
+"Delete annotation %lld" = "Xóa chú thích %lld";
 "Delete" = "Xóa";
 "Dimensions" = "Kích thước";
 "Document" = "Tài liệu";

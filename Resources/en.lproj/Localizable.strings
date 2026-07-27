@@ -255,6 +255,7 @@
 "Click a form field in the document to enter or choose a value. Data stays on this Mac." = "Click a form field in the document to enter or choose a value. Data stays on this Mac.";
 "Creator" = "Creator";
 "Current Page" = "Current Page";
+"Delete annotation %lld" = "Delete annotation %lld";
 "Delete" = "Delete";
 "Dimensions" = "Dimensions";
 "Document" = "Document";

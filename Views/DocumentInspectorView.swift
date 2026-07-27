@@ -20,12 +20,30 @@ struct DocumentInspectorView: View {
                     LabeledContent(L("Dimensions")) { Text("\(Int(size.width)) × \(Int(size.height)) pt") }
                     LabeledContent(L("Rotation")) { Text("\(page.rotation)°") }
                 }
-                HStack {
-                    Button(L("Rotate")) { store.rotateCurrentPage() }
-                    Button(L("Duplicate")) { store.duplicateCurrentPage() }
-                    Button(L("Export Page")) { store.prepareCurrentPageExport() }
-                    Button(L("Delete"), role: .destructive) { store.deleteCurrentPage() }
-                        .disabled(store.pageCount <= 1)
+                // Two rows, not one: the inspector column is 250–360 pt and
+                // English labels run ~20% longer than the Vietnamese they were
+                // laid out for, so a single row truncated "Duplicate" to
+                // "Dupli…" and "Export Page" to "Export…". Measured on the
+                // running app, not guessed.
+                Grid(horizontalSpacing: 8, verticalSpacing: 6) {
+                    GridRow {
+                        Button(L("Rotate")) { store.rotateCurrentPage() }
+                            .frame(maxWidth: .infinity)
+                        Button(L("Duplicate")) { store.duplicateCurrentPage() }
+                            .frame(maxWidth: .infinity)
+                    }
+                    GridRow {
+                        Button(L("Export Page")) { store.prepareCurrentPageExport() }
+                            .frame(maxWidth: .infinity)
+                        Button(L("Delete"), role: .destructive) { store.deleteCurrentPage() }
+                            .frame(maxWidth: .infinity)
+                            .disabled(store.pageCount <= 1)
+                            // "Delete" alone is ambiguous under VoiceOver: the
+                            // annotation list below has its own "Delete" and
+                            // the two read identically while doing very
+                            // different things.
+                            .accessibilityLabel(L("Delete Page"))
+                    }
                 }
             }
 
@@ -66,6 +84,11 @@ struct DocumentInspectorView: View {
                                 Spacer()
                                 Button(L("Delete"), role: .destructive) { store.deleteAnnotation(at: index) }
                                     .buttonStyle(.borderless)
+                                    // Names which annotation, so a VoiceOver
+                                    // user moving down the list can tell the
+                                    // rows apart — every row is just "Delete"
+                                    // otherwise.
+                                    .accessibilityLabel(L("Delete annotation \(index + 1)"))
                             }
                         }
                     }
