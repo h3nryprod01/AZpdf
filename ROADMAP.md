@@ -1,5 +1,21 @@
 # Roadmap AZpdf
 
+## Trạng thái kiểm chứng (2026-07-27)
+
+- **183 test / 7 skip / 0 fail.** Ba gate CI xanh: `audit_i18n_strings`, `audit_local_first`,
+  `audit_portable_core`.
+- **i18n xong:** en + vi, 361 key mỗi bảng, chọn ngôn ngữ trong Settings áp dụng ngay.
+- **In ấn xong:** `⌘P`, có test end-to-end chạy headless (`jobDisposition = .save`).
+- **Đính chính một khẳng định cũ về accessibility.** Bản kế hoạch nâng cấp từng ghi *"1 modifier
+  accessibility trong cả app → 17 icon toolbar là 17 nút vô nghĩa với VoiceOver"*. Sai. Đếm modifier
+  `accessibility*` là thước đo sai: SwiftUI tự suy nhãn từ `Label(text, systemImage:)` và từ
+  `VStack{Image; Text}`. Đo thật bằng AX API trên app đang chạy: 47 control, 6 không nhãn — **cả 6
+  đều là scrollbar/traffic-light của AppKit**. Chi tiết + 2 lỗi a11y thật tìm được nhờ phép đo:
+  [qa-report/azpdf-macos-a11y-i18n-2026-07-27.md](qa-report/azpdf-macos-a11y-i18n-2026-07-27.md).
+  *Bài học nối tiếp bài học 2026-07-21: unit test xanh ≠ tính năng chạy, và **đếm modifier ≠ đo được**.*
+- **Còn lại ở nhóm chặn đường: hiệu năng file lớn vẫn chưa ai đo.** Benchmark duy nhất là 3 fixture
+  1 trang; thumbnail sidebar vẫn render đồng bộ trong view body.
+
 ## Trạng thái kiểm chứng (2026-07-21)
 
 > Kỷ luật: chỉ giữ `[x]` khi có **bằng chứng chạy ở tầng UI/e2e**, không dựa vào unit test xanh.
@@ -13,6 +29,9 @@
 ## Hoàn thành trên macOS
 
 - [x] Reader/editor local-first: tabs, search, outline, page tools, annotations, signature tay
+- [x] In tài liệu (`⌘P`) qua `PDFDocument.printOperation`; annotation in ra, trang xoay in đúng chiều
+- [x] Chèn hình: chữ nhật, tròn, đường kẻ, mũi tên, sao, tam giác — mỗi hình là subtype PDF thật nên renderer khác vẽ được
+- [x] Chỉnh sửa chú thích trực tiếp trên đối tượng: khung chọn, tay cầm resize, popover neo vào đối tượng
 - [x] Bảo mật cơ bản: mật khẩu, form widgets, redact phá hủy
 - [x] Plugin discovery cục bộ với protocol versioning
 - [x] OCR local-first trang hiện tại qua Vision framework: review, sao chép và xuất text
@@ -27,7 +46,9 @@
 - [x] Chọn profile PAdES Baseline B/LT/LTA; LT/LTA yêu cầu TSA URL và nhúng validation info qua pyHanko
 - [ ] Kiểm thử PAdES-LT/LTA với TSA, OCSP/CRL và trust store production; không tuyên bố long-term validation nếu provider chưa xác minh
 - [ ] Wasm plugin worker local, cấp quyền theo tài liệu; XPC App-Sandbox chỉ cho worker do AZpdf phát hành (discovery/validation đã có; chưa thực thi plugin)
-- [ ] Accessibility/VoiceOver audit, localization, fixture PDFs và regression rendering
+- [x] Localization en/vi (`.lproj` + helper `L(_:)`, 361 key mỗi bảng, parity có test canh); chọn ngôn ngữ trong Settings áp dụng ngay không cần khởi động lại; CI gate `audit_i18n_strings.sh` chặn chuỗi hardcode mới
+- [x] Accessibility/VoiceOver audit — đo bằng AX API trên app đang chạy: mọi control do AZpdf viết đều có nhãn đọc được; chỉ scrollbar/traffic-light của AppKit là không, và VoiceOver tự xử lý theo subrole
+- [ ] Fixture PDFs và regression rendering (pixel diff round-trip — trùng mục ở phần Windows/Linux)
 - [x] Script đóng gói Hardened Runtime, signing và notarization có kiểm tra đầu vào
 - [x] Ký Developer ID, notarize và staple ZIP macOS; Gatekeeper đã xác minh `Notarized Developer ID`
 - [x] Tạo GitHub Release public và upload ZIP notarized
@@ -39,6 +60,8 @@
 - [x] Thêm model đọc/render/metadata/annotation độc lập nền tảng và `PortableDocumentSession` với undo/redo
 - [x] Thêm capability contract để UI chỉ hiện tính năng engine thực sự hỗ trợ
 - [ ] Mở rộng portable core để mô hình hóa toàn bộ đọc/lưu/chỉnh sửa độc lập PDFKit
+      — đã có số đo làm căn cứ: [ma trận operation-conformance](qa-report/engine-operation-matrix-2026-07.md)
+      cho thấy PDFKit làm 6/17 case `DocumentOperation`, MuPDF 3/17, **giao nhau = 0**
 - [x] Quyết định engine prototype qua ADR về giấy phép và kiến trúc (MuPDF AGPL)
 - [x] Benchmark baseline latency/memory MuPDF 1.28.0 trên macOS arm64 và Ubuntu x86_64
 - [ ] Mở rộng benchmark fidelity bằng pixel diff, round-trip và bộ PDF thực tế/malformed

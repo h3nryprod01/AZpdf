@@ -14,11 +14,14 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 - Tìm kiếm có số kết quả và điều hướng kết quả trước/sau
 - Thumbnail trang, zoom, chọn văn bản
 - Thêm ghi chú/highlight theo vùng chữ đang chọn; xoay, xóa, nhân đôi và sắp xếp lại trang
-- Thêm hộp văn bản (free-text annotation) qua sheet native
+- Thêm hộp văn bản (free-text annotation) qua sheet native, chỉnh phông chữ, cỡ, đậm/nghiêng, căn lề, khung viền và nền hộp
 - Vẽ và chèn chữ ký tay thành ink annotation PDF
+- Chèn hình: chữ nhật, hình bầu dục, đường kẻ, mũi tên, ngôi sao, tam giác — mỗi hình là một subtype PDF thật nên trình đọc khác vẫn vẽ đúng, không phải hộp trắng
+- Chỉnh sửa chú thích ngay trên đối tượng: nhấp để chọn (khung nét đứt cho hộp chữ), kéo tay cầm để đổi kích thước, popover neo vào đối tượng để sửa thuộc tính; phím mũi tên để dịch chuyển, Delete để xóa
 - Quản lý và xóa các chú thích trên trang qua Inspector, hỗ trợ undo
 - Chèn toàn bộ trang từ PDF khác để ghép tài liệu, có thể hoàn tác
-- Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, đổi kích thước qua Inspector và lưu thành stamp annotation bền vững
+- Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, kéo tay cầm ở góc để đổi kích thước (giữ tỉ lệ), lưu thành stamp annotation bền vững
+- In tài liệu (`⌘P`) qua hộp thoại in của hệ thống; annotation in ra và trang xoay in đúng chiều
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
 - OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
@@ -31,6 +34,7 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 - Danh sách tối đa 8 tài liệu gần đây để mở lại nhanh
 - Kéo và thả PDF trực tiếp vào cửa sổ để mở
 - Lưu đè hoặc xuất ra PDF mới
+- Giao diện tiếng Anh và tiếng Việt; chọn ngôn ngữ trong Settings, áp dụng ngay không cần khởi động lại
 
 ## Quyền riêng tư và plugin
 
