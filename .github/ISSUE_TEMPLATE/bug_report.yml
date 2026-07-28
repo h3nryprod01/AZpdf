@@ -1,0 +1,44 @@
+name: Bug report
+description: Report something that isn't working as expected
+labels: ["bug"]
+body:
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps so we can reproduce it.
+      placeholder: |
+        1. Open ...
+        2. Click ...
+        3. See error
+    validations:
+      required: true
+  - type: input
+    id: macos-version
+    attributes:
+      label: macOS version
+      placeholder: "e.g. macOS 14.5 Sonoma"
+    validations:
+      required: true
+  - type: input
+    id: azpdf-version
+    attributes:
+      label: AZpdf version
+      description: Find it under AZpdf > About AZpdf.
+      placeholder: "e.g. 1.1.0"
+    validations:
+      required: true
+  - type: textarea
+    id: pdf-file
+    attributes:
+      label: PDF that triggers the bug (if you can share it)
+      description: Attach or link a PDF that reproduces the issue. Never share a document with personal or confidential information.
+    validations:
+      required: false

@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/h3nryprod01/AZpdf/discussions
+    about: Use Discussions for questions and general chat instead of an issue.
