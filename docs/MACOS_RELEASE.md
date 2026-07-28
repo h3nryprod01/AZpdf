@@ -75,7 +75,7 @@ export OCRMY_PDF_RUNTIME_DIR="$PWD/dist/runtime/ocrmypdf"
 ## Tạo điều kiện phát hành
 
 1. Đăng nhập Apple Developer account có hiệu lực và tạo/tải **Developer ID Application** certificate kèm private key vào Keychain Access.
-2. Tạo notarytool keychain profile (Apple ID hoặc App Store Connect API key), ví dụ `AZpdf-notary`.
+2. Tạo notarytool keychain profile (Apple ID hoặc App Store Connect API key), ví dụ `azpdf-notary`.
 3. Xác nhận bằng `security find-identity -p codesigning -v`; kết quả phải có `Developer ID Application`, không chỉ `Apple Development`.
 
 ## Đóng gói và ký
@@ -100,7 +100,7 @@ Build release trên volume/local checkout không tự áp metadata quản lý t�
 Tạo Keychain profile một lần theo Apple Developer account rồi chạy:
 
 ```bash
-export NOTARY_PROFILE='AZpdf-notary'
+export NOTARY_PROFILE='azpdf-notary'
 ./script/package_release.sh
 ```
 
