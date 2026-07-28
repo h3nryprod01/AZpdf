@@ -29,7 +29,7 @@ Created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 PackageName: AZpdf
 SPDXID: SPDXRef-AZpdf
-PackageVersion: 1.0.0
+PackageVersion: 1.1.0
 PackageLicenseDeclared: AGPL-3.0-only
 PackageDownloadLocation: NOASSERTION
 
