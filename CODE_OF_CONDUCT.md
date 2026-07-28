@@ -1,5 +1,12 @@
-# Quy tắc ứng xử
+# Code of Conduct
 
-AZpdf chào đón mọi người đóng góp. Hãy giao tiếp tôn trọng, tập trung vào vấn đề kỹ thuật và không quấy rối, phân biệt đối xử hay công kích cá nhân.
+**English** | [Tiếng Việt](CODE_OF_CONDUCT.vi.md)
 
-Nếu có hành vi vi phạm, hãy báo riêng qua GitHub Security Advisories khi repository public. Maintainer có thể xóa nội dung, khóa thảo luận hoặc cấm tham gia khi cần bảo vệ cộng đồng.
+AZpdf welcomes contributions from everyone. Communicate respectfully, stay focused
+on the technical matter at hand, and do not harass, discriminate against, or
+personally attack anyone.
+
+To report a violation, contact the maintainer privately through
+[GitHub Security Advisories](https://github.com/h3nryprod01/AZpdf/security/advisories/new).
+Maintainers may remove content, lock discussions, or ban participants when needed
+to protect the community.

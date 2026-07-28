@@ -1,3 +1,9 @@
-# Chính sách bảo mật
+# Security Policy
 
-Không đưa lỗ hổng bảo mật lên issue công khai. Khi repository đã public, hãy liên hệ maintainer qua GitHub Security Advisories; chi tiết kênh liên hệ sẽ được bổ sung cùng repository.
+**English** | [Tiếng Việt](SECURITY.vi.md)
+
+Please do not report security vulnerabilities through public GitHub issues.
+
+Report privately through [GitHub Security Advisories](https://github.com/h3nryprod01/AZpdf/security/advisories/new)
+for this repository. The maintainer will respond and coordinate a fix before any
+public disclosure.
