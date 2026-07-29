@@ -1,6 +1,6 @@
 # AZpdf
 
-**English** | [Tiếng Việt](README.vi.md)
+**English** | [Tiếng Việt](README-VI.md)
 
 An open-source, local-first PDF reader and editor. macOS is the first release platform; the Linux port (v2) is in alpha and Windows is next on the roadmap.
 
