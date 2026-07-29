@@ -1,6 +1,6 @@
 # Security Policy
 
-**English** | [Tiếng Việt](SECURITY.vi.md)
+**English** | [Tiếng Việt](SECURITY-VI.md)
 
 Please do not report security vulnerabilities through public GitHub issues.
 

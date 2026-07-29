@@ -1,6 +1,6 @@
 # Code of Conduct
 
-**English** | [Tiếng Việt](CODE_OF_CONDUCT.vi.md)
+**English** | [Tiếng Việt](CODE_OF_CONDUCT-VI.md)
 
 AZpdf welcomes contributions from everyone. Communicate respectfully, stay focused
 on the technical matter at hand, and do not harass, discriminate against, or

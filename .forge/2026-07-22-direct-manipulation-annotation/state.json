@@ -1,0 +1,46 @@
+{
+  "id": "2026-07-22-direct-manipulation-annotation",
+  "task": "Direct-manipulation annotation editing: on-object selection frame + resize handles + caret popover per docs/superpowers/specs/2026-07-22-annotation-direct-manipulation-editing-design.md",
+  "started": "2026-07-22T08:11:48Z",
+  "phase": "review",
+  "phases": {
+    "plan": {
+      "status": "done",
+      "model": "opus",
+      "agent": "forge-planner",
+      "started": "2026-07-22T08:11:48Z"
+    },
+    "code": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-tester"
+    },
+    "review": {
+      "status": "pending",
+      "model": "opus",
+      "agent": "forge-reviewer"
+    },
+    "security": {
+      "status": "pending",
+      "model": "sonnet",
+      "agent": "forge-security"
+    },
+    "deploy": {
+      "status": "pending",
+      "model": "haiku",
+      "agent": "forge-deployer"
+    }
+  },
+  "decisions": {
+    "handles": "freeText 8 / image-ink 4 corners",
+    "inspector_autoopen": "remove",
+    "a11y_move": "relocate annotationPositionControls into AnnotationEditPopover"
+  },
+  "preview_finding": "selection frame + resize handles do not render on screen (popover + a11y move work)",
+  "gui_verified": "frame+8handles+popover+a11y move+resize all work after overlay fix"
+}

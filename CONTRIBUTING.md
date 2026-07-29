@@ -1,6 +1,6 @@
 # Contributing to AZpdf
 
-**English** | [Tiếng Việt](CONTRIBUTING.vi.md)
+**English** | [Tiếng Việt](CONTRIBUTING-VI.md)
 
 Thanks for helping make AZpdf better.
 

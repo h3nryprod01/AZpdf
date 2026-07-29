@@ -1,0 +1,46 @@
+{
+  "id": "2026-07-23-in-an-print",
+  "task": "Lát cắt 1c — In ấn: ⌘P + NSPrintOperation qua PDFView (macOS)",
+  "phase": "done",
+  "note": "Lát cắt nhỏ độc lập từ plan lớn 2026-07-23-nang-cap-tieu-chuan-nganh, mục Thứ tự thực thi #1.",
+  "phases": {
+    "plan": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-planner"
+    },
+    "design": {
+      "status": "skipped",
+      "model": "fable",
+      "agent": "forge-designer",
+      "reason": "no UI — system print panel"
+    },
+    "code": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-tester",
+      "note": "coder viết 4 test + mutation check; builder tách khỏi runner nên test được headless"
+    },
+    "review": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-reviewer",
+      "verdict": "APPROVE WITH FIXES"
+    },
+    "security": {
+      "status": "done",
+      "model": "orchestrator-self",
+      "verdict": "CLEAN",
+      "note": "bề mặt gần 0: AppKit+PDFKit, 0 dep mới, 0 network/secret/shell — orchestrator tự kiểm thay vì tốn Opus"
+    },
+    "deploy": {
+      "status": "skipped",
+      "reason": "thay đổi macOS nội bộ, không deploy"
+    }
+  }
+}

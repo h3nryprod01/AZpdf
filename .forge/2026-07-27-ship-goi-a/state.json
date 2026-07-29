@@ -1,0 +1,46 @@
+{
+  "id": "2026-07-27-ship-goi-a",
+  "task": "Gói A — Ship cái đã có: GitHub metadata/topics/screenshot, release v1.1.0, Homebrew cask, governance docs tiếng Anh, good-first-issues, Discussions",
+  "started": "2026-07-27T16:21:12Z",
+  "phase": "done",
+  "phases": {
+    "brainstorm": {
+      "status": "skipped",
+      "model": "opus",
+      "agent": "(orchestrator)",
+      "reason": "mode off — gói A đã được brainstorm ở workflow 4-lens trước đó"
+    },
+    "plan": {
+      "status": "done",
+      "model": "opus",
+      "agent": "forge-planner",
+      "started": "2026-07-27T16:21:12Z"
+    },
+    "design": {
+      "status": "skipped",
+      "reason": "no UI in this task"
+    },
+    "code": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "done",
+      "note": "183/7/0 + 3 gate, verify sau mỗi bước"
+    },
+    "review": {
+      "status": "done",
+      "model": "opus",
+      "verdict": "BLOCK → 3 HIGH đã xử"
+    },
+    "security": {
+      "status": "done",
+      "note": "HIGH-2 path leak fixed + rebuild/notarize; HIGH-3 private vuln reporting đã bật"
+    },
+    "deploy": {
+      "status": "done"
+    }
+  },
+  "notes": "bước 1,2,5,6,7 (coder) + 3,4 (orchestrator: screenshot) xong. Còn 8 (notarize), 9 (cask), 10 (deploy)."
+}

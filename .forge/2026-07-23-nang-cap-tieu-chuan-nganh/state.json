@@ -1,0 +1,51 @@
+{
+  "id": "2026-07-23-nang-cap-tieu-chuan-nganh",
+  "task": "Brainstorm + plan nâng cấp AZpdf đạt tiêu chuẩn cao nhất trong ngành PDF reader/editor",
+  "started": "2026-07-23T09:31:58Z",
+  "phase": "done",
+  "note": "Plan-only task. plan.md ghi 'UI surfaces: None' nên design sẽ skip; code/test/review/security/deploy chờ user chọn hạng mục cụ thể để thực thi.",
+  "phases": {
+    "plan": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-planner",
+      "revision": "v2 — user override: bổ sung engine macOS, Windows, Linux"
+    },
+    "design": {
+      "status": "skipped",
+      "model": "fable",
+      "agent": "forge-designer",
+      "reason": "no UI surfaces"
+    },
+    "code": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-tester",
+      "note": "Lát cắt 1e chính là test harness; coder đã chạy mutation check (đỏ khi mutate, xanh khi khôi phục). Không cần tester riêng."
+    },
+    "review": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-reviewer",
+      "verdict": "APPROVE WITH FIXES"
+    },
+    "security": {
+      "status": "done",
+      "model": "opus",
+      "agent": "forge-security",
+      "verdict": "CLEAN"
+    },
+    "deploy": {
+      "status": "skipped",
+      "model": "sonnet",
+      "agent": "forge-deployer",
+      "reason": "thay đổi nội bộ (test harness), không có deploy"
+    }
+  },
+  "slice": "1e — Ma trận operation-conformance 18 case × 2 engine"
+}

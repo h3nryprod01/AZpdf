@@ -1,0 +1,48 @@
+{
+  "id": "2026-07-29-linux-windows-packaging",
+  "task": "Đóng gói Linux (AppImage) và Windows, test thật trên máy Ubuntu và VM Windows chạy trên Ubuntu",
+  "started": "2026-07-29T18:27:28Z",
+  "phase": "plan",
+  "phases": {
+    "brainstorm": {
+      "status": "skipped",
+      "reason": "mode off"
+    },
+    "plan": {
+      "status": "in_progress",
+      "model": "opus",
+      "agent": "forge-planner",
+      "started": "2026-07-29T18:27:28Z"
+    },
+    "design": {
+      "status": "pending",
+      "model": "opus",
+      "agent": "forge-designer"
+    },
+    "code": {
+      "status": "pending",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "pending",
+      "model": "sonnet",
+      "agent": "forge-tester"
+    },
+    "review": {
+      "status": "pending",
+      "model": "opus",
+      "agent": "forge-reviewer"
+    },
+    "security": {
+      "status": "pending",
+      "model": "opus",
+      "agent": "forge-security"
+    },
+    "deploy": {
+      "status": "pending",
+      "model": "sonnet",
+      "agent": "forge-deployer"
+    }
+  }
+}

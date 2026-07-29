@@ -64,8 +64,8 @@ targets.append(
         name: "AZpdf",
         dependencies: ["AZpdfCore"],
         path: ".",
-        exclude: [".github", "README.md", "README-VI.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "CONTRIBUTING.md", "CONTRIBUTING.vi.md", "SECURITY.md", "SECURITY.vi.md",
-                   "CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.vi.md", "ROADMAP.md", "Adapters", "Assets", "Config", "Core", "Plugins", "Shell", "Tools", "docs", "qa-report", "script", ".codex", "dist", "Tests"],
+        exclude: [".github", "README.md", "README-VI.md", "LICENSE", "THIRD_PARTY_NOTICES.md", "CONTRIBUTING.md", "CONTRIBUTING-VI.md", "SECURITY.md", "SECURITY-VI.md",
+                   "CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT-VI.md", "ROADMAP.md", "Adapters", "Assets", "Config", "Core", "Plugins", "Shell", "Tools", "docs", "qa-report", "script", ".codex", "dist", "Tests"],
         sources: ["App", "Models", "Services", "Stores", "Support", "Views"],
         resources: [.process("Resources")]
     )

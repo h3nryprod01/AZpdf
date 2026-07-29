@@ -1,0 +1,48 @@
+{
+  "id": "2026-07-24-i18n-a11y-foundation",
+  "task": "i18n+a11y sub-slice 1 — hạ tầng String Catalog + tiếng Anh + CI gate chặn chuỗi hardcode + sweep nhóm view cốt lõi kèm a11y",
+  "phase": "done",
+  "note": "Sub-slice đầu của hạng mục L (1a+1b) trong plan lớn 2026-07-23-nang-cap-tieu-chuan-nganh. Chẻ nhỏ để một lần forge xong được.",
+  "phases": {
+    "plan": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-planner"
+    },
+    "design": {
+      "status": "skipped",
+      "model": "fable",
+      "agent": "forge-designer",
+      "reason": "no UI — localize + a11y labels only"
+    },
+    "code": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-coder"
+    },
+    "test": {
+      "status": "done",
+      "model": "sonnet",
+      "agent": "forge-tester",
+      "note": "coder viết LocalizationTests (en+vi qua Bundle.module) + gate self-test + mutation check"
+    },
+    "review": {
+      "status": "done",
+      "model": "fable",
+      "agent": "forge-reviewer",
+      "verdict": "APPROVE WITH FIXES"
+    },
+    "security": {
+      "status": "done",
+      "model": "orchestrator-self",
+      "verdict": "CLEAN",
+      "note": "chuỗi UI + script gate; 0 dep mới, 0 network/secret"
+    },
+    "deploy": {
+      "status": "skipped",
+      "reason": "thay đổi nội bộ"
+    }
+  },
+  "key_finding": ".xcstrings không chạy dưới swift build CLI — dùng .lproj/.strings + bundle copy + CFBundleAllowMixedLocalizations",
+  "gui_verified": "en + vi đổi đúng qua cùng binary; Chưa mở tài liệu là Store string hoãn có chủ đích"
+}
