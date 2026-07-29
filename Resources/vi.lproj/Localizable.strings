@@ -348,11 +348,17 @@
 "Could not verify the signature: %@" = "Không thể xác minh chữ ký: %@";
 
 /* Stores/DocumentStore+FileIo.swift */
+"Could not create image data." = "Không thể tạo dữ liệu ảnh.";
+"Could not encode the image." = "Không thể mã hóa ảnh.";
+"Could not render the page as image." = "Không thể tạo ảnh từ trang.";
+"Could not save the image." = "Không thể lưu ảnh.";
+"Export Page as Image…" = "Xuất trang thành ảnh…";
 "Could not create the protected PDF." = "Không thể tạo PDF được bảo vệ.";
 "Could not export the PDF." = "Không thể xuất PDF.";
 "Could not save the PDF copy." = "Không thể lưu bản sao PDF.";
 "Could not save the changes." = "Không thể lưu thay đổi.";
-
+/* Views/ContentView.swift — edit bar image export menu */
+"Image Export" = "Xuất ảnh";
 /* Stores/DocumentStore+Pages.swift */
 "Could not read the PDF to insert." = "Không thể đọc PDF cần chèn.";
 

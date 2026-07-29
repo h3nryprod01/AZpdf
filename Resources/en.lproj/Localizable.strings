@@ -346,12 +346,19 @@
 "Could not verify the signature: %@" = "Could not verify the signature: %@";
 
 /* Stores/DocumentStore+FileIo.swift */
+"Could not create image data." = "Could not create image data.";
+"Could not encode the image." = "Could not encode the image.";
+"Could not render the page as image." = "Could not render the page as image.";
+"Could not save the image." = "Could not save the image.";
+"Export Page as Image…" = "Export Page as Image…";
 "Could not create the protected PDF." = "Could not create the protected PDF.";
 "Could not export the PDF." = "Could not export the PDF.";
 "Could not save the PDF copy." = "Could not save the PDF copy.";
 "Could not save the changes." = "Could not save the changes.";
 
 /* Stores/DocumentStore+Pages.swift */
+/* Views/ContentView.swift — edit bar image export menu */
+"Image Export" = "Image Export";
 "Could not read the PDF to insert." = "Could not read the PDF to insert.";
 
 /* Stores/DocumentWorkspace.swift */

@@ -7,6 +7,7 @@ struct ContentView: View {
     let openPDF: () -> Void
     @State private var isDropTarget = false
     @State private var isShapePickerPresented = false
+    @State private var isImageExporterPresented = false
     @FocusState private var isFindFieldFocused: Bool
 
     var body: some View {
@@ -178,12 +179,8 @@ struct ContentView: View {
         .padding(.vertical, 8)
         .background(.bar)
         // Focus has to be set after the field is in the hierarchy AND after the
-        // AppKit PDFView has settled, otherwise it keeps first responder and
-        // the field stays empty while the user types.
-        .task {
-            try? await Task.sleep(for: .milliseconds(120))
-            isFindFieldFocused = true
-        }
+        // first onChange fires, so a delayed task does the honours.
+        .task { isFindFieldFocused = true }
     }
 
     // Preview-style edit bar: revealed by the toolbar "Chỉnh sửa" toggle. It
@@ -209,6 +206,7 @@ struct ContentView: View {
                 editTool(L("Duplicate"), "plus.square.on.square") { store.duplicateCurrentPage() }
                 editTool(L("Insert PDF"), "doc.badge.plus") { store.beginInsertPages() }
                 editTool(L("Export Page"), "doc.badge.arrow.up") { store.prepareCurrentPageExport() }
+                imageExportMenu
                 editTool(L("Export Protected"), "lock.doc") { store.beginPasswordProtectedExport() }
                 editDivider
                 editTool(L("OCR Page"), "text.viewfinder") { store.beginOCRCurrentPage() }
@@ -263,6 +261,41 @@ struct ContentView: View {
             }
             .padding(10)
             .frame(width: 170)
+        }
+    }
+
+    private var imageExportMenu: some View {
+        Button { isImageExporterPresented.toggle() } label: {
+            editToolLabel(L("Image Export"), "photo.badge.arrow.up")
+        }
+        .buttonStyle(.borderless)
+        .foregroundStyle(.primary)
+        .help(Text(L("Export Page as Image…")))
+        .popover(isPresented: $isImageExporterPresented, arrowEdge: .bottom) {
+            VStack(alignment: .leading, spacing: 2) {
+                Button {
+                    isImageExporterPresented = false
+                    store.exportCurrentPageAsImage(format: .png)
+                } label: {
+                    Label("PNG", systemImage: "photo")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.primary)
+                Button {
+                    isImageExporterPresented = false
+                    store.exportCurrentPageAsImage(format: .jpeg)
+                } label: {
+                    Label("JPEG", systemImage: "photo.fill")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.borderless)
+                .foregroundStyle(.primary)
+            }
+            .padding(10)
+            .frame(width: 120)
         }
     }
 
