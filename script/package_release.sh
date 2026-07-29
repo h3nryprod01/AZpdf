@@ -8,6 +8,11 @@ set -euo pipefail
 : "${PYHANKO_RUNTIME_DIR:?Set PYHANKO_RUNTIME_DIR to a self-contained, redistributable pyHanko runtime directory.}"
 : "${OCRMY_PDF_RUNTIME_DIR:?Set OCRMY_PDF_RUNTIME_DIR to a self-contained, redistributable OCRmyPDF runtime directory.}"
 export SWIFT_CONFIGURATION="${SWIFT_CONFIGURATION:-release}"
+# Release builds go into a neutral scratch directory: SwiftPM embeds the
+# absolute build path in the binary (Bundle.module's fallback), so building
+# from a home directory would ship the developer's username and folder layout
+# in an artifact that strangers download.
+export SWIFT_SCRATCH_PATH="${SWIFT_SCRATCH_PATH:-/private/tmp/azpdf-release-build}"
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_BUNDLE="$ROOT_DIR/dist/AZpdf.app"

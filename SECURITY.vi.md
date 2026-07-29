@@ -2,4 +2,7 @@
 
 [English](SECURITY.md) | **Tiếng Việt**
 
-Không đưa lỗ hổng bảo mật lên issue công khai. Khi repository đã public, hãy liên hệ maintainer qua GitHub Security Advisories; chi tiết kênh liên hệ sẽ được bổ sung cùng repository.
+Vui lòng không báo lỗ hổng bảo mật qua issue công khai trên GitHub.
+
+Hãy báo riêng qua [GitHub Security Advisories](https://github.com/h3nryprod01/AZpdf/security/advisories/new)
+của repository này. Maintainer sẽ phản hồi và phối hợp vá lỗi trước khi công bố công khai.

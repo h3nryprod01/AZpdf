@@ -4,9 +4,39 @@
 
 Cảm ơn bạn đã giúp AZpdf tốt hơn.
 
-- Báo lỗi kèm phiên bản macOS, bản AZpdf và các bước tái hiện tối thiểu.
-- Tạo issue trước với tính năng lớn để thống nhất hướng thiết kế.
-- Giữ giao diện native macOS, hỗ trợ bàn phím và VoiceOver.
-- Chạy `swift test`, `./script/audit_local_first.sh` và `./script/audit_portable_core.sh` trước khi gửi pull request.
-- Không đưa binary Homebrew, Python virtualenv, certificate/private key hay notarization secret vào repository. Runtime phát hành phải qua `script/audit_runtime.sh`.
+## Báo lỗi
+
+Kèm phiên bản macOS, bản AZpdf và các bước tái hiện tối thiểu.
+
+## Đề xuất tính năng
+
+Với tính năng lớn, hãy tạo issue trước để thống nhất hướng thiết kế.
+
+## Bắt đầu code
+
+Yêu cầu macOS 14+ và Xcode 26.
+
+```
+brew install mupdf verapdf
+./script/build_and_run.sh
+```
+
+Trước khi gửi pull request, tất cả các lệnh sau phải xanh:
+
+```
+swift test
+./script/audit_local_first.sh
+./script/audit_portable_core.sh
+./script/audit_i18n_strings.sh
+```
+
+Mọi chuỗi mới hiển thị cho người dùng phải có mục ở **cả**
+`Resources/en.lproj/Localizable.strings` và `Resources/vi.lproj/Localizable.strings` —
+nếu không `audit_i18n_strings.sh` sẽ chặn CI.
+
+## Điều lệ
+
+- Giữ giao diện native macOS, hỗ trợ đầy đủ bàn phím và VoiceOver.
+- Không đưa binary Homebrew, Python virtualenv, certificate/private key hay notarization
+  secret vào repository. Runtime phát hành phải qua `script/audit_runtime.sh`.
 - Mọi đóng góp được phát hành theo AGPL-3.0-only.
