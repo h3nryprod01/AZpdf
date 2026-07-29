@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# Đóng gói một Linux release bundle (do build_linux_release.sh tạo ra) thành
+# AppImage. Gói đúng hai bước: dựng AppDir rồi chạy appimagetool. Chạy trên Linux.
+#
+# Cách dùng:
+#   ./script/build_linux_appimage.sh [BUNDLE_DIR]
+#
+# BUNDLE_DIR mặc định trỏ tới bundle release Flutter dựng ở Shell/azpdf_desktop.
+# Có thể ghi đè bằng biến: APPIMAGETOOL (đường dẫn appimagetool), OUTPUT (file ra).
+set -euo pipefail
+
+if [[ "$(uname -s)" != "Linux" ]]; then
+  echo "build_linux_appimage.sh chỉ chạy trên Linux." >&2
+  exit 1
+fi
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+APP_ID="io.github.h3nryprod01.AZpdf"
+BINARY="azpdf_desktop"
+ICON_SRC="$ROOT/Assets/AZpdf-icon.png"
+BUNDLE_DIR="${1:-$ROOT/Shell/azpdf_desktop/build/linux/x64/release/bundle}"
+APPIMAGETOOL="${APPIMAGETOOL:-$HOME/appimagetool}"
+OUTPUT="${OUTPUT:-$ROOT/AZpdf-x86_64.AppImage}"
+
+if [[ ! -x "$BUNDLE_DIR/$BINARY" ]]; then
+  echo "BUNDLE_DIR phải chứa executable $BINARY: $BUNDLE_DIR" >&2
+  echo "Chạy script/build_linux_release.sh trước." >&2
+  exit 1
+fi
+for need in azpdf-engine mutool; do
+  if [[ ! -x "$BUNDLE_DIR/$need" ]]; then
+    echo "Thiếu $need trong bundle: $BUNDLE_DIR" >&2
+    exit 1
+  fi
+done
+if [[ ! -f "$ICON_SRC" ]]; then
+  echo "Thiếu icon nguồn: $ICON_SRC" >&2
+  exit 1
+fi
+if ! command -v convert >/dev/null 2>&1; then
+  echo "Cần ImageMagick (convert) để tạo icon. Cài: sudo apt-get install -y imagemagick" >&2
+  exit 1
+fi
+
+APPDIR="$ROOT/AppDir"
+rm -rf "$APPDIR"
+mkdir -p "$APPDIR/usr/bin" \
+  "$APPDIR/usr/share/applications" \
+  "$APPDIR/usr/share/icons/hicolor/256x256/apps"
+
+cp -a "$BUNDLE_DIR/." "$APPDIR/usr/bin/"
+
+convert "$ICON_SRC" -resize 256x256 \
+  "$APPDIR/usr/share/icons/hicolor/256x256/apps/$APP_ID.png"
+cp "$APPDIR/usr/share/icons/hicolor/256x256/apps/$APP_ID.png" "$APPDIR/$APP_ID.png"
+
+cat > "$APPDIR/usr/share/applications/$APP_ID.desktop" <<DESKTOP
+[Desktop Entry]
+Type=Application
+Name=AZpdf
+Comment=Local-first PDF reader and editor
+Exec=$BINARY %f
+Icon=$APP_ID
+Categories=Office;Viewer;
+MimeType=application/pdf;
+Terminal=false
+DESKTOP
+cp "$APPDIR/usr/share/applications/$APP_ID.desktop" "$APPDIR/"
+
+cat > "$APPDIR/AppRun" <<'APPRUN'
+#!/bin/sh
+# AppImage entry point. HERE is the mounted AppDir; the Flutter bundle keeps its
+# libraries next to the binary, so the loader needs that directory on the path.
+HERE=$(dirname $(readlink -f "$0"))
+export LD_LIBRARY_PATH="$HERE/usr/bin/lib:$LD_LIBRARY_PATH"
+exec "$HERE/usr/bin/azpdf_desktop" "$@"
+APPRUN
+chmod +x "$APPDIR/AppRun"
+
+if [[ ! -x "$APPIMAGETOOL" ]]; then
+  echo "Tải appimagetool..."
+  curl -fsSL -o "$APPIMAGETOOL" \
+    https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
+  chmod +x "$APPIMAGETOOL"
+fi
+
+ARCH=x86_64 "$APPIMAGETOOL" "$APPDIR" "$OUTPUT"
+
+echo "AppImage: $OUTPUT"
