@@ -6,6 +6,10 @@ An open-source, local-first PDF reader and editor. macOS is the first release pl
 
 <img width="254" height="254" alt="AZpdf icon" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
+<img src="Assets/screenshots/azpdf-macos-hero.png" alt="AZpdf on macOS: a five-page PDF with a highlight, a text box, and an arrow annotation, page thumbnails in the sidebar and the document inspector open on the right" width="900" />
+
+<img src="Assets/screenshots/azpdf-macos-editing.png" alt="Editing an annotation in place: a popover anchored to the selected text box offers font, size, bold and italic, alignment, colour, border and background controls" width="900" />
+
 
 ## In the first release
 - Open, read, search, and navigate PDFs

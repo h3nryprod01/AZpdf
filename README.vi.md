@@ -6,6 +6,10 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 
 <img width="254" height="254" alt="Biểu tượng AZpdf" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
+<img src="Assets/screenshots/azpdf-macos-hero.png" alt="AZpdf trên macOS: tài liệu PDF 5 trang có tô sáng, hộp chữ và mũi tên chú thích, thumbnail trang ở sidebar và Inspector mở bên phải" width="900" />
+
+<img src="Assets/screenshots/azpdf-macos-editing.png" alt="Chỉnh sửa chú thích ngay trên trang: popover neo vào hộp chữ đang chọn cho phép đổi phông, cỡ, đậm/nghiêng, căn lề, màu, khung viền và nền" width="900" />
+
 
 ## Có trong bản đầu
 - Mở, đọc, tìm kiếm và điều hướng PDF
