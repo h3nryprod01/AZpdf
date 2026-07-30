@@ -322,6 +322,28 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
+      # The engine half of a Windows smoke test. It cannot be built on a Mac or
+      # in the Linux container, so CI is the only place it exists.
+      - name: Stage the engine for the smoke test
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path win-engine | Out-Null
+          $engine = Get-ChildItem .build -Recurse -Filter 'azpdf-engine.exe' |
+            Select-Object -First 1
+          if (-not $engine) { throw 'azpdf-engine.exe was not produced by the release build.' }
+          Copy-Item $engine.FullName win-engine\
+          # Ship the Swift runtime DLLs beside it: the machine under test has no
+          # Swift toolchain, so without these the exe cannot start there, and the
+          # failure would look like a bug in the engine rather than a packaging gap.
+          Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Runtimes" -Recurse -Filter '*.dll' |
+            Where-Object { $_.Directory.Name -eq 'bin' } |
+            ForEach-Object { Copy-Item $_.FullName win-engine\ -ErrorAction SilentlyContinue }
+          Get-ChildItem win-engine | ForEach-Object { Write-Host "  $($_.Name)" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: azpdf-engine-windows-x64
+          path: win-engine/
+          if-no-files-found: error
 
   windows-shell:
     runs-on: windows-2022
@@ -350,3 +372,17 @@ jobs:
           flutter analyze
           flutter test
           flutter build windows --release
+      - name: Stage the desktop shell for the smoke test
+        shell: pwsh
+        working-directory: Shell/azpdf_desktop
+        run: |
+          $bundle = 'build\windows\x64\runner\Release'
+          if (-not (Test-Path "$bundle\azpdf_desktop.exe")) {
+            throw "azpdf_desktop.exe not found in $bundle."
+          }
+          Get-ChildItem $bundle | ForEach-Object { Write-Host "  $($_.Name)" }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: azpdf-shell-windows-x64
+          path: Shell/azpdf_desktop/build/windows/x64/runner/Release/
+          if-no-files-found: error

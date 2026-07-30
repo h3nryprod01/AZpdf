@@ -1,4 +1,18 @@
-// swift-tools-version: 6.0
+// swift-tools-version: 6.3
+// 6.3 is the real floor, not a preference. The macOS app target uses a
+// DispatchQueue.main.async + @MainActor pattern (DocumentStore+OCR.swift) that
+// Swift 6.2.4 rejects with "sending 'self' risks causing data races" and 6.3
+// accepts. Declaring 6.0 did not make those toolchains work — it only turned a
+// clear "this package requires 6.3" into a confusing concurrency error, and it
+// kept CI red for ten runs while the cause looked like a code bug. CI, the
+// release scripts and the Linux container all pin 6.3.3 already.
+//
+// The cost is real and deliberate: the portable products (AZpdfCore and
+// azpdf-engine) do compile under 6.0-6.2, and this manifest now refuses those
+// toolchains for everyone, since a package has one tools-version rather than
+// one per target. Building the engine on an older Swift means pinning an older
+// tag. That is the honest trade for a requirement that is stated instead of
+// discovered halfway through a build.
 import PackageDescription
 
 var products: [Product] = [
