@@ -212,12 +212,46 @@ jobs:
           if (-not $swift) { throw "No swift.exe under: $($roots -join ', ')" }
           Write-Host "Using $($swift.FullName)"
           $swift.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          # Measured: the installer lands in %LOCALAPPDATA%\Programs\Swift, never
+          # in Program Files. It splits the compiler (Toolchains\) from the Swift
+          # runtime DLLs (Runtimes\), and swift.exe links against the latter — with
+          # only Toolchains on PATH, `swift --version` exits 1 in about a second
+          # printing nothing at all, which is what a failed DLL load looks like
+          # rather than a missing executable.
+          $runtime = Get-ChildItem (Split-Path $swift.Directory.FullName -Parent | Split-Path -Parent |
+            Split-Path -Parent | Join-Path -ChildPath 'Runtimes') -Recurse -Filter swiftCore.dll `
+            -ErrorAction SilentlyContinue | Select-Object -First 1
+          if ($runtime) {
+            Write-Host "Runtime DLLs: $($runtime.Directory.FullName)"
+            $runtime.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
+          } else {
+            # Not fatal on its own — say so loudly instead of failing a step whose
+            # real error would then be hidden behind this one.
+            Write-Host "WARNING: swiftCore.dll not found; swift.exe may fail to start."
+            Get-ChildItem $roots -Directory | ForEach-Object { Write-Host "  root entry: $($_.Name)" }
+          }
       - name: Test portable core
         shell: pwsh
         run: |
-          swift --version
+          # GitHub's pwsh shell only checks the exit code of the LAST command, so
+          # a failing `swift test` in the middle used to be masked by a passing
+          # build. Check each one.
+          $version = & swift --version 2>&1
+          if ($LASTEXITCODE -ne 0) {
+            # Exit 1 with no output means swift.exe could not start (runtime DLL),
+            # not that anything failed to compile. Say which, with the evidence.
+            Write-Host "swift --version exited $LASTEXITCODE"
+            Write-Host ($version | Out-String)
+            Write-Host 'Swift entries on PATH:'
+            $env:PATH -split ';' | Where-Object { $_ -match 'Swift' } |
+              ForEach-Object { Write-Host "  $_" }
+            throw 'Swift is installed but will not run on this runner.'
+          }
+          Write-Host ($version | Out-String)
           swift test
+          if ($LASTEXITCODE -ne 0) { throw "swift test failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
+          if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
 
   windows-shell:
     runs-on: windows-2022
