@@ -270,6 +270,19 @@ jobs:
           if (-not $sdk) { throw 'Swift Windows.sdk not found under Platforms.' }
           Write-Host "SDKROOT: $($sdk.FullName)"
           "SDKROOT=$($sdk.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+          # The test binaries link against XCTest.dll and Testing.dll, which ship
+          # in their own platform trees rather than beside the compiler. Without
+          # them on PATH the freshly built .xctest starts and dies immediately at
+          # -1073741510 (0xC000013A) having printed no test output at all, which
+          # reads like a hang or a cancelled run rather than a missing library.
+          $testLibs = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
+            -Include 'XCTest.dll','Testing.dll' -ErrorAction SilentlyContinue |
+            ForEach-Object { $_.Directory.FullName } | Sort-Object -Unique
+          if (-not $testLibs) { throw 'Neither XCTest.dll nor Testing.dll found; swift test cannot run.' }
+          $testLibs | ForEach-Object {
+            Write-Host "Test runtime: $_"
+            $_ | Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+          }
       - name: Test portable core
         shell: pwsh
         run: |
