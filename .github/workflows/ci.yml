@@ -13,6 +13,16 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+      - name: Select newest Xcode (swift-subprocess dep needs Swift >= 6.2)
+        run: |
+          set -e
+          # macos-15 image default is Swift 6.1, but swift-subprocess (pinned dep) requires
+          # tools 6.2. Select the highest versioned Xcode installed on the runner.
+          xc=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
+          [ -n "$xc" ] || { echo "No versioned Xcode found:"; ls -d /Applications/Xcode*.app; exit 1; }
+          echo "Selecting $xc"
+          sudo xcode-select -s "$xc"
+          swift --version
       - name: Test
         run: swift test
       - name: Audit local-first policy
@@ -119,14 +129,17 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Install pinned official Swift toolchain (6.3.3)
+      - name: Install pinned official Swift toolchain (6.3.2)
         shell: pwsh
         run: |
           # winget is not available on the windows-2022 Server runner, so download the official
-          # installer directly. Pinned to 6.3.3 to match the swift:6.3.3 line used by the Linux
-          # build (script/build_linux_release.sh). Integrity is checked against Swift.org's own
-          # SHA256 sidecar published for this exact release directory - not a floating "latest".
-          $ver = '6.3.3'
+          # installer directly. Pinned to 6.3.2: Swift 6.3.3 has no Windows installer yet (it
+          # 404s on download.swift.org - the Windows toolchain lags behind Linux/macOS), and
+          # 6.3.2 is the latest Windows release. This DIVERGES from the Linux build line
+          # (swift:6.3.3 in script/build_linux_release.sh) - recorded in qa-report. Integrity is
+          # checked against Swift.org's own SHA256 sidecar for this exact release directory -
+          # not a floating "latest".
+          $ver = '6.3.2'
           $base = "https://download.swift.org/swift-${ver}-RELEASE/windows10/swift-${ver}-RELEASE"
           $exe = Join-Path $env:RUNNER_TEMP "swift-${ver}-RELEASE-windows10.exe"
           curl.exe -fL "$base/swift-${ver}-RELEASE-windows10.exe" -o $exe

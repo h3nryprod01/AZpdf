@@ -13,8 +13,8 @@ thật của 3 job CI liên quan Windows/macOS tại baseline `c75f7a5` (10/10 l
 | Job CI | Trạng thái | Nguyên nhân |
 |---|---|---|
 | `windows-shell` | ✅ **success** | `flutter build windows --release` xanh — **Flutter Windows đã được chứng minh**, không còn là ẩn số. |
-| `windows-core` | ❌ **failure** (chưa từng build) | `winget` không tồn tại trên image `windows-2022` (Windows Server) → chết ở bước cài Swift, **chưa chạy tới `swift test`/`swift build` lần nào**. Đang sửa: tải installer Swift 6.3.3 pin + verify SHA256 qua sidecar chính thức (xem `.github/workflows/ci.yml`, mục A2 trong `activeContext.md`). |
-| `macos-tests` | ❌ **failure** | runner `macos-14` mặc định Swift 5.10, `Package.swift` cần 6.0. Đang sửa: nâng runner lên `macos-15`. |
+| `windows-core` | ❌ **failure** (chưa từng build) | `winget` không tồn tại trên image `windows-2022` (Windows Server) → chết ở bước cài Swift, **chưa chạy tới `swift test`/`swift build` lần nào**. Đã bỏ winget, tải installer trực tiếp + verify SHA256 sidecar. **Lần chạy kế tiếp lộ thêm sự thật**: Swift **6.3.3 chưa có installer Windows** (404 trên `download.swift.org` — Windows toolchain leaked sau Linux/macOS). Pin đang chuyển sang **6.3.2** (Windows release mới nhất, ≥ 6.2), **lệch dòng Linux `6.3.3`** — rủi ro đã ghi. |
+| `macos-tests` | ❌ **failure** | Lần 1 (runner `macos-14`): Swift 5.10 < 6.0 cần cho `Package.swift`. Lần 2 (đã nâng `macos-15`): runner mặc định Swift **6.1**, nhưng dep `swift-subprocess` (commit pin `1163367…`) yêu cầu tools **6.2.0**. Đang sửa: `xcode-select` chọn Xcode version cao nhất trên runner (có Swift ≥ 6.2). |
 
 **Hệ quả cho report này:** Flutter Windows (vỏ GUI) là chuyện đã xanh trong CI, gỡ khỏi danh
 sách ẩn số. Phần chưa biết thu hẹp còn: (a) `azpdf-engine` (Swift) có `swift test`/`swift build`
