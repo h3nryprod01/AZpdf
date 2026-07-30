@@ -51,11 +51,29 @@ Không lớp nào có trong tài liệu swift.org — trang cài đặt hiện c
    và mọi test target — `Build complete! (90.50s)`, **không một dòng `error:`**. Đây là câu trả
    lời cho ẩn số (a): **Swift core dựng được trên Windows.**
 
-**Còn lại:** chạy `swift test` trên Windows. Test binary khởi động rồi chết ngay ở
+**Còn lại — CHƯA GIẢI QUYẾT:** `swift test` trên Windows. Test binary khởi động rồi chết ngay ở
 `-1073741510` = `0xC000013A` **STATUS_CONTROL_C_EXIT**, chưa in nổi một dòng test nào (và
 PowerShell đọc mã đó thành "người dùng bấm Ctrl+C" rồi nhảy vào debug mode, khiến lỗi thư viện
-trông như một lần chạy bị huỷ). Giả thuyết đang kiểm: thiếu `XCTest.dll` / `Testing.dll` — hai
-DLL này nằm trong cây `Platforms` riêng chứ không cạnh compiler.
+trông như một lần chạy bị huỷ).
+
+Giả thuyết "thiếu `XCTest.dll`/`Testing.dll`" đã **bị bác bỏ bằng đo**: mã lỗi **không đổi** qua
+cả ba trạng thái — không thêm DLL nào, thêm cả ba biến thể (`bin32`+`bin64`+`bin64a`), và chỉ
+`bin64`. Vậy không phải do thiếu hay lệch kiến trúc test runtime.
+
+Vì vậy job `windows-core` được **thu hẹp phạm vi có chủ ý**: nó dùng `swift build --build-tests`
+(biên dịch cả test target nhưng không chạy) + build `azpdf-engine` release. Job vẫn bắt được
+regression biên dịch — kể cả trong test — nhưng **không được đọc như thể test đã chạy**. Tên
+step nói thẳng điều đó.
+
+> Cố tình **không** dùng `continue-on-error`: một step không thể fail thì vô giá trị. Bài học
+> này repo vừa trả giá đúng hôm nay bằng hai security gate fail-open (xem
+> `script/audit_local_first.sh`). Thà một job có hợp đồng hẹp nhưng thật, còn hơn dấu tick xanh
+> không mang nghĩa gì.
+
+**Bước tiếp theo chưa thử, rẻ trước:** (1) `swift test --disable-swift-testing` — cả hai runner
+(XCTest và swift-testing) đều được gọi, tách ra để biết cái nào chết; (2) chạy thẳng file
+`.xctest` đã build để lấy lỗi thật thay vì một status điều khiển console. Vị trí DLL khi cần:
+`Platforms\6.3.3\Windows.platform\Developer\Library\{XCTest,Testing}-6.3.3\usr\bin64`.
 
 **Hệ quả cho report này:** hai ẩn số ban đầu giờ còn một. Vỏ Flutter Windows: xanh. Swift core
 trên Windows: **build xanh** (test chưa xác nhận). Rào cản thật sự còn lại **không phải Swift**
