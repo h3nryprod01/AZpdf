@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   macos-tests:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
@@ -116,14 +116,27 @@ jobs:
 
   windows-core:
     runs-on: windows-2022
-    timeout-minutes: 30
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Install official Swift toolchain
+      - name: Install pinned official Swift toolchain (6.3.3)
         shell: pwsh
         run: |
-          winget install --id Swift.Toolchain --exact --source winget `
-            --accept-package-agreements --accept-source-agreements
+          # winget is not available on the windows-2022 Server runner, so download the official
+          # installer directly. Pinned to 6.3.3 to match the swift:6.3.3 line used by the Linux
+          # build (script/build_linux_release.sh). Integrity is checked against Swift.org's own
+          # SHA256 sidecar published for this exact release directory - not a floating "latest".
+          $ver = '6.3.3'
+          $base = "https://download.swift.org/swift-${ver}-RELEASE/windows10/swift-${ver}-RELEASE"
+          $exe = Join-Path $env:RUNNER_TEMP "swift-${ver}-RELEASE-windows10.exe"
+          curl.exe -fL "$base/swift-${ver}-RELEASE-windows10.exe" -o $exe
+          curl.exe -fL "$base/swift-${ver}-RELEASE-windows10.exe.sha256" -o "$exe.sha256"
+          $expected = (Get-Content "$exe.sha256" -Raw).Trim().Split(' ')[0].ToLowerInvariant()
+          $actual = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
+          if (-not $expected) { throw "Swift SHA256 sidecar was empty for ${ver}" }
+          if ($actual -ne $expected) { throw "Swift installer SHA256 mismatch: expected $expected, got $actual" }
+          Write-Host "Swift ${ver} installer verified: $expected"
+          Start-Process -FilePath $exe -ArgumentList '/install','/quiet','/norestart' -Wait
           $swift = Get-ChildItem 'C:\Program Files\Swift\Toolchains' -Recurse -Filter swift.exe |
             Select-Object -First 1
           if (-not $swift) { throw 'Swift toolchain was installed but swift.exe was not found.' }

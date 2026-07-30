@@ -4,13 +4,32 @@
 > dưới đây lấy từ tài liệu chính thức (swift.org, mupdf.com, ocrmypdf.readthedocs.io,
 > verapdf.org) và inspect trực tiếp VM Windows cục bộ.
 
+## Sự thật từ CI (2026-07-30)
+
+Phiên bản nháp đầu viết như thể Swift-for-Windows chưa từng được thử trong CI. Sai — CI đã có
+job `windows-core` từ trước, chỉ là nó chưa từng chạy tới `swift build`. Bảng dưới là trạng thái
+thật của 3 job CI liên quan Windows/macOS tại baseline `c75f7a5` (10/10 lần chạy gần nhất đỏ):
+
+| Job CI | Trạng thái | Nguyên nhân |
+|---|---|---|
+| `windows-shell` | ✅ **success** | `flutter build windows --release` xanh — **Flutter Windows đã được chứng minh**, không còn là ẩn số. |
+| `windows-core` | ❌ **failure** (chưa từng build) | `winget` không tồn tại trên image `windows-2022` (Windows Server) → chết ở bước cài Swift, **chưa chạy tới `swift test`/`swift build` lần nào**. Đang sửa: tải installer Swift 6.3.3 pin + verify SHA256 qua sidecar chính thức (xem `.github/workflows/ci.yml`, mục A2 trong `activeContext.md`). |
+| `macos-tests` | ❌ **failure** | runner `macos-14` mặc định Swift 5.10, `Package.swift` cần 6.0. Đang sửa: nâng runner lên `macos-15`. |
+
+**Hệ quả cho report này:** Flutter Windows (vỏ GUI) là chuyện đã xanh trong CI, gỡ khỏi danh
+sách ẩn số. Phần chưa biết thu hẹp còn: (a) `azpdf-engine` (Swift) có `swift test`/`swift build`
+được trên Windows không — đúng câu mà `windows-core` sẽ trả lời; (b) đóng gói 4 runtime Windows
+(đặc biệt OCRmyPDF cần Tesseract+Ghostscript+qpdf installer-based). Đợi kết quả `windows-core`
+ở mục D2 để chốt lời kết chính thức.
+
 ## Kết luận (1 câu)
 
-Windows v1 **khả thi có điều kiện**: toolchain Swift-for-Windows đã chính thức được hỗ trợ,
-Flutter Windows trưởng thành, và 3/4 runtime port sạch (mutool, pyHanko, veraPDF); rào cản
-thực sự là (a) **OCRmyPDF kéo 3 native dep dạng installer, không portable**, và (b) **không
-thể verify bất cứ thứ gì trong VM Windows hiện tại nếu không đăng nhập GUI tương tác** — nên
-kết luận này đứng ở mức "xây được", chưa phải "chạy được đã kiểm chứng".
+Windows v1 **khả thi có điều kiện**: CI đã chứng minh **Flutter Windows build xanh**
+(`windows-shell` success), nên ẩn số thực sự chỉ còn (a) `azpdf-engine` (Swift) có build được
+trên Windows không — job `windows-core` vừa được kích hoạt lại (pin Swift 6.3.3 + verify SHA256
+qua sidecar chính thức) để trả lời chính câu đó — và (b) đóng gói 4 runtime (đặc biệt OCRmyPDF
+kéo Tesseract+Ghostscript+qpdf installer-based, không portable); đến khi `windows-core` xanh
+và smoke test trong VM thành công thì mới đứng ở mức "chạy được đã kiểm chứng".
 
 ## Ma trận khả thi
 
