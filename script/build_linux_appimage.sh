@@ -7,6 +7,19 @@
 #
 # BUNDLE_DIR mặc định trỏ tới bundle release Flutter dựng ở Shell/azpdf_desktop.
 # Có thể ghi đè bằng biến: APPIMAGETOOL (đường dẫn appimagetool), OUTPUT (file ra).
+#
+# AppImage này KHÔNG tự chứa hoàn toàn — đo trong container ubuntu:24.04 trắng:
+#   libgtk-3-0t64  libegl1  libgl1  libgles2
+# là bốn gói hệ thống bắt buộc phải có, cộng một display server. Thiếu chúng thì
+# app chết ngay lúc load với "cannot open shared object file", không phải lỗi
+# đóng gói: shell Flutter link động GTK3 + GL, đó là cách Flutter Linux hoạt động.
+# Mọi desktop Linux dùng GTK (GNOME, XFCE, Cinnamon, MATE) đã có sẵn cả bốn, nên
+# với người dùng thật thì tải một file về là chạy; chỉ hệ thống tối giản hoặc
+# container trắng mới cần cài thêm. PHẢI ghi điều này vào tài liệu tải về —
+# đừng quảng cáo AppImage là "self-contained".
+#
+# Ngược lại, phần engine THÌ tự chứa thật: đã verify `azpdf-engine health` trả
+# {"ok":true} với mutool 1.28.0 trong đúng container trắng đó, không cài gì thêm.
 set -euo pipefail
 
 if [[ "$(uname -s)" != "Linux" ]]; then

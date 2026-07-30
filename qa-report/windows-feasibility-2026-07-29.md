@@ -16,13 +16,18 @@ kết luận này đứng ở mức "xây được", chưa phải "chạy đư�
 
 | Hạng mục | Có sẵn cho Windows? | Phải tự build? | License redistribute OK? | Ước lượng công |
 |---|---|---|---|---|
-| **Swift toolchain** | Có — Swift 6.2.3 (12/12/2025), installer x86_64 + ARM64, winget/Swiftly/.exe | Không (dùng installer) | Apache 2.0 — OK | Thấp (cài), nhưng **yêu cầu Visual Studio 2022 + C++ Build Tools (~7–10 GB)** |
+| **Swift toolchain** | Có — hỗ trợ Windows chính thức (installer x86_64 + ARM64, winget/Swiftly/.exe). **Phiên bản: xem lại trước khi làm** — bản release mới nhất là **6.3.3 (2026-06-30)**, kiểm từ feed release `swiftlang/swift`; số 6.2.3 nêu ở bản nháp đầu là đã cũ. Spike này **không xác minh được** installer Windows cho đúng 6.3.3 (Swift phát hành qua CDN swift.org, GitHub release không có asset) → phải mở swift.org/install/windows xác nhận | Không (dùng installer) | Apache 2.0 — OK | Thấp (cài), nhưng **yêu cầu Visual Studio 2022 + C++ Build Tools (~7–10 GB)** |
 | **azpdf-engine (Swift)** | Toolchain có; `Package.swift` build được | Có — `swift build` trên Windows | AGPL (MuPDF) + dự án — OK | Trung bình. Rủi ro: link `Foundation`/`swift-subprocess` trên Windows cần kiểm chứng |
 | **mutool (MuPDF 1.28)** | Có — bản Windows chính thức trên mupdf.com/releases | Không cần (dùng bản chính thức) | **AGPL** — redistribute đi kèm nghĩa vụ source-disclosure (giống mac/Linux) | Thấp |
 | **pyHanko** | Thuần Python → **PyInstaller** ra `.exe` portable | Có — build PyInstaller Windows | MIT/BSD — OK | Thấp–trung bình (lập lại đúng đường Linux `build_pyhanko_runtime.sh`) |
 | **OCRmyPDF** | Phụ thuộc **Tesseract + Ghostscript + qpdf** | Cả 3 đều có installer Windows nhưng **không phải portable single-binary** | OCRmyPDF MPL-3.0; Tesseract Apache; Ghostscript AGPL; qpdf Apache — OK nhưng **lộn xộn** | **Cao** — phần khó nhất. Phải đóng gói 3 native dep + traineddata + registry/path |
 | **veraPDF** | Có — installer Windows chính thức (JVM) | Không (dùng installer) | MPL-2.0 — OK | Thấp (chỉ cần bundling JVM hoặc yêu cầu JRE) |
 | **Flutter Windows** | Có — `flutter build windows --release` (hỗ trợ chính thức) | Không | OK | Thấp |
+
+> **Lưu ý nhất quán phiên bản.** Đường build Linux của chính dự án đã dùng Docker image
+> `swift:6.3.3` (`script/build_linux_release.sh`). Nếu Windows dùng một dòng Swift khác thì
+> `AZpdfCore` phải build xanh trên **cả hai** — chọn version cho Windows nên bám theo dòng Linux
+> đang dùng, đừng chọn độc lập.
 
 ## Chỗ chặn cứng
 
