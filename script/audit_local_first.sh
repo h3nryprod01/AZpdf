@@ -20,7 +20,14 @@ FORBIDDEN='URLSession|URLRequest|NWConnection|NWListener|WebSocketTask|URLSessio
 # = the scan itself broke, which must fail closed. CI plants a probe violation
 # on every run to prove the gate still bites.
 set +e
-hits="$(grep -REn --include='*.swift' "$FORBIDDEN" App Core Models Services Stores Support Views)"
+# Adapters and Tools are scanned too. They were missing, and they are not
+# incidental: AZpdfMuPDF, AZpdfPAdES, AZpdfStructuredOCR and the azpdf-engine
+# CLI all live there, so they are exactly the "core targets" README.md promises
+# this gate covers. They are clean today, which is the point — the gap would
+# only have shown up the day someone added a network call to the engine, and
+# then not at all, because nothing was looking.
+hits="$(grep -REn --include='*.swift' "$FORBIDDEN" \
+  App Core Models Services Stores Support Views Adapters Tools)"
 status=$?
 set -e
 
