@@ -48,8 +48,17 @@ SWEPT_FILES=(
   "Models/EditableImageAnnotation.swift"
 )
 
+# BSD grep matches a bracket expression BYTE-wise outside a UTF-8 locale, so
+# [àá…] degrades into a set of individual bytes and any *other* multi-byte
+# character sharing one of them false-positives: "•" (e2 80 a2) collides with
+# the 0x80 and 0xa2 continuation bytes of these letters, which flagged four
+# innocent L(_:) lines. GitHub runners leave LC_ALL/LANG unset, so the locale
+# has to be pinned rather than inherited. The "punctuation is not Vietnamese"
+# self-test below fails if this line is ever dropped or the locale is missing.
+export LC_ALL=en_US.UTF-8
+
 # Uppercase + lowercase Vietnamese diacritics, spelled out explicitly: BSD
-# grep/rg regex here has no \p{L}/Unicode-script class to lean on.
+# grep regex here has no \p{L}/Unicode-script class to lean on.
 VN_CHARS='àáâãèéêìíòóôõùúýăđĩũơưạảấầẩẫậắằẳẵặẹẻẽềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚÝĂĐĨŨƠƯẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỂỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪỬỮỰỲỴỶỸ'
 
 EN_STRINGS="Resources/en.lproj/Localizable.strings"
@@ -71,7 +80,7 @@ scan_file() {
   local file="$1"
   # Number lines FIRST so reported line numbers stay correct even when
   # i18n-exempt lines above the hit are filtered out of the pipeline.
-  rg -n '' "$file" | rg -v 'i18n-exempt:' | sed 's|//.*$||' | rg '"' | rg "[$VN_CHARS]" | sed "s|^|$file:|" || true
+  grep -n '' "$file" | grep -v 'i18n-exempt:' | sed 's|//.*$||' | grep '"' | grep "[$VN_CHARS]" | sed "s|^|$file:|" || true
 }
 
 # Every plain L("...") key must have an entry in the en strings table. A key
@@ -84,9 +93,9 @@ scan_file() {
 # text; the LocalizationTests parity test still covers their en/vi symmetry.
 scan_missing_keys() {
   local file="$1"
-  sed 's|//.*$||' "$file" | rg -o 'L\("[^"\\]+"\)' | sed -E 's/^L\("//; s/"\)$//' | sort -u | {
+  sed 's|//.*$||' "$file" | grep -oE 'L\("[^"\\]+"\)' | sed -E 's/^L\("//; s/"\)$//' | sort -u | {
     while IFS= read -r key; do
-      if ! rg -qF "\"$key\" = " "$EN_STRINGS"; then
+      if ! grep -qF "\"$key\" = " "$EN_STRINGS"; then
         echo "$file: L(\"$key\") has no entry in $EN_STRINGS"
       fi
     done
@@ -133,6 +142,10 @@ self_test() {
   printf 'import SwiftUI\nText(L("Hello")) // chú thích tiếng Việt\n' >"$tmp/must_pass.swift"
   printf 'import SwiftUI\nText(L("Key Missing From Strings ZZZ"))\n' >"$tmp/must_fail_key.swift"
   printf 'import SwiftUI\nText(L("Cancel"))\n' >"$tmp/must_pass_key.swift"
+  # Non-ASCII punctuation is not Vietnamese. Under a byte-wise (non-UTF-8)
+  # locale these characters share continuation bytes with the diacritics class
+  # and get flagged, which is exactly what happened when this gate moved off rg.
+  printf 'import SwiftUI\nText(L("Version 1.0 • macOS 14+ … — ·"))\n' >"$tmp/must_pass_punct.swift"
 
   if [[ -z "$(scan_file "$tmp/must_fail.swift")" ]]; then
     echo "self-test failed: bare Vietnamese string literal was not detected" >&2
@@ -148,6 +161,10 @@ self_test() {
   fi
   if [[ -n "$(scan_missing_keys "$tmp/must_pass_key.swift")" ]]; then
     echo "self-test failed: L(_:) key that exists in $EN_STRINGS was flagged as missing" >&2
+    exit 1
+  fi
+  if [[ -n "$(scan_file "$tmp/must_pass_punct.swift")" ]]; then
+    echo "self-test failed: non-ASCII punctuation (• … — ·) was read as Vietnamese — the diacritics class is matching bytes, not characters; check that LC_ALL is a UTF-8 locale that exists on this host" >&2
     exit 1
   fi
   # Pins the loud-failure behaviour above: a bogus entry must make the audit

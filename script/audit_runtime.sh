@@ -36,7 +36,7 @@ while IFS= read -r -d '' candidate; do
   # It must not retain the developer machine's Homebrew paths or an external
   # Python interpreter in its shebang.
   if [[ "$candidate_type" == *text* ]]; then
-    if rg -q '/opt/homebrew|/usr/local/Cellar|/usr/local/opt' "$candidate"; then
+    if grep -qE '/opt/homebrew|/usr/local/Cellar|/usr/local/opt' "$candidate"; then
       echo "Runtime audit failed: Homebrew reference remains in $candidate" >&2
       exit 1
     fi
@@ -50,14 +50,14 @@ while IFS= read -r -d '' candidate; do
   if [[ "$candidate_type" == *Mach-O* ]]; then
     library_id="$(otool -D "$candidate" 2>/dev/null | tail -n +2 | head -n 1 || true)"
     dependencies="$(otool -L "$candidate" | tail -n +2 | awk '{print $1}' | { if [[ -n "$library_id" ]]; then grep -Fvx "$library_id" || true; else cat; fi; })"
-    if rg -q '/opt/homebrew|/usr/local/Cellar|/usr/local/opt' <<<"$dependencies"; then
+    if grep -qE '/opt/homebrew|/usr/local/Cellar|/usr/local/opt' <<<"$dependencies"; then
       echo "Runtime audit failed: non-relocatable dependency remains in $candidate" >&2
       otool -L "$candidate" >&2
       exit 1
     fi
-    if rg -q '^@rpath/' <<<"$dependencies"; then
+    if grep -qE '^@rpath/' <<<"$dependencies"; then
       rpaths="$(otool -l "$candidate" | awk '/cmd LC_RPATH/{getline; getline; if ($1 == "path") print $2}')"
-      if [[ -z "$rpaths" ]] || rg -qv '^@loader_path|^@executable_path' <<<"$rpaths"; then
+      if [[ -z "$rpaths" ]] || grep -qvE '^@loader_path|^@executable_path' <<<"$rpaths"; then
         echo "Runtime audit failed: @rpath is not confined to the bundle in $candidate" >&2
         otool -L "$candidate" >&2
         exit 1
@@ -68,7 +68,7 @@ while IFS= read -r -d '' candidate; do
   if [[ "$candidate_type" == *ELF* ]]; then
     runtime_library_path="$RUNTIME_DIR/lib"
     dependencies="$(LD_LIBRARY_PATH="$runtime_library_path${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}" ldd "$candidate" 2>&1 || true)"
-    if rg -q 'not found' <<<"$dependencies"; then
+    if grep -qE 'not found' <<<"$dependencies"; then
       echo "Runtime audit failed: ELF dependency is missing for $candidate" >&2
       echo "$dependencies" >&2
       exit 1

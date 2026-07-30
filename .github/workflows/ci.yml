@@ -37,10 +37,32 @@ jobs:
         run: swift --version
       - name: Test
         run: swift test
+      # Both gates below shelled out to ripgrep, which this runner does not have,
+      # and `if rg ...; then fail; fi` reads a missing binary (exit 127) as "no
+      # match" — so both reported "passed" here without scanning a single file,
+      # for as long as this job has existed. A gate that cannot fail is not a
+      # gate, and README.md tells users CI blocks networking APIs. Plant a real
+      # violation on every run and require the gate to catch it.
       - name: Audit local-first policy
-        run: ./script/audit_local_first.sh
+        run: |
+          ./script/audit_local_first.sh
+          printf 'import Foundation\nlet probe = URLSession.shared\n' > Core/__ci_probe.swift
+          if ./script/audit_local_first.sh >/dev/null 2>&1; then
+            rm -f Core/__ci_probe.swift
+            echo "Local-first gate ignored a planted URLSession: it is not scanning." >&2
+            exit 1
+          fi
+          rm -f Core/__ci_probe.swift
       - name: Audit portable core boundary
-        run: ./script/audit_portable_core.sh
+        run: |
+          ./script/audit_portable_core.sh
+          printf 'import PDFKit\n' > Core/__ci_probe.swift
+          if ./script/audit_portable_core.sh >/dev/null 2>&1; then
+            rm -f Core/__ci_probe.swift
+            echo "Portable-core gate ignored a planted PDFKit import: it is not scanning." >&2
+            exit 1
+          fi
+          rm -f Core/__ci_probe.swift
       - name: Audit i18n strings
         run: ./script/audit_i18n_strings.sh --self-test && ./script/audit_i18n_strings.sh
       - name: Build app bundle
