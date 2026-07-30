@@ -64,12 +64,16 @@ jobs:
           fi
           rm -f Core/__ci_probe.swift
       - name: Audit i18n strings
-        run: ./script/audit_i18n_strings.sh --self-test && ./script/audit_i18n_strings.sh
+        run: |
+          ./script/audit_i18n_strings.sh --self-test && ./script/audit_i18n_strings.sh
+          # Vỏ Flutter có gate riêng: nó từng có 142 chuỗi tiếng Việt hardcode,
+          # nên UI Linux/Windows chỉ một ngôn ngữ trong khi macOS có hai.
+          ./script/audit_shell_i18n.sh --self-test && ./script/audit_shell_i18n.sh
       - name: Build app bundle
         run: ./script/build_and_run.sh --bundle
       - name: Validate release scripts
         run: |
-          bash -n script/build_and_run.sh script/build_linux_release.sh script/build_mupdf_runtime.sh script/build_ocrmypdf_runtime.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/build_flatpak_dev.sh script/build_flatpak_source.sh script/stage_flatpak_source.sh script/lint_flatpak_manifest.sh script/test_flatpak_gui.sh script/test_flatpak_sandbox.sh script/test_flatpak_desktop_session.sh script/generate_linux_sbom.sh script/generate_sbom.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh script/audit_i18n_strings.sh
+          bash -n script/build_and_run.sh script/build_linux_release.sh script/build_mupdf_runtime.sh script/build_ocrmypdf_runtime.sh script/build_pyhanko_runtime.sh script/build_verapdf_runtime.sh script/build_flatpak_dev.sh script/build_flatpak_source.sh script/stage_flatpak_source.sh script/lint_flatpak_manifest.sh script/test_flatpak_gui.sh script/test_flatpak_sandbox.sh script/test_flatpak_desktop_session.sh script/generate_linux_sbom.sh script/generate_sbom.sh script/package_release.sh script/sign_bundle.sh script/audit_runtime.sh script/audit_i18n_strings.sh script/audit_shell_i18n.sh
           python3 -m py_compile script/generate_flatpak_pub_sources.py
           runtime="$(mktemp -d)"
           cp /usr/bin/true "$runtime/helper"

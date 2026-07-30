@@ -8,6 +8,7 @@ import 'package:window_manager/window_manager.dart';
 
 import '../controllers/workspace_controller.dart';
 import '../models/pdf_models.dart';
+import '../l10n/strings.dart';
 
 class WorkspacePage extends StatefulWidget {
   const WorkspacePage({
@@ -53,31 +54,31 @@ class _WorkspacePageState extends State<WorkspacePage> with WindowListener {
         context: context,
         barrierDismissible: false,
         builder: (context) => AlertDialog(
-          title: const Text('Lưu trước khi thoát?'),
-          content: Text('Có $dirtyCount tài liệu chứa thay đổi chưa được lưu.'),
+          title:  Text(L('save_before_quit_q')),
+          content: Text(L('n_documents_unsaved', {'count': dirtyCount})),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, _CloseChoice.cancel),
-              child: const Text('Hủy'),
-            ),
+              child:  Text(L('cancel')),
+),
             TextButton(
               onPressed: () => Navigator.pop(context, _CloseChoice.discard),
-              child: const Text('Không lưu'),
-            ),
+              child:  Text(L('dont_save')),
+),
             FilledButton(
               onPressed: () => Navigator.pop(context, _CloseChoice.save),
-              child: const Text('Lưu tất cả'),
-            ),
-          ],
-        ),
-      );
+              child:  Text(L('save_all')),
+),
+],
+),
+);
       if (!mounted || choice == null || choice == _CloseChoice.cancel) return;
       if (choice == _CloseChoice.save) {
         for (
           var index = 0;
           index < widget.controller.documents.length;
           index++
-        ) {
+) {
           if (widget.controller.documents[index].dirty &&
               !await widget.controller.saveDocument(index)) {
             return;
@@ -137,42 +138,42 @@ class _WorkspacePageState extends State<WorkspacePage> with WindowListener {
           actions: {
             _OpenIntent: CallbackAction<_OpenIntent>(
               onInvoke: (_) => widget.controller.pickAndOpen(),
-            ),
+),
             _SaveIntent: CallbackAction<_SaveIntent>(
               onInvoke: (_) => widget.controller.save(),
-            ),
+),
             _SaveAsIntent: CallbackAction<_SaveAsIntent>(
               onInvoke: (_) => widget.controller.saveAs(),
-            ),
+),
             _UndoIntent: CallbackAction<_UndoIntent>(
               onInvoke: (_) => widget.controller.undo(),
-            ),
+),
             _RedoIntent: CallbackAction<_RedoIntent>(
               onInvoke: (_) => widget.controller.redo(),
-            ),
+),
             _FindIntent: CallbackAction<_FindIntent>(
               onInvoke: (_) => searchFocus.requestFocus(),
-            ),
+),
             _PreviousPageIntent: CallbackAction<_PreviousPageIntent>(
               onInvoke: (_) => widget.controller.goToPage(
                 (widget.controller.current?.pageIndex ?? 0) - 1,
-              ),
-            ),
+),
+),
             _NextPageIntent: CallbackAction<_NextPageIntent>(
               onInvoke: (_) => widget.controller.goToPage(
                 (widget.controller.current?.pageIndex ?? -1) + 1,
-              ),
-            ),
+),
+),
             _ZoomInIntent: CallbackAction<_ZoomInIntent>(
               onInvoke: (_) => widget.controller.changeZoom(
                 (widget.controller.current?.zoom ?? 1) + 0.25,
-              ),
-            ),
+),
+),
             _ZoomOutIntent: CallbackAction<_ZoomOutIntent>(
               onInvoke: (_) => widget.controller.changeZoom(
                 (widget.controller.current?.zoom ?? 1) - 0.25,
-              ),
-            ),
+),
+),
           },
           child: Focus(
             autofocus: true,
@@ -185,18 +186,18 @@ class _WorkspacePageState extends State<WorkspacePage> with WindowListener {
                       controller: widget.controller,
                       searchController: searchController,
                       searchFocus: searchFocus,
-                    ),
+),
                     _DocumentTabs(controller: widget.controller),
                     Expanded(child: _workspace()),
                     _StatusBar(controller: widget.controller),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
+],
+),
+),
+),
+),
+),
+),
+);
   }
 
   Widget _workspace() {
@@ -208,9 +209,9 @@ class _WorkspacePageState extends State<WorkspacePage> with WindowListener {
           _PageSidebar(controller: widget.controller, document: current),
         Expanded(
           child: _PageCanvas(controller: widget.controller, document: current),
-        ),
-      ],
-    );
+),
+],
+);
   }
 }
 
@@ -235,7 +236,7 @@ class _Toolbar extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 12),
         decoration: const BoxDecoration(
           border: Border(bottom: BorderSide(color: Color(0xFFD9E0EA))),
-        ),
+),
         child: SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: Row(
@@ -248,124 +249,124 @@ class _Toolbar extends StatelessWidget {
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: Color(0xFF0B2554),
-                  ),
-                ),
-              ),
+),
+),
+),
               _ToolButton(
                 icon: Icons.folder_open_rounded,
-                tooltip: 'Mở PDF (Ctrl+O)',
+                tooltip: L('open_pdf_shortcut'),
                 onPressed: controller.pickAndOpen,
-              ),
+),
               _ToolButton(
                 icon: Icons.save_rounded,
-                tooltip: 'Lưu (Ctrl+S)',
+                tooltip: L('save_shortcut'),
                 onPressed: document == null ? null : controller.save,
-              ),
+),
               _ToolButton(
                 icon: Icons.save_as_rounded,
-                tooltip: 'Lưu thành… (Ctrl+Shift+S)',
+                tooltip: L('save_as_shortcut'),
                 onPressed: document == null ? null : controller.saveAs,
-              ),
+),
               _ToolButton(
                 icon: Icons.undo_rounded,
-                tooltip: 'Hoàn tác (Ctrl+Z)',
+                tooltip: L('undo_shortcut'),
                 onPressed: document?.canUndo == true ? controller.undo : null,
-              ),
+),
               _ToolButton(
                 icon: Icons.redo_rounded,
-                tooltip: 'Làm lại (Ctrl+Shift+Z)',
+                tooltip: L('redo_shortcut'),
                 onPressed: document?.canRedo == true ? controller.redo : null,
-              ),
+),
               const _ToolbarDivider(),
               _ToolButton(
                 icon: Icons.text_fields_rounded,
-                tooltip: 'Chèn chữ có thể di chuyển và định dạng',
+                tooltip: L('insert_text_hint'),
                 onPressed: document == null
                     ? null
                     : () => _showTextEditor(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.sticky_note_2_outlined,
-                tooltip: 'Chèn ghi chú có thể di chuyển',
+                tooltip: L('insert_note_hint'),
                 onPressed: document == null
                     ? null
                     : () => _showNoteEditor(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.add_photo_alternate_outlined,
-                tooltip: 'Chèn ảnh có thể di chuyển và đổi kích thước',
+                tooltip: L('insert_image_hint'),
                 onPressed: document == null
                     ? null
                     : controller.pickAndInsertImage,
-              ),
+),
               _ToolButton(
                 icon: Icons.document_scanner_outlined,
-                tooltip: 'OCR cục bộ và tạo lớp chữ tìm kiếm',
+                tooltip: L('ocr_local_hint'),
                 onPressed: document == null || document.busy
                     ? null
                     : () => _showOcrDialog(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.account_tree_outlined,
-                tooltip: 'Review bố cục và reading order',
+                tooltip: L('review_layout'),
                 onPressed: document == null || document.busy
                     ? null
                     : () => _showLayoutReviewDialog(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.draw_outlined,
-                tooltip: 'Ký số PAdES bằng PKCS#12',
+                tooltip: L('pades_sign_with_pkcs12'),
                 onPressed: document == null || document.busy
                     ? null
                     : () => _showPadesSigningDialog(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.verified_user_outlined,
-                tooltip: 'Xác minh tính toàn vẹn chữ ký PAdES',
+                tooltip: L('verify_pades_integrity'),
                 onPressed: document == null || document.busy
                     ? null
                     : () =>
                           _showSignatureVerificationDialog(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.tune_rounded,
-                tooltip: 'Sửa nội dung hoặc định dạng mục đang chọn',
+                tooltip: L('edit_selected_hint'),
                 onPressed: document?.selectedAnnotation == null
                     ? null
                     : () => _editSelectedAnnotation(context, controller),
-              ),
+),
               _ToolButton(
                 icon: Icons.delete_outline_rounded,
-                tooltip: 'Xóa mục đang chọn',
+                tooltip: L('delete_selected'),
                 onPressed: document?.selectedAnnotation == null
                     ? null
                     : controller.removeSelectedAnnotation,
-              ),
+),
               const _ToolbarDivider(),
               _ToolButton(
                 icon: Icons.view_sidebar_rounded,
-                tooltip: 'Ẩn/hiện danh sách trang',
+                tooltip: L('toggle_page_list'),
                 selected: controller.sidebarVisible,
                 onPressed: document == null ? null : controller.toggleSidebar,
-              ),
+),
               _ToolButton(
                 icon: Icons.chevron_left_rounded,
-                tooltip: 'Trang trước (Page Up)',
+                tooltip: L('previous_page_shortcut'),
                 onPressed: document == null || document.pageIndex == 0
                     ? null
                     : () => controller.goToPage(document.pageIndex - 1),
-              ),
+),
               if (document != null)
                 Semantics(
                   label:
-                      'Trang hiện tại ${document.pageIndex + 1} trên ${document.info.pageCount}',
+                      L('page_x_of_y', {'page': document.pageIndex + 1, 'total': document.info.pageCount}),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     child: Text(
                       '${document.pageIndex + 1} / ${document.info.pageCount}',
-                    ),
-                  ),
-                ),
+),
+),
+),
               _ToolButton(
                 icon: Icons.chevron_right_rounded,
                 tooltip: 'Trang sau (Page Down)',
@@ -374,15 +375,15 @@ class _Toolbar extends StatelessWidget {
                         document.pageIndex >= document.info.pageCount - 1
                     ? null
                     : () => controller.goToPage(document.pageIndex + 1),
-              ),
+),
               const _ToolbarDivider(),
               _ToolButton(
                 icon: Icons.remove_rounded,
-                tooltip: 'Thu nhỏ (Ctrl+-)',
+                tooltip: L('zoom_out_shortcut'),
                 onPressed: document == null
                     ? null
                     : () => controller.changeZoom(document.zoom - 0.25),
-              ),
+),
               SizedBox(
                 width: 54,
                 child: Center(
@@ -390,16 +391,16 @@ class _Toolbar extends StatelessWidget {
                     document == null
                         ? '—'
                         : '${(document.zoom * 100).round()}%',
-                  ),
-                ),
-              ),
+),
+),
+),
               _ToolButton(
                 icon: Icons.add_rounded,
-                tooltip: 'Phóng to (Ctrl++)',
+                tooltip: L('zoom_in_shortcut'),
                 onPressed: document == null
                     ? null
                     : () => controller.changeZoom(document.zoom + 0.25),
-              ),
+),
               const SizedBox(width: 18),
               SizedBox(
                 width: 230,
@@ -410,31 +411,32 @@ class _Toolbar extends StatelessWidget {
                   onSubmitted: controller.search,
                   decoration: InputDecoration(
                     isDense: true,
-                    hintText: 'Tìm trong tài liệu',
+                    hintText: L('find_in_document'),
                     prefixIcon: const Icon(Icons.search_rounded, size: 20),
                     suffixText: document == null || document.searchQuery.isEmpty
                         ? null
                         : '${document.searchMatches.length}',
                     border: const OutlineInputBorder(
                       borderRadius: BorderRadius.all(Radius.circular(10)),
-                    ),
-                  ),
-                ),
-              ),
+),
+),
+),
+),
               const SizedBox(width: 8),
+              const _LanguageButton(),
               _ToolButton(
                 icon: Icons.local_cafe_rounded,
-                tooltip: 'Ủng hộ AZpdf qua Ko-fi',
+                tooltip: L('support_kofi'),
                 onPressed: () => launchUrl(
                   Uri.parse('https://ko-fi.com/h3nryng'),
                   mode: LaunchMode.externalApplication,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+),
+),
+],
+),
+),
+),
+);
   }
 }
 
@@ -462,7 +464,7 @@ class _DocumentTabs extends StatelessWidget {
                 return Semantics(
                   selected: selected,
                   button: true,
-                  label: 'Tài liệu ${document.name}',
+                  label: L('document_named', {'name': document.name}),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(8),
                     onTap: () => controller.selectDocument(index),
@@ -471,7 +473,7 @@ class _DocumentTabs extends StatelessWidget {
                       constraints: const BoxConstraints(
                         minWidth: 150,
                         maxWidth: 270,
-                      ),
+),
                       padding: const EdgeInsets.only(left: 10),
                       decoration: BoxDecoration(
                         color: selected
@@ -483,24 +485,24 @@ class _DocumentTabs extends StatelessWidget {
                               ? const Color(0xFF6EA8E5)
                               : const Color(0xFFD4DCE7),
                           width: selected ? 1.5 : 1,
-                        ),
+),
                         boxShadow: selected
                             ? const [
                                 BoxShadow(
                                   color: Color(0x140B2554),
                                   blurRadius: 4,
                                   offset: Offset(0, 1),
-                                ),
-                              ]
+),
+]
                             : null,
-                      ),
+),
                       child: Row(
                         children: [
                           const Icon(
                             Icons.picture_as_pdf_rounded,
                             size: 17,
                             color: Color(0xFFD64045),
-                          ),
+),
                           const SizedBox(width: 7),
                           Expanded(
                             child: Text(
@@ -513,39 +515,39 @@ class _DocumentTabs extends StatelessWidget {
                                 fontWeight: selected
                                     ? FontWeight.w600
                                     : FontWeight.w400,
-                              ),
-                            ),
-                          ),
+),
+),
+),
                           IconButton(
                             icon: const Icon(Icons.close_rounded, size: 16),
-                            tooltip: 'Đóng ${document.name}',
+                            tooltip: L('close_named', {'name': document.name}),
                             onPressed: () => _requestCloseDocument(
                               context,
                               controller,
                               index,
-                            ),
+),
                             padding: EdgeInsets.zero,
                             constraints: const BoxConstraints.tightFor(
                               width: 34,
                               height: 32,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
+),
+),
+],
+),
+),
+),
+);
               },
-            ),
-          ),
+),
+),
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            tooltip: 'Mở tài liệu mới',
+            tooltip: L('open_new_document'),
             onPressed: controller.pickAndOpen,
-          ),
-        ],
-      ),
-    );
+),
+],
+),
+);
   }
 }
 
@@ -594,7 +596,7 @@ Future<void> _showPadesSigningDialog(
     context: context,
     barrierDismissible: false,
     builder: (context) => _PadesSigningDialog(health: health),
-  );
+);
   if (!context.mounted || options == null) return;
 
   final result = await controller.applyPadesSignature(
@@ -602,44 +604,43 @@ Future<void> _showPadesSigningDialog(
     password: options.password,
     profile: options.profile,
     timestampUrl: options.timestampUrl,
-  );
+);
   if (!context.mounted) return;
   if (result == null) {
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Không thể ký PAdES'),
-        content: Text(controller.current?.error ?? 'Không có chi tiết lỗi.'),
+        title:  Text(L('cannot_sign_pades')),
+        content: Text(controller.current?.error ?? L('no_error_detail')),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
     return;
   }
   await showDialog<void>(
     context: context,
     builder: (context) => AlertDialog(
-      title: const Text('Ký PAdES hoàn tất'),
+      title:  Text(L('pades_done')),
       content: SizedBox(
         width: 520,
         child: Text(
           '${result.verification.summary}\n\n'
-          'Chữ ký đang ở working copy. Nhấn Ctrl+S để ghi vào file gốc. '
-          'Mọi chỉnh sửa sau thời điểm ký có thể làm chữ ký không còn hợp lệ.',
-        ),
-      ),
+          '${L('signature_in_working_copy')}${L('edits_after_signing')}',
+),
+),
       actions: [
         FilledButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Đóng'),
-        ),
-      ],
-    ),
-  );
+          child:  Text(L('close')),
+),
+],
+),
+);
 }
 
 Future<void> _showSignatureVerificationDialog(
@@ -665,11 +666,11 @@ Future<void> _showSignatureVerificationDialog(
                   ? Icons.verified_user_rounded
                   : Icons.gpp_maybe_outlined,
               color: color,
-            ),
+),
             const SizedBox(width: 10),
-            const Text('Xác minh chữ ký PAdES'),
-          ],
-        ),
+             Text(L('verify_pades')),
+],
+),
         content: SizedBox(
           width: 620,
           child: SingleChildScrollView(
@@ -680,17 +681,17 @@ Future<void> _showSignatureVerificationDialog(
                 Text(
                   verification.summary,
                   style: TextStyle(color: color, height: 1.45),
-                ),
+),
                 const SizedBox(height: 14),
                 Text(
-                  '${health.provider} ${health.version} · kiểm tra cục bộ',
+                  L('checked_locally', {'provider': health.provider, 'version': health.version}),
                   style: const TextStyle(color: Color(0xFF5F6F83)),
-                ),
+),
                 const SizedBox(height: 8),
-                const Text(
-                  'Tính toàn vẹn và certificate trust là hai kết quả độc lập. '
-                  'Certificate self-signed có thể untrusted dù chữ ký vẫn khớp dữ liệu.',
-                ),
+                 Text(
+                  L('integrity_and_trust_independent') +
+                  L('cert_self_signed'),
+),
                 ExpansionTile(
                   tilePadding: EdgeInsets.zero,
                   title: const Text('Chi tiết validator'),
@@ -700,22 +701,22 @@ Future<void> _showSignatureVerificationDialog(
                       style: const TextStyle(
                         fontFamily: 'monospace',
                         fontSize: 12,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
+),
+),
+],
+),
+],
+),
+),
+),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
   } catch (error) {
     if (!context.mounted) return;
     await _showPadesRuntimeError(context, error);
@@ -726,18 +727,18 @@ Future<void> _showPadesRuntimeError(BuildContext context, Object error) =>
     showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('PAdES chưa sẵn sàng'),
+        title:  Text(L('pades_not_ready')),
         content: Text(
-          '$error\n\nCài pyHanko hoặc đặt AZPDF_PYHANKO tới executable cục bộ.',
-        ),
+          L('pyhanko_install_hint', {'error': error}),
+),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
 
 class _PadesSigningDialog extends StatefulWidget {
   const _PadesSigningDialog({required this.health});
@@ -783,7 +784,7 @@ class _PadesSigningDialogState extends State<_PadesSigningDialog> {
       label: 'PKCS#12',
       extensions: ['p12', 'pfx'],
       mimeTypes: ['application/x-pkcs12'],
-    );
+);
     final file = await openFile(acceptedTypeGroups: const [group]);
     if (file != null && mounted) setState(() => pkcs12Path = file.path);
   }
@@ -796,7 +797,7 @@ class _PadesSigningDialogState extends State<_PadesSigningDialog> {
 
   @override
   Widget build(BuildContext context) => AlertDialog(
-    title: const Text('Ký số PAdES'),
+    title:  Text(L('pades_sign')),
     content: SizedBox(
       width: 560,
       child: SingleChildScrollView(
@@ -805,56 +806,56 @@ class _PadesSigningDialogState extends State<_PadesSigningDialog> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              '${widget.health.provider} ${widget.health.version} · certificate và mật khẩu chỉ xử lý trên máy',
-            ),
+              L('cert_stays_local', {'provider': widget.health.provider, 'version': widget.health.version}),
+),
             const SizedBox(height: 16),
             DropdownButtonFormField<PdfSignatureProfile>(
               initialValue: profile,
               decoration: const InputDecoration(
                 labelText: 'Profile',
                 border: OutlineInputBorder(),
-              ),
+),
               items: widget.health.profiles
                   .map(
                     (value) => DropdownMenuItem(
                       value: value,
                       child: Text(value.displayName),
-                    ),
-                  )
+),
+)
                   .toList(growable: false),
               onChanged: (value) {
                 if (value != null) setState(() => profile = value);
               },
-            ),
+),
             const SizedBox(height: 12),
             OutlinedButton.icon(
               icon: const Icon(Icons.badge_outlined),
               label: Text(
                 pkcs12Path == null
-                    ? 'Chọn certificate PKCS#12…'
+                    ? L('choose_pkcs12')
                     : File(pkcs12Path!).uri.pathSegments.last,
-              ),
+),
               onPressed: _pickCertificate,
-            ),
+),
             const SizedBox(height: 12),
             TextField(
               controller: passwordController,
               obscureText: obscurePassword,
               decoration: InputDecoration(
-                labelText: 'Mật khẩu PKCS#12',
+                labelText: L('pkcs12_password'),
                 border: const OutlineInputBorder(),
                 suffixIcon: IconButton(
-                  tooltip: obscurePassword ? 'Hiện mật khẩu' : 'Ẩn mật khẩu',
+                  tooltip: obscurePassword ? L('show_password') : L('hide_password'),
                   icon: Icon(
                     obscurePassword
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                  ),
+),
                   onPressed: () =>
                       setState(() => obscurePassword = !obscurePassword),
-                ),
-              ),
-            ),
+),
+),
+),
             if (profile.requiresTimestamp) ...[
               const SizedBox(height: 12),
               TextField(
@@ -862,36 +863,36 @@ class _PadesSigningDialogState extends State<_PadesSigningDialog> {
                 decoration: const InputDecoration(
                   labelText: 'URL TSA RFC 3161',
                   border: OutlineInputBorder(),
-                ),
-              ),
-            ],
+),
+),
+],
             const SizedBox(height: 12),
             Text(
               profile == PdfSignatureProfile.baselineB
-                  ? 'Baseline B hoạt động offline. Certificate trust được báo riêng với tính toàn vẹn.'
-                  : 'LT/LTA sẽ kết nối TSA bạn chỉ định để lấy timestamp/validation info.',
+                  ? L('pades_b_offline')
+                  : L('lt_lta_contacts_tsa'),
               style: const TextStyle(color: Color(0xFF5F6F83)),
-            ),
+),
             const SizedBox(height: 8),
-            const Text(
-              'Sau khi ký, hãy lưu bản cuối. Chỉnh sửa nội dung sau đó có thể làm chữ ký không còn hợp lệ.',
+             Text(
+              L('after_signing_hint'),
               style: TextStyle(color: Color(0xFF8A5A00)),
-            ),
-          ],
-        ),
-      ),
-    ),
+),
+],
+),
+),
+),
     actions: [
       TextButton(
         onPressed: () {
           passwordController.clear();
           Navigator.pop(context);
         },
-        child: const Text('Hủy'),
-      ),
+        child:  Text(L('cancel')),
+),
       FilledButton.icon(
         icon: const Icon(Icons.draw_outlined),
-        label: const Text('Ký working copy'),
+        label:  Text(L('sign_working_copy')),
         onPressed: canSubmit
             ? () => Navigator.pop(
                 context,
@@ -902,12 +903,12 @@ class _PadesSigningDialogState extends State<_PadesSigningDialog> {
                   timestampUrl: timestampController.text.trim().isEmpty
                       ? null
                       : timestampController.text.trim(),
-                ),
-              )
+),
+)
             : null,
-      ),
-    ],
-  );
+),
+],
+);
 }
 
 Future<void> _showLayoutReviewDialog(
@@ -921,18 +922,18 @@ Future<void> _showLayoutReviewDialog(
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Không thể review bố cục'),
+        title:  Text(L('cannot_review_layout')),
         content: Text(
-          document?.error ?? 'Engine không trả về DocumentIR hợp lệ.',
-        ),
+          document?.error ?? L('engine_bad_ir'),
+),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
     return;
   }
 
@@ -947,16 +948,16 @@ Future<void> _showLayoutReviewDialog(
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('DocumentIR thiếu trang hiện tại'),
-        content: Text('Không tìm thấy trang ${document.pageIndex + 1}.'),
+        title:  Text(L('ir_missing_page')),
+        content: Text(L('page_not_found', {'page': document.pageIndex + 1})),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
     return;
   }
 
@@ -964,7 +965,7 @@ Future<void> _showLayoutReviewDialog(
     context: context,
     builder: (context) =>
         _LayoutReviewDialog(document: document, ir: ir, page: page!),
-  );
+);
 }
 
 class _LayoutReviewDialog extends StatefulWidget {
@@ -1022,34 +1023,34 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                   const Icon(
                     Icons.account_tree_outlined,
                     color: Color(0xFF0B2554),
-                  ),
+),
                   const SizedBox(width: 10),
-                  const Expanded(
+                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Review bố cục và reading order',
+                          L('review_layout'),
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
-                          ),
-                        ),
+),
+),
                         Text(
-                          'Tọa độ top-left chuẩn hóa theo DocumentIR v1',
+                          L('ir_coords'),
                           style: TextStyle(color: Color(0xFF5F6F83)),
-                        ),
-                      ],
-                    ),
-                  ),
+),
+],
+),
+),
                   IconButton(
-                    tooltip: 'Đóng review bố cục',
+                    tooltip: L('close_layout_review'),
                     icon: const Icon(Icons.close_rounded),
                     onPressed: () => Navigator.pop(context),
-                  ),
-                ],
-              ),
-            ),
+),
+],
+),
+),
             Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -1057,12 +1058,12 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                   SizedBox(
                     width: width < 840 ? 270 : 330,
                     child: _readingOrderList(),
-                  ),
+),
                   const VerticalDivider(width: 1),
                   Expanded(child: _preview()),
-                ],
-              ),
-            ),
+],
+),
+),
             const Divider(height: 1),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
@@ -1075,39 +1076,39 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(color: Color(0xFF5F6F83)),
-                    ),
-                  ),
+),
+),
                   OutlinedButton.icon(
                     icon: const Icon(Icons.copy_all_outlined),
-                    label: const Text('Sao chép theo reading order'),
+                    label:  Text(L('copy_in_reading_order')),
                     onPressed: widget.ir.plainText.isEmpty
                         ? null
                         : () async {
                             await Clipboard.setData(
                               ClipboardData(text: widget.ir.plainText),
-                            );
+);
                             if (!context.mounted) return;
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                               SnackBar(
                                 content: Text(
-                                  'Đã sao chép văn bản DocumentIR.',
-                                ),
-                              ),
-                            );
+                                  L('ir_text_copied'),
+),
+),
+);
                           },
-                  ),
+),
                   const SizedBox(width: 8),
                   FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: const Text('Đóng'),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
+                    child:  Text(L('close')),
+),
+],
+),
+),
+],
+),
+),
+);
   }
 
   Widget _readingOrderList() {
@@ -1124,12 +1125,12 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
               fontWeight: FontWeight.w700,
               letterSpacing: 0.8,
               color: Color(0xFF65758B),
-            ),
-          ),
-        ),
+),
+),
+),
         Expanded(
           child: blocks.isEmpty
-              ? const Center(child: Text('Không phát hiện block bố cục.'))
+              ?  Center(child: Text(L('no_layout_blocks')))
               : ListView.separated(
                   padding: const EdgeInsets.fromLTRB(8, 0, 8, 12),
                   itemCount: blocks.length,
@@ -1153,8 +1154,8 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                             color: selected
                                 ? const Color(0xFF0078D4)
                                 : Colors.transparent,
-                          ),
-                        ),
+),
+),
                         leading: CircleAvatar(
                           radius: 14,
                           backgroundColor: _documentIrKindColor(block.kind),
@@ -1162,25 +1163,25 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                           child: Text(
                             '${index + 1}',
                             style: const TextStyle(fontSize: 11),
-                          ),
-                        ),
+),
+),
                         title: Text(_documentIrKindLabel(block.kind)),
                         subtitle: Text(
-                          text.isEmpty ? '(không có văn bản)' : text,
+                          text.isEmpty ? L('no_text') : text,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                        ),
+),
                         trailing: block.confidence == null
                             ? null
                             : Text('${(block.confidence! * 100).round()}%'),
                         onTap: () => setState(() => selectedBlockId = block.id),
-                      ),
-                    );
+),
+);
                   },
-                ),
-        ),
-      ],
-    );
+),
+),
+],
+);
   }
 
   Widget _preview() {
@@ -1198,26 +1199,26 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                   ? const Color(0xFFFFF7E6)
                   : const Color(0xFFEAF6EF),
               borderRadius: BorderRadius.circular(8),
-            ),
+),
             child: Text(
               isBaseline
-                  ? 'MuPDF baseline: kiểm tra paragraph, hình và reading order cơ bản. '
-                        'Bảng, công thức và cấu trúc học thuật cần provider nâng cao.'
-                  : 'Structured OCR provider: kiểm tra confidence, bảng, công thức, hình và reading order trước khi export.',
+                  ? L('mupdf_baseline_desc') +
+                        L('tables_need_advanced')
+                  : L('structured_ocr_desc'),
               style: TextStyle(
                 color: isBaseline
                     ? const Color(0xFF795400)
                     : const Color(0xFF16633E),
-              ),
-            ),
-          ),
+),
+),
+),
           const SizedBox(height: 10),
           Expanded(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 color: const Color(0xFFDDE3EC),
                 borderRadius: BorderRadius.circular(8),
-              ),
+),
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Center(
@@ -1235,18 +1236,18 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                               fit: BoxFit.fill,
                               errorBuilder: (_, _, _) =>
                                   const ColoredBox(color: Colors.white),
-                            )
+)
                           else
                             const ColoredBox(color: Colors.white),
                           ...widget.page.blocks.map(_blockOverlay),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
+],
+),
+),
+),
+),
+),
+),
+),
           const SizedBox(height: 10),
           Container(
             constraints: const BoxConstraints(minHeight: 56),
@@ -1255,16 +1256,16 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
               color: const Color(0xFFF7F9FC),
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: const Color(0xFFD9E0EA)),
-            ),
+),
             child: block == null
-                ? const Text('Chọn một block để xem chi tiết.')
+                ?  Text(L('select_block'))
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         '${_documentIrKindLabel(block.kind)} · ${block.id}',
                         style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
+),
                       Text(
                         'x ${block.bounds.x.toStringAsFixed(1)} · '
                         'y ${block.bounds.y.toStringAsFixed(1)} · '
@@ -1272,13 +1273,13 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
                         'h ${block.bounds.height.toStringAsFixed(1)}'
                         '${block.confidence == null ? '' : ' · ${(block.confidence! * 100).round()}%'}',
                         style: const TextStyle(color: Color(0xFF5F6F83)),
-                      ),
-                    ],
-                  ),
-          ),
-        ],
-      ),
-    );
+),
+],
+),
+),
+],
+),
+);
   }
 
   Widget _blockOverlay(DocumentIrBlock block) {
@@ -1302,7 +1303,7 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
       child: Semantics(
         button: true,
         selected: selected,
-        label: 'Vùng ${_documentIrKindLabel(block.kind)}',
+        label: L('region_of_kind', {'kind': _documentIrKindLabel(block.kind)}),
         child: GestureDetector(
           behavior: HitTestBehavior.translucent,
           onTap: () => setState(() => selectedBlockId = block.id),
@@ -1310,27 +1311,27 @@ class _LayoutReviewDialogState extends State<_LayoutReviewDialog> {
             decoration: BoxDecoration(
               color: color.withValues(alpha: selected ? 0.22 : 0.09),
               border: Border.all(color: color, width: selected ? 3 : 1.5),
-            ),
-          ),
-        ),
-      ),
-    );
+),
+),
+),
+),
+);
   }
 }
 
 String _documentIrKindLabel(DocumentIrBlockKind kind) => switch (kind) {
-  DocumentIrBlockKind.paragraph => 'Đoạn văn',
-  DocumentIrBlockKind.heading => 'Tiêu đề',
-  DocumentIrBlockKind.listItem => 'Mục danh sách',
-  DocumentIrBlockKind.table => 'Bảng',
-  DocumentIrBlockKind.formula => 'Công thức',
-  DocumentIrBlockKind.figure => 'Hình',
-  DocumentIrBlockKind.caption => 'Chú thích hình',
-  DocumentIrBlockKind.header => 'Đầu trang',
-  DocumentIrBlockKind.footer => 'Chân trang',
-  DocumentIrBlockKind.footnote => 'Chú thích cuối trang',
-  DocumentIrBlockKind.pageNumber => 'Số trang',
-  DocumentIrBlockKind.unknown => 'Chưa phân loại',
+  DocumentIrBlockKind.paragraph => L('paragraph'),
+  DocumentIrBlockKind.heading => L('heading'),
+  DocumentIrBlockKind.listItem => L('list_item'),
+  DocumentIrBlockKind.table => L('table'),
+  DocumentIrBlockKind.formula => L('formula'),
+  DocumentIrBlockKind.figure => L('figure'),
+  DocumentIrBlockKind.caption => L('caption'),
+  DocumentIrBlockKind.header => L('header'),
+  DocumentIrBlockKind.footer => L('footer'),
+  DocumentIrBlockKind.footnote => L('footnote'),
+  DocumentIrBlockKind.pageNumber => L('page_number'),
+  DocumentIrBlockKind.unknown => L('unclassified'),
 };
 
 Color _documentIrKindColor(DocumentIrBlockKind kind) => switch (kind) {
@@ -1357,18 +1358,18 @@ Future<void> _showOcrDialog(
     await showDialog<void>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('OCR chưa sẵn sàng'),
+        title:  Text(L('ocr_not_ready')),
         content: Text(
-          '$error\n\nCài OCRmyPDF hoặc đặt AZPDF_OCRMYPDF tới executable cục bộ.',
-        ),
+          L('ocr_install_hint', {'error': error}),
+),
         actions: [
           FilledButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Đóng'),
-          ),
-        ],
-      ),
-    );
+            child:  Text(L('close')),
+),
+],
+),
+);
     return;
   }
   if (!context.mounted) return;
@@ -1380,7 +1381,7 @@ Future<void> _showOcrDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
-        title: const Text('OCR toàn bộ tài liệu'),
+        title:  Text(L('ocr_whole_document')),
         content: SizedBox(
           width: 500,
           child: SingleChildScrollView(
@@ -1389,96 +1390,96 @@ Future<void> _showOcrDialog(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Text(
-                  '${health.provider} ${health.version} · xử lý hoàn toàn cục bộ',
-                ),
+                  L('processed_fully_locally', {'provider': health.provider, 'version': health.version}),
+),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
                   initialValue: language,
-                  decoration: const InputDecoration(
-                    labelText: 'Ngôn ngữ nhận dạng',
+                  decoration:  InputDecoration(
+                    labelText: L('recognition_language'),
                     border: OutlineInputBorder(),
-                  ),
-                  items: const [
+),
+                  items:  [
                     DropdownMenuItem(
                       value: 'vie+eng',
-                      child: Text('Tiếng Việt + English'),
-                    ),
-                    DropdownMenuItem(value: 'vie', child: Text('Tiếng Việt')),
+                      child: Text(L('lang_vi_en_name')),
+),
+                    DropdownMenuItem(value: 'vie', child: Text(L('lang_vi_name'))),
                     DropdownMenuItem(value: 'eng', child: Text('English')),
-                  ],
+],
                   onChanged: (value) {
                     if (value != null) setDialogState(() => language = value);
                   },
-                ),
+),
                 const SizedBox(height: 8),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Làm thẳng trang scan'),
-                  subtitle: const Text('Deskew các trang bị nghiêng nhẹ'),
+                  title:  Text(L('deskew')),
+                  subtitle:  Text(L('deskew_hint')),
                   value: deskew,
                   onChanged: (value) => setDialogState(() => deskew = value),
-                ),
+),
                 SwitchListTile(
                   contentPadding: EdgeInsets.zero,
-                  title: const Text('Tự phát hiện hướng trang'),
-                  subtitle: const Text('Xoay trang khi độ tin cậy đủ cao'),
+                  title:  Text(L('auto_detect_orientation')),
+                  subtitle:  Text(L('rotate_when_confident')),
                   value: rotatePages,
                   onChanged: (value) =>
                       setDialogState(() => rotatePages = value),
-                ),
+),
                 const SizedBox(height: 8),
                 Text(
                   health.preservesVisualLayout
-                      ? 'Ảnh và bố cục trực quan được giữ nguyên; OCR thêm lớp chữ vô hình để tìm kiếm.'
-                      : 'Provider này không cam kết giữ nguyên bố cục trực quan.',
+                      ? L('ocr_keeps_layout')
+                      : L('provider_no_layout_promise'),
                   style: const TextStyle(color: Color(0xFF46576C)),
-                ),
+),
                 if (!health.supportsStructuredLayout) ...[
                   const SizedBox(height: 8),
-                  const Text(
-                    'Baseline hiện chưa hiểu ngữ nghĩa bảng hoặc công thức. Các provider layout nâng cao sẽ được bổ sung riêng.',
+                   Text(
+                    L('baseline_no_table_semantics'),
                     style: TextStyle(color: Color(0xFF8A5A00)),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
+),
+],
+],
+),
+),
+),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Hủy'),
-          ),
+            child:  Text(L('cancel')),
+),
           FilledButton.icon(
             icon: const Icon(Icons.document_scanner_outlined),
-            label: const Text('Bắt đầu OCR'),
+            label:  Text(L('start_ocr')),
             onPressed: () => Navigator.pop(
               context,
               _OcrOptions(
                 language: language,
                 deskew: deskew,
                 rotatePages: rotatePages,
-              ),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+),
+),
+),
+],
+),
+),
+);
   if (!context.mounted || options == null) return;
   final result = await controller.applyOcr(
     language: options.language,
     deskew: options.deskew,
     rotatePages: options.rotatePages,
-  );
+);
   if (!context.mounted || result == null) return;
   ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
       content: Text(
-        'OCR hoàn tất bằng ${result.provider} ${result.version}. Nhấn Ctrl+S để lưu vào file gốc.',
-      ),
-    ),
-  );
+        L('ocr_complete', {'provider': result.provider, 'version': result.version}),
+),
+),
+);
 }
 
 Future<void> _requestCloseDocument(
@@ -1497,24 +1498,24 @@ Future<void> _requestCloseDocument(
     context: context,
     barrierDismissible: false,
     builder: (context) => AlertDialog(
-      title: const Text('Lưu thay đổi?'),
-      content: Text('“${document.name}” có thay đổi chưa được lưu.'),
+      title:  Text(L('save_changes_q')),
+      content: Text(L('named_has_unsaved', {'name': document.name})),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, _CloseChoice.cancel),
-          child: const Text('Hủy'),
-        ),
+          child:  Text(L('cancel')),
+),
         TextButton(
           onPressed: () => Navigator.pop(context, _CloseChoice.discard),
-          child: const Text('Không lưu'),
-        ),
+          child:  Text(L('dont_save')),
+),
         FilledButton(
           onPressed: () => Navigator.pop(context, _CloseChoice.save),
-          child: const Text('Lưu'),
-        ),
-      ],
-    ),
-  );
+          child:  Text(L('save')),
+),
+],
+),
+);
   if (!context.mounted || choice == null || choice == _CloseChoice.cancel) {
     return;
   }
@@ -1537,7 +1538,7 @@ class _PageSidebar extends StatelessWidget {
       decoration: const BoxDecoration(
         color: Color(0xFFF8FAFD),
         border: Border(right: BorderSide(color: Color(0xFFD9E0EA))),
-      ),
+),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -1550,9 +1551,9 @@ class _PageSidebar extends StatelessWidget {
                 fontWeight: FontWeight.w700,
                 letterSpacing: 1.1,
                 color: Color(0xFF65758B),
-              ),
-            ),
-          ),
+),
+),
+),
           Expanded(
             child: ListView.builder(
               padding: const EdgeInsets.fromLTRB(10, 0, 10, 14),
@@ -1561,12 +1562,12 @@ class _PageSidebar extends StatelessWidget {
                 controller: controller,
                 document: document,
                 page: page,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+),
+),
+),
+],
+),
+);
   }
 }
 
@@ -1589,7 +1590,7 @@ class _ThumbnailTileState extends State<_ThumbnailTile> {
   late final Future<String?> thumbnail = widget.controller.thumbnailFor(
     widget.document,
     widget.page,
-  );
+);
 
   @override
   Widget build(BuildContext context) {
@@ -1609,8 +1610,8 @@ class _ThumbnailTileState extends State<_ThumbnailTile> {
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: selected ? const Color(0xFF5A9BDD) : Colors.transparent,
-            ),
-          ),
+),
+),
           child: Row(
             children: [
               Container(
@@ -1625,27 +1626,27 @@ class _ThumbnailTileState extends State<_ThumbnailTile> {
                           fit: BoxFit.contain,
                           errorBuilder: (_, _, _) =>
                               const Icon(Icons.broken_image_outlined),
-                        )
+)
                       : const Center(
                           child: SizedBox.square(
                             dimension: 16,
                             child: CircularProgressIndicator(strokeWidth: 2),
-                          ),
-                        ),
-                ),
-              ),
+),
+),
+),
+),
               const SizedBox(width: 10),
               Text(
                 '${widget.page + 1}',
                 style: TextStyle(
                   fontWeight: selected ? FontWeight.w700 : FontWeight.w400,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+),
+),
+],
+),
+),
+),
+);
   }
 }
 
@@ -1679,24 +1680,24 @@ class _PageCanvas extends StatelessWidget {
                               color: Color(0x42000000),
                               blurRadius: 18,
                               offset: Offset(0, 6),
-                            ),
-                          ],
-                        ),
+),
+],
+),
                         child: _EditablePage(
                           controller: controller,
                           document: document,
-                        ),
-                      ),
-              ),
-            ),
-          ),
+),
+),
+),
+),
+),
           if (document.busy)
             const Positioned(
               top: 0,
               left: 0,
               right: 0,
               child: LinearProgressIndicator(minHeight: 2),
-            ),
+),
           if (document.error case final error?)
             Positioned(
               left: 24,
@@ -1710,13 +1711,13 @@ class _PageCanvas extends StatelessWidget {
                   child: Text(
                     error,
                     style: const TextStyle(color: Color(0xFF8B1A1A)),
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
+),
+),
+),
+),
+],
+),
+);
   }
 }
 
@@ -1735,7 +1736,7 @@ class _EditablePage extends StatelessWidget {
     }
     return Semantics(
       image: true,
-      label: 'Nội dung trang PDF ${document.pageIndex + 1}',
+      label: L('page_content', {'page': document.pageIndex + 1}),
       child: GestureDetector(
         onTap: () => controller.selectAnnotation(null),
         child: SizedBox(
@@ -1752,9 +1753,9 @@ class _EditablePage extends StatelessWidget {
                   errorBuilder: (_, error, _) => Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text('$error'),
-                  ),
-                ),
-              ),
+),
+),
+),
               for (final annotation in document.currentAnnotations)
                 _AnnotationOverlay(
                   controller: controller,
@@ -1762,12 +1763,12 @@ class _EditablePage extends StatelessWidget {
                   annotation: annotation,
                   pageWidth: width,
                   pageHeight: height,
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
+),
+],
+),
+),
+),
+);
   }
 }
 
@@ -1833,7 +1834,7 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
               context,
               widget.controller,
               annotation: latest ?? annotation,
-            ),
+),
             onPanStart: (_) =>
                 widget.controller.selectAnnotation(annotation.id),
             onPanUpdate: _move,
@@ -1854,10 +1855,10 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
                             ? const Color(0x996EA8E5)
                             : Colors.transparent,
                         width: selected ? 2 : 1,
-                      ),
-                    ),
-                  ),
-                ),
+),
+),
+),
+),
                 if (selected && canResize)
                   Positioned(
                     right: -6,
@@ -1875,17 +1876,17 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
                             color: const Color(0xFF0B6BCB),
                             border: Border.all(color: Colors.white, width: 2),
                             shape: BoxShape.circle,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+),
+),
+),
+),
+),
+],
+),
+),
+),
+),
+);
   }
 
   void _move(DragUpdateDetails details) {
@@ -1908,9 +1909,9 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
       current.copyWith(
         bounds: geometry.fromViewport(
           PdfBounds(x: x, y: y, width: bounds.width, height: bounds.height),
-        ),
-      ),
-    );
+),
+),
+);
   }
 
   void _resize(DragUpdateDetails details) {
@@ -1937,9 +1938,9 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
       current.copyWith(
         bounds: geometry.fromViewport(
           PdfBounds(x: bounds.x, y: bounds.y, width: width, height: height),
-        ),
-      ),
-    );
+),
+),
+);
   }
 
   PdfPageGeometry get _geometry =>
@@ -1950,9 +1951,9 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
           y: 0,
           width: widget.pageWidth / widget.document.zoom,
           height: widget.pageHeight / widget.document.zoom,
-        ),
+),
         rotation: 0,
-      );
+);
 
   void _commitLatest() {
     final annotation = latest;
@@ -1961,9 +1962,9 @@ class _AnnotationOverlayState extends State<_AnnotationOverlay> {
 }
 
 String _annotationLabel(PdfAnnotation annotation) => switch (annotation.kind) {
-  PdfAnnotationKind.freeText => 'Chữ: ${annotation.contents ?? ''}',
-  PdfAnnotationKind.note => 'Ghi chú: ${annotation.contents ?? ''}',
-  PdfAnnotationKind.image => 'Ảnh đã chèn',
+  PdfAnnotationKind.freeText => L('text_label', {'text': annotation.contents ?? ''}),
+  PdfAnnotationKind.note => L('note_label', {'text': annotation.contents ?? ''}),
+  PdfAnnotationKind.image => L('inserted_image'),
   PdfAnnotationKind.unknown => 'Annotation PDF',
 };
 
@@ -1979,12 +1980,12 @@ Future<void> _editSelectedAnnotation(
       context,
       controller,
       annotation: selected,
-    ),
+),
     PdfAnnotationKind.note => _showNoteEditor(
       context,
       controller,
       annotation: selected,
-    ),
+),
     PdfAnnotationKind.image => controller.pickAndReplaceSelectedImage(),
     PdfAnnotationKind.unknown => Future<void>.value(),
   };
@@ -1999,7 +2000,7 @@ Future<void> _showTextEditor(
   final initialStyle = annotation?.textStyle ?? const PdfTextStyle();
   final fontSizeController = TextEditingController(
     text: initialStyle.fontSize.toStringAsFixed(0),
-  );
+);
   var alignment = initialStyle.alignment;
   var isBold = initialStyle.isBold;
   var isItalic = initialStyle.isItalic;
@@ -2009,13 +2010,13 @@ Future<void> _showTextEditor(
         (color.red - initialStyle.color.red).abs() < 0.02 &&
         (color.green - initialStyle.color.green).abs() < 0.02 &&
         (color.blue - initialStyle.color.blue).abs() < 0.02,
-  );
+);
   if (colorIndex < 0) colorIndex = 0;
   final accepted = await showDialog<bool>(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setDialogState) => AlertDialog(
-        title: Text(annotation == null ? 'Chèn chữ' : 'Sửa chữ và định dạng'),
+        title: Text(annotation == null ? L('insert_text') : L('edit_text_and_format')),
         content: SizedBox(
           width: 480,
           child: Column(
@@ -2027,11 +2028,11 @@ Future<void> _showTextEditor(
                 autofocus: true,
                 minLines: 2,
                 maxLines: 5,
-                decoration: const InputDecoration(
-                  labelText: 'Nội dung',
+                decoration:  InputDecoration(
+                  labelText: L('content'),
                   border: OutlineInputBorder(),
-                ),
-              ),
+),
+),
               const SizedBox(height: 14),
               Wrap(
                 spacing: 10,
@@ -2043,32 +2044,32 @@ Future<void> _showTextEditor(
                     child: TextField(
                       controller: fontSizeController,
                       keyboardType: TextInputType.number,
-                      decoration: const InputDecoration(
-                        labelText: 'Cỡ chữ',
+                      decoration:  InputDecoration(
+                        labelText: L('font_size'),
                         border: OutlineInputBorder(),
-                      ),
-                    ),
-                  ),
+),
+),
+),
                   DropdownButton<PdfTextAlignment>(
                     value: alignment,
-                    items: const [
+                    items:  [
                       DropdownMenuItem(
                         value: PdfTextAlignment.left,
-                        child: Text('Căn trái'),
-                      ),
+                        child: Text(L('align_left')),
+),
                       DropdownMenuItem(
                         value: PdfTextAlignment.center,
-                        child: Text('Căn giữa'),
-                      ),
+                        child: Text(L('align_center')),
+),
                       DropdownMenuItem(
                         value: PdfTextAlignment.right,
-                        child: Text('Căn phải'),
-                      ),
-                    ],
+                        child: Text(L('align_right')),
+),
+],
                     onChanged: (value) => setDialogState(
                       () => alignment = value ?? PdfTextAlignment.left,
-                    ),
-                  ),
+),
+),
                   DropdownButton<int>(
                     value: colorIndex,
                     items: List.generate(
@@ -2082,56 +2083,56 @@ Future<void> _showTextEditor(
                               width: 14,
                               height: 14,
                               color: _flutterColor(_colorChoices[index]),
-                            ),
+),
                             const SizedBox(width: 7),
                             Text(_colorNames[index]),
-                          ],
-                        ),
-                      ),
-                    ),
+],
+),
+),
+),
                     onChanged: (value) =>
                         setDialogState(() => colorIndex = value ?? 0),
-                  ),
+),
                   FilterChip(
                     label: const Text('B'),
                     selected: isBold,
                     onSelected: (value) => setDialogState(() => isBold = value),
-                  ),
+),
                   FilterChip(
                     label: const Text('I'),
                     selected: isItalic,
                     onSelected: (value) =>
                         setDialogState(() => isItalic = value),
-                  ),
+),
                   FilterChip(
                     label: const Text('U'),
                     selected: isUnderline,
                     onSelected: (value) =>
                         setDialogState(() => isUnderline = value),
-                  ),
-                ],
-              ),
+),
+],
+),
               const SizedBox(height: 10),
-              const Text(
-                'Sau khi chèn, kéo khung để di chuyển; kéo chấm xanh để đổi kích thước.',
+               Text(
+                L('after_insert_hint'),
                 style: TextStyle(fontSize: 12, color: Color(0xFF5D6B7D)),
-              ),
-            ],
-          ),
-        ),
+),
+],
+),
+),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Hủy'),
-          ),
+            child:  Text(L('cancel')),
+),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Áp dụng'),
-          ),
-        ],
-      ),
-    ),
-  );
+            child:  Text(L('apply')),
+),
+],
+),
+),
+);
   if (accepted == true && textController.text.trim().isNotEmpty) {
     final fontSize = double.tryParse(fontSizeController.text) ?? 14;
     final style = PdfTextStyle(
@@ -2141,7 +2142,7 @@ Future<void> _showTextEditor(
       isBold: isBold,
       isItalic: isItalic,
       isUnderline: isUnderline,
-    );
+);
     if (annotation == null) {
       await controller.addText(textController.text, style);
     } else {
@@ -2149,8 +2150,8 @@ Future<void> _showTextEditor(
         annotation.copyWith(
           contents: textController.text.trim(),
           textStyle: style,
-        ),
-      );
+),
+);
     }
   }
   textController.dispose();
@@ -2166,7 +2167,7 @@ Future<void> _showNoteEditor(
   final accepted = await showDialog<bool>(
     context: context,
     builder: (context) => AlertDialog(
-      title: Text(annotation == null ? 'Chèn ghi chú' : 'Sửa ghi chú'),
+      title: Text(annotation == null ? L('insert_note') : L('edit_note')),
       content: SizedBox(
         width: 420,
         child: TextField(
@@ -2174,31 +2175,31 @@ Future<void> _showNoteEditor(
           autofocus: true,
           minLines: 4,
           maxLines: 8,
-          decoration: const InputDecoration(
-            labelText: 'Nội dung ghi chú',
+          decoration:  InputDecoration(
+            labelText: L('note_content'),
             border: OutlineInputBorder(),
-          ),
-        ),
-      ),
+),
+),
+),
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context, false),
-          child: const Text('Hủy'),
-        ),
+          child:  Text(L('cancel')),
+),
         FilledButton(
           onPressed: () => Navigator.pop(context, true),
-          child: const Text('Áp dụng'),
-        ),
-      ],
-    ),
-  );
+          child:  Text(L('apply')),
+),
+],
+),
+);
   if (accepted == true && textController.text.trim().isNotEmpty) {
     if (annotation == null) {
       await controller.addNote(textController.text);
     } else {
       await controller.commitAnnotation(
         annotation.copyWith(contents: textController.text.trim()),
-      );
+);
     }
   }
   textController.dispose();
@@ -2211,7 +2212,7 @@ const _colorChoices = [
   PdfColor(red: 0.08, green: 0.5, blue: 0.22),
 ];
 
-const _colorNames = ['Đen', 'Xanh dương', 'Đỏ', 'Xanh lá'];
+final _colorNames = [L('black'), L('blue'), L('red'), L('green')];
 
 Color _flutterColor(PdfColor color) => Color.fromRGBO(
   (color.red * 255).round(),
@@ -2236,7 +2237,7 @@ class _Welcome extends StatelessWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
             side: const BorderSide(color: Color(0xFFD9E0EA)),
-          ),
+),
           child: Padding(
             padding: const EdgeInsets.all(38),
             child: Column(
@@ -2246,43 +2247,43 @@ class _Welcome extends StatelessWidget {
                   Icons.picture_as_pdf_rounded,
                   size: 64,
                   color: Color(0xFF0B5ED7),
-                ),
+),
                 const SizedBox(height: 16),
-                const Text(
-                  'Mở một tài liệu PDF',
+                 Text(
+                  L('open_a_pdf'),
                   style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700),
-                ),
+),
                 const SizedBox(height: 8),
-                const Text(
-                  'Tài liệu được xử lý hoàn toàn trên máy của bạn.',
+                 Text(
+                  L('processed_locally'),
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Color(0xFF5D6B7D)),
-                ),
+),
                 if (controller.startupError case final error?) ...[
                   const SizedBox(height: 16),
                   Text(
                     error,
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Color(0xFF9A3412)),
-                  ),
-                ],
+),
+],
                 const SizedBox(height: 22),
                 FilledButton.icon(
                   onPressed: controller.pickAndOpen,
                   icon: const Icon(Icons.folder_open_rounded),
-                  label: const Text('Mở PDF'),
-                ),
+                  label:  Text(L('open_pdf')),
+),
                 const SizedBox(height: 10),
                 const Text(
                   'Ctrl+O',
                   style: TextStyle(fontSize: 12, color: Color(0xFF778396)),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
+),
+],
+),
+),
+),
+),
+);
   }
 }
 
@@ -2301,35 +2302,35 @@ class _StatusBar extends StatelessWidget {
       decoration: const BoxDecoration(
         color: Colors.white,
         border: Border(top: BorderSide(color: Color(0xFFD9E0EA))),
-      ),
+),
       child: Row(
         children: [
           const Icon(
             Icons.lock_outline_rounded,
             size: 14,
             color: Color(0xFF287A4B),
-          ),
+),
           const SizedBox(width: 5),
-          const Text(
-            'Xử lý cục bộ',
+           Text(
+            L('local_processing'),
             style: TextStyle(fontSize: 11, color: Color(0xFF287A4B)),
-          ),
+),
           const Spacer(),
           if (document != null)
             Text(
               '${document.info.pageCount} trang',
               style: const TextStyle(fontSize: 11, color: Color(0xFF66758A)),
-            ),
+),
           if (health != null) ...[
             const SizedBox(width: 14),
             Text(
               health.engineVersion,
               style: const TextStyle(fontSize: 11, color: Color(0xFF66758A)),
-            ),
-          ],
-        ],
-      ),
-    );
+),
+],
+],
+),
+);
   }
 }
 
@@ -2355,10 +2356,10 @@ class _ToolButton extends StatelessWidget {
         ? IconButton.styleFrom(
             backgroundColor: const Color(0xFFE2EEFB),
             foregroundColor: const Color(0xFF075EA8),
-          )
+)
         : null,
     onPressed: onPressed,
-  );
+);
 }
 
 class _ToolbarDivider extends StatelessWidget {
@@ -2407,4 +2408,32 @@ class _ZoomInIntent extends Intent {
 
 class _ZoomOutIntent extends Intent {
   const _ZoomOutIntent();
+}
+
+/// Bộ chọn ngôn ngữ trên toolbar.
+///
+/// Nhãn của mỗi ngôn ngữ viết bằng CHÍNH ngôn ngữ đó và không bao giờ được
+/// dịch: người đang mắc kẹt trong một UI họ không đọc được tìm ra ngôn ngữ của
+/// mình bằng cách nhận ra tên của nó. Đây cũng là ngoại lệ mà gate i18n bên
+/// macOS đánh dấu `i18n-exempt`.
+class _LanguageButton extends StatelessWidget {
+  const _LanguageButton();
+
+  @override
+  Widget build(BuildContext context) {
+    return PopupMenuButton<AppLanguage>(
+      tooltip: L('language'),
+      icon: const Icon(Icons.translate_rounded, size: 20),
+      initialValue: AppStrings.language.value,
+      onSelected: AppStrings.save,
+      itemBuilder: (context) => const [
+        PopupMenuItem(value: AppLanguage.system, child: Text('System')),
+        PopupMenuItem(value: AppLanguage.english, child: Text('English')),
+        PopupMenuItem(
+          value: AppLanguage.vietnamese,
+          child: Text('Tiếng Việt'), // i18n-exempt: tên ngôn ngữ, không dịch
+        ),
+],
+);
+  }
 }

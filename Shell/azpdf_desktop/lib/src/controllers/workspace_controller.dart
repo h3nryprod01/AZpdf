@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 
 import '../engine/azpdf_engine_client.dart';
 import '../models/pdf_models.dart';
+import '../l10n/strings.dart';
 
 class _PdfHistoryEntry {
   const _PdfHistoryEntry({required this.path, required this.revision});
@@ -68,7 +69,7 @@ class WorkspaceController extends ChangeNotifier {
   final List<OpenedPdf> documents = [];
   final Directory cacheDirectory = Directory.systemTemp.createTempSync(
     'azpdf-shell-',
-  );
+);
 
   EngineHealth? health;
   String? startupError;
@@ -93,12 +94,12 @@ class WorkspaceController extends ChangeNotifier {
   }
 
   Future<void> pickAndOpen() async {
-    const pdfGroup = XTypeGroup(
+    final pdfGroup = XTypeGroup(
       label: 'PDF',
       extensions: ['pdf'],
       mimeTypes: ['application/pdf'],
-    );
-    final selected = await openFile(acceptedTypeGroups: const [pdfGroup]);
+);
+    final selected = await openFile(acceptedTypeGroups: [pdfGroup]);
     if (selected != null) await openPath(selected.path);
   }
 
@@ -117,7 +118,7 @@ class WorkspaceController extends ChangeNotifier {
       final info = await engine.documentInfo(workingPath);
       documents.add(
         OpenedPdf(path: path, workingPath: workingPath, info: info),
-      );
+);
       selectedIndex = documents.length - 1;
       startupError = null;
       notifyListeners();
@@ -144,19 +145,19 @@ class WorkspaceController extends ChangeNotifier {
         document.pageIndex,
         document.zoom,
         output,
-      );
+);
       document.renderedPath = rendered.output;
       document.renderedWidth = rendered.width;
       document.renderedHeight = rendered.height;
       document.pageGeometry = PdfPageGeometry(
         pageBox: rendered.pageBox,
         rotation: rendered.rotation,
-      );
+);
       if (document.info.capabilities.contains('annotations')) {
         document.annotations[document.pageIndex] = await engine.annotations(
           document.workingPath,
           document.pageIndex,
-        );
+);
         if (document.selectedAnnotationId != null &&
             document.selectedAnnotation == null) {
           document.selectedAnnotationId = null;
@@ -181,7 +182,7 @@ class WorkspaceController extends ChangeNotifier {
         page,
         0.18,
         output,
-      );
+);
       document.thumbnails[page] = rendered.output;
       notifyListeners();
       return rendered.output;
@@ -255,7 +256,7 @@ class WorkspaceController extends ChangeNotifier {
       document.searchMatches = await engine.search(
         document.workingPath,
         document.searchQuery,
-      );
+);
       if (document.searchMatches.isNotEmpty) {
         document.pageIndex = document.searchMatches.first.pageIndex;
         await renderCurrent();
@@ -306,7 +307,7 @@ class WorkspaceController extends ChangeNotifier {
         document.workingPath,
         output,
         page: document.pageIndex,
-      );
+);
       document.layoutReview = result;
       return result;
     } catch (error) {
@@ -324,10 +325,10 @@ class WorkspaceController extends ChangeNotifier {
   Future<PdfSignatureVerification> verifySignatures() async {
     final document = current;
     if (document == null || document.busy) {
-      throw const EngineClientException(
+      throw  EngineClientException(
         'document_busy',
-        'Tài liệu đang bận hoặc chưa được mở.',
-      );
+        L('document_busy'),
+);
     }
     document.busy = true;
     document.error = null;
@@ -366,12 +367,12 @@ class WorkspaceController extends ChangeNotifier {
         final chmod = await Process.run('/bin/chmod', [
           '600',
           passwordPath,
-        ], runInShell: false);
+], runInShell: false);
         if (chmod.exitCode != 0) {
-          throw const EngineClientException(
+          throw  EngineClientException(
             'credential_permissions',
-            'Không thể bảo vệ file mật khẩu PKCS#12.',
-          );
+            L('cannot_secure_passfile'),
+);
         }
       }
       before = await _snapshot(document);
@@ -385,12 +386,12 @@ class WorkspaceController extends ChangeNotifier {
         passwordFilePath: passwordPath,
         profile: profile,
         timestampUrl: timestampUrl,
-      );
+);
       if (!result.verification.isCryptographicallyValid) {
-        throw const EngineClientException(
+        throw  EngineClientException(
           'invalid_signature_output',
-          'PDF đã ký không vượt qua xác minh toàn vẹn.',
-        );
+          L('signed_pdf_failed_integrity'),
+);
       }
       await File(result.output).copy(document.workingPath);
       _deleteFile(result.output);
@@ -444,7 +445,7 @@ class WorkspaceController extends ChangeNotifier {
         language: language,
         deskew: deskew,
         rotatePages: rotatePages,
-      );
+);
       await File(result.output).copy(document.workingPath);
       _deleteFile(result.output);
       _commitMutation(document, before);
@@ -471,14 +472,14 @@ class WorkspaceController extends ChangeNotifier {
     if (document == null) return;
     final location = await getSaveLocation(
       suggestedName: document.name,
-      acceptedTypeGroups: const [
+      acceptedTypeGroups: [
         XTypeGroup(
           label: 'PDF',
           extensions: ['pdf'],
           mimeTypes: ['application/pdf'],
-        ),
-      ],
-    );
+),
+],
+);
     if (location == null) return;
     await engine.saveAs(document.workingPath, location.path);
     document.path = location.path;
@@ -524,13 +525,13 @@ class WorkspaceController extends ChangeNotifier {
           document.workingPath,
           annotation,
           imagePath: imagePath,
-        );
+);
       } else {
         await engine.upsertAnnotation(
           document.workingPath,
           document.workingPath,
           annotation,
-        );
+);
       }
       _commitMutation(document, before);
       document.selectedAnnotationId = annotation.id;
@@ -556,8 +557,8 @@ class WorkspaceController extends ChangeNotifier {
         bounds: _centeredBounds(document, width: 260, height: 64),
         contents: contents.trim(),
         textStyle: style,
-      ),
-    );
+),
+);
   }
 
   Future<void> addNote(String contents) async {
@@ -571,19 +572,19 @@ class WorkspaceController extends ChangeNotifier {
         bounds: _centeredBounds(document, width: 20, height: 20),
         contents: contents.trim(),
         color: const PdfColor(red: 1, green: 0.82, blue: 0),
-      ),
-    );
+),
+);
   }
 
   Future<void> pickAndInsertImage() async {
     final document = current;
     if (document == null) return;
-    const imageGroup = XTypeGroup(
-      label: 'Ảnh',
+    final imageGroup = XTypeGroup(
+      label: L('image'),
       extensions: ['png', 'jpg', 'jpeg'],
       mimeTypes: ['image/png', 'image/jpeg'],
-    );
-    final selected = await openFile(acceptedTypeGroups: const [imageGroup]);
+);
+    final selected = await openFile(acceptedTypeGroups: [imageGroup]);
     if (selected == null) return;
     const width = 180.0;
     const height = 120.0;
@@ -593,9 +594,9 @@ class WorkspaceController extends ChangeNotifier {
         kind: PdfAnnotationKind.image,
         pageIndex: document.pageIndex,
         bounds: _centeredBounds(document, width: width, height: height),
-      ),
+),
       imagePath: selected.path,
-    );
+);
   }
 
   Future<void> pickAndReplaceSelectedImage() async {
@@ -603,12 +604,12 @@ class WorkspaceController extends ChangeNotifier {
     if (annotation == null || annotation.kind != PdfAnnotationKind.image) {
       return;
     }
-    const imageGroup = XTypeGroup(
-      label: 'Ảnh',
+    final imageGroup = XTypeGroup(
+      label: L('image'),
       extensions: ['png', 'jpg', 'jpeg'],
       mimeTypes: ['image/png', 'image/jpeg'],
-    );
-    final selected = await openFile(acceptedTypeGroups: const [imageGroup]);
+);
+    final selected = await openFile(acceptedTypeGroups: [imageGroup]);
     if (selected != null) {
       await commitAnnotation(annotation, imagePath: selected.path);
     }
@@ -628,7 +629,7 @@ class WorkspaceController extends ChangeNotifier {
         document.workingPath,
         annotation.pageIndex,
         annotation.id,
-      );
+);
       _commitMutation(document, before);
       document.selectedAnnotationId = null;
       document.thumbnails.remove(document.pageIndex);
@@ -712,7 +713,7 @@ class WorkspaceController extends ChangeNotifier {
   Future<void> _restoreFailedMutation(
     OpenedPdf document,
     _PdfHistoryEntry before,
-  ) async {
+) async {
     try {
       await File(before.path).copy(document.workingPath);
     } finally {
@@ -751,17 +752,17 @@ class WorkspaceController extends ChangeNotifier {
             y: 0,
             width: (document.renderedWidth ?? 595 * zoom) / zoom,
             height: (document.renderedHeight ?? 842 * zoom) / zoom,
-          ),
+),
           rotation: 0,
-        );
+);
     return geometry.fromViewport(
       PdfBounds(
         x: (geometry.viewportWidth - width) / 2,
         y: (geometry.viewportHeight - height) / 2,
         width: width,
         height: height,
-      ),
-    );
+),
+);
   }
 
   @override

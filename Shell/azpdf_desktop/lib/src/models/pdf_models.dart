@@ -1,3 +1,4 @@
+import '../l10n/strings.dart';
 class EngineHealth {
   const EngineHealth({
     required this.protocolVersion,
@@ -151,24 +152,24 @@ class PdfSignatureVerification {
 
   String get summary {
     final integrityText = switch (integrity) {
-      'valid' => 'Tính toàn vẹn chữ ký hợp lệ.',
-      'invalid' => 'Chữ ký không khớp với nội dung PDF.',
-      'unsigned' => 'PDF không có chữ ký số nhúng.',
-      _ => 'Chưa xác định được tính toàn vẹn chữ ký.',
+      'valid' => L('integrity_valid'),
+      'invalid' => L('signature_mismatch'),
+      'unsigned' => L('pdf_unsigned'),
+      _ => L('integrity_unknown'),
     };
     final trustText = switch (certificateTrust) {
-      'trusted' => 'Certificate được trust store hiện tại tin cậy.',
-      'untrusted' => 'Certificate chưa được trust store hiện tại tin cậy.',
-      _ => 'Chưa xác định được certificate trust.',
+      'trusted' => L('cert_trusted'),
+      'untrusted' => L('cert_untrusted'),
+      _ => L('cert_trust_unknown'),
     };
     return [
       integrityText,
       trustText,
-      if (signerName != null) 'Người ký: $signerName.',
-      hasTimestamp ? 'Có timestamp.' : 'Chưa phát hiện timestamp.',
+      if (signerName != null) L('signer_is', {'name': signerName}),
+      hasTimestamp ? L('has_timestamp') : L('no_timestamp'),
       hasValidationInfo
-          ? 'Có dữ liệu validation/DSS.'
-          : 'Chưa phát hiện dữ liệu validation/DSS.',
+          ? L('has_dss')
+          : L('no_dss'),
     ].join(' ');
   }
 }

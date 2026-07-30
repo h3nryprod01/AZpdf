@@ -6,6 +6,7 @@ import 'package:azpdf_desktop/src/engine/azpdf_engine_client.dart';
 import 'package:azpdf_desktop/src/models/pdf_models.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:azpdf_desktop/src/l10n/strings.dart';
 
 void main() {
   test('maps PDF annotation bounds through all page rotations', () {
@@ -32,12 +33,12 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('AZpdf'), findsOneWidget);
-    expect(find.text('Mở một tài liệu PDF'), findsOneWidget);
+    expect(find.text(L('open_a_pdf')), findsOneWidget);
     expect(
-      find.text('Tài liệu được xử lý hoàn toàn trên máy của bạn.'),
+      find.text(L('processed_locally')),
       findsOneWidget,
     );
-    expect(find.text('Xử lý cục bộ'), findsOneWidget);
+    expect(find.text(L('local_processing')), findsOneWidget);
 
     controller.dispose();
   });
@@ -55,26 +56,26 @@ void main() {
     expect(find.text('1 / 2'), findsOneWidget);
     expect(find.text('2 trang'), findsOneWidget);
     expect(
-      find.byTooltip('Chèn chữ có thể di chuyển và định dạng'),
+      find.byTooltip(L('insert_text_hint')),
       findsOneWidget,
     );
-    expect(find.byTooltip('Chèn ghi chú có thể di chuyển'), findsOneWidget);
+    expect(find.byTooltip(L('insert_note_hint')), findsOneWidget);
     expect(
-      find.byTooltip('Chèn ảnh có thể di chuyển và đổi kích thước'),
+      find.byTooltip(L('insert_image_hint')),
       findsOneWidget,
     );
     expect(
-      find.byTooltip('OCR cục bộ và tạo lớp chữ tìm kiếm'),
+      find.byTooltip(L('ocr_local_hint')),
       findsOneWidget,
     );
-    expect(find.byTooltip('Review bố cục và reading order'), findsOneWidget);
-    expect(find.byTooltip('Ký số PAdES bằng PKCS#12'), findsOneWidget);
+    expect(find.byTooltip(L('review_layout')), findsOneWidget);
+    expect(find.byTooltip(L('pades_sign_with_pkcs12')), findsOneWidget);
     expect(
-      find.byTooltip('Xác minh tính toàn vẹn chữ ký PAdES'),
+      find.byTooltip(L('verify_pades_integrity')),
       findsOneWidget,
     );
-    expect(find.byTooltip('Hoàn tác (Ctrl+Z)'), findsOneWidget);
-    expect(find.byTooltip('Làm lại (Ctrl+Shift+Z)'), findsOneWidget);
+    expect(find.byTooltip(L('undo_shortcut')), findsOneWidget);
+    expect(find.byTooltip(L('redo_shortcut')), findsOneWidget);
 
     controller.dispose();
     source.deleteSync();
@@ -121,7 +122,7 @@ void main() {
     await tester.runAsync(() => controller.openPath(source.path));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Review bố cục và reading order'));
+    await tester.tap(find.byTooltip(L('review_layout')));
     await tester.pump();
     for (var attempt = 0; attempt < 50; attempt++) {
       await tester.runAsync(
@@ -135,21 +136,21 @@ void main() {
     }
     await tester.pumpAndSettle();
 
-    expect(find.text('Review bố cục và reading order'), findsOneWidget);
+    expect(find.text(L('review_layout')), findsOneWidget);
     expect(find.textContaining('MuPDF baseline'), findsOneWidget);
     expect(find.text('AZpdf layout review'), findsOneWidget);
     expect(find.text('Test document layout'), findsOneWidget);
-    expect(find.text('Tiêu đề'), findsWidgets);
-    expect(find.text('Đoạn văn'), findsWidgets);
+    expect(find.text(L('heading')), findsWidgets);
+    expect(find.text(L('paragraph')), findsWidgets);
     expect(
       find.byKey(const ValueKey('document-ir-block-block-1')),
       findsOneWidget,
     );
     expect(controller.current?.layoutReview?.plainText, contains('AZpdf'));
 
-    await tester.tap(find.byTooltip('Đóng review bố cục'));
+    await tester.tap(find.byTooltip(L('close_layout_review')));
     await tester.pumpAndSettle();
-    expect(find.text('Review bố cục và reading order'), findsNothing);
+    expect(find.text(L('review_layout')), findsNothing);
 
     controller.dispose();
     source.deleteSync();
@@ -202,21 +203,21 @@ void main() {
     });
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('Đóng close-warning.pdf'));
+    await tester.tap(find.byTooltip(L('close_named', {'name': 'close-warning.pdf'})));
     await tester.pumpAndSettle();
-    expect(find.text('Lưu thay đổi?'), findsOneWidget);
+    expect(find.text(L('save_changes_q')), findsOneWidget);
     expect(
-      find.text('“close-warning.pdf” có thay đổi chưa được lưu.'),
+      find.text(L('named_has_unsaved', {'name': 'close-warning.pdf'})),
       findsOneWidget,
     );
 
-    await tester.tap(find.text('Hủy'));
+    await tester.tap(find.text(L('cancel')));
     await tester.pumpAndSettle();
     expect(controller.documents, hasLength(1));
 
-    await tester.tap(find.byTooltip('Đóng close-warning.pdf'));
+    await tester.tap(find.byTooltip(L('close_named', {'name': 'close-warning.pdf'})));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Không lưu'));
+    await tester.tap(find.text(L('dont_save')));
     await tester.pumpAndSettle();
     expect(controller.documents, isEmpty);
 
@@ -238,13 +239,13 @@ void main() {
     await tester.runAsync(() => controller.openPath(source.path));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byTooltip('OCR cục bộ và tạo lớp chữ tìm kiếm'));
+    await tester.tap(find.byTooltip(L('ocr_local_hint')));
     await tester.pumpAndSettle();
-    expect(find.text('OCR toàn bộ tài liệu'), findsOneWidget);
+    expect(find.text(L('ocr_whole_document')), findsOneWidget);
     expect(find.textContaining('OCRmyPDF 17.8.1'), findsOneWidget);
-    expect(find.textContaining('chưa hiểu ngữ nghĩa bảng'), findsOneWidget);
+    expect(find.textContaining(L('baseline_no_table_semantics').split('.').first), findsOneWidget);
 
-    final startButton = find.widgetWithText(FilledButton, 'Bắt đầu OCR');
+    final startButton = find.widgetWithText(FilledButton, L('start_ocr'));
     expect(startButton, findsOneWidget);
     await tester.ensureVisible(startButton);
     await tester.tap(startButton);
@@ -260,13 +261,13 @@ void main() {
     }
     await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('OCR toàn bộ tài liệu'), findsNothing);
+    expect(find.text(L('ocr_whole_document')), findsNothing);
     expect(controller.current?.busy, isFalse);
     expect(controller.current?.error, isNull);
     expect(engine.lastOcrLanguage, 'vie+eng');
     expect(controller.current?.dirty, isTrue);
     expect(controller.current?.canUndo, isTrue);
-    expect(find.textContaining('OCR hoàn tất bằng OCRmyPDF'), findsOneWidget);
+    expect(find.textContaining(L('ocr_complete', {'provider': 'OCRmyPDF', 'version': ''}).split('.').first), findsOneWidget);
 
     engine.searchResults = const [
       PdfSearchMatch(pageIndex: 0, text: 'Portable'),
