@@ -80,13 +80,40 @@ trên Windows: **build xanh** (test chưa xác nhận). Rào cản thật sự c
 mà là **đóng gói 4 runtime Windows** — đặc biệt OCRmyPDF cần Tesseract + Ghostscript + qpdf,
 đều installer-based.
 
+### Smoke test trên Windows 11 THẬT (2026-07-31)
+
+Không còn là suy đoán từ CI. Artifact do CI dựng (run `30563269975`) được chạy trong VM
+Windows thật; kết quả script tự ghi ra file, đọc lại từ phía host chứ không qua thuật lại:
+
+| Hạng mục | Kết quả đo |
+|---|---|
+| OS | `Microsoft Windows NT 10.0.26200.0` (Windows 11) |
+| `azpdf_desktop.exe` | **CHẠY** — pid 10868, 75 MB RAM, window title `AZpdf`, có cửa sổ `True` |
+| DLL hệ thống thiếu | **KHÔNG** — không sự kiện lỗi nào trong Application log |
+| `azpdf-engine.exe health` | `{"ok":false,"error":{"code":"runtime_unavailable"}}`, exit=2 |
+
+**Vỏ GUI trên Windows coi như đã chứng minh**: mở được cửa sổ, vẽ được toolbar, không thiếu
+DLL hệ thống nào. Engine lỗi là **đã lường trước và đúng phạm vi** — artifact CI cố ý chỉ có
+`azpdf-engine.exe` + DLL runtime Swift, chưa đóng gói mutool; đây chính là khoảng trống
+"đóng gói 4 runtime" nói ở trên, không phải lỗi mới.
+
+Điều đáng giá hơn là **cách nó hỏng**: app không sập. Nó hiện đúng thông báo đã dịch
+("Không tìm thấy mutool. Đặt AZPDF_MUTOOL hoặc dùng --mutool /path/to/mutool.") ngay trong
+UI và vẫn giữ nút "Mở PDF" — đường lỗi có xử lý, không phải crash.
+
+**Phát hiện mới, chưa có trong kế hoạch nào:** UI Windows **chỉ có tiếng Việt**, không có bộ
+chọn ngôn ngữ. Trình chọn en/vi hiện chỉ tồn tại trong app macOS (`Support/Localization.swift`
++ Settings). Vỏ Flutter dùng chuỗi riêng. Với một bản Windows/Linux phát hành thật thì đây là
+khoảng trống i18n phải xử lý, ngang hàng với việc đóng gói runtime.
+
 ## Kết luận (1 câu)
 
-Windows v1 **khả thi**, và rào cản đã dịch chỗ: CI chứng minh **cả vỏ Flutter (`windows-shell`
-success) lẫn Swift core (`Build complete`, 90.5s, đủ target kể cả `azpdf-engine`) đều dựng được
-trên Windows** — điều mà bản nháp trước kết luận ngược lại vì một lỗi chữ hoa/thường trong URL;
-việc còn thiếu để gọi là "chạy được đã kiểm chứng" là `swift test` chạy được trên Windows,
-đóng gói 4 runtime (OCRmyPDF là phần khó nhất), và một smoke test trong VM thật.
+Windows v1 **khả thi, và đã qua mức "chạy được đã kiểm chứng" cho phần GUI**: CI dựng được cả
+vỏ Flutter lẫn Swift core (`Build complete`, 90.5s, đủ target kể cả `azpdf-engine`) — điều bản
+nháp trước kết luận ngược lại vì một lỗi chữ hoa/thường trong URL — và artifact đó **mở được
+cửa sổ trên Windows 11 thật, không thiếu DLL hệ thống nào**; ba việc còn lại để phát hành là
+đóng gói 4 runtime (OCRmyPDF khó nhất), i18n cho vỏ Flutter (hiện chỉ tiếng Việt), và
+`swift test` chạy được trên Windows.
 
 ## Ma trận khả thi
 
