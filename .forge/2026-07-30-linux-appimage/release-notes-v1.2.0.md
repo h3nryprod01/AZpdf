@@ -34,10 +34,21 @@ Linux download.
 
 ## Windows status (not in this release)
 
-Windows is **not** released in 1.2.0. CI proves the Flutter Windows shell builds
-(`windows-shell` is green); whether the Swift `azpdf-engine` builds on Windows is still open
-because no stable, pinned Swift-for-Windows installer URL could be found for the versions this
-project targets. The full feasibility analysis is in
+Windows is **not** released in 1.2.0, but the blocker has moved and it is no longer Swift. CI
+now builds **both halves on Windows**: the Flutter shell (`windows-shell`) and the Swift core
+including `azpdf-engine` (`windows-core`), the latter in about 90 seconds with no errors.
+
+An earlier draft of these notes said no stable Swift-for-Windows installer URL could be found.
+That was wrong. The download.swift.org path needs its directory segment lowercased while the
+file name keeps `-RELEASE`; get the case wrong and it 404s, which is what the draft mistook for
+a missing installer. It is there, 1.68 GB, HTTP 200.
+
+Two things still stand between this and a Windows release. Packaging the four runtimes is the
+real one — OCRmyPDF needs Tesseract, Ghostscript and qpdf, all installer-based. And `swift test`
+does not yet run on Windows: the built test binary exits `0xC000013A` before printing a single
+line, so `windows-core` builds the test targets without running them and says so in its step
+name rather than pretending otherwise. Exit codes and the five layers the Windows toolchain
+needs are recorded in
 [`qa-report/windows-feasibility-2026-07-29.md`](../../qa-report/windows-feasibility-2026-07-29.md).
 
 ## Verify / install
@@ -85,11 +96,20 @@ Bản Linux x86_64 AppImage. macOS 1.1.0 vẫn là bản macOS mới nhất; 1.2
 
 ## Trạng thái Windows (không có trong bản này)
 
-Windows **không** phát hành trong 1.2.0. CI chứng minh vỏ Flutter Windows build được
-(`windows-shell` xanh); việc `azpdf-engine` (Swift) có build được trên Windows hay không vẫn
-mở vì không tìm được URL installer Swift-for-Windows ổn định và đã pin cho các version dự án
-dùng. Phân tích khả thi đầy đủ ở
-[`qa-report/windows-feasibility-2026-07-29.md`](../../qa-report/windows-feasibility-2026-07-29.md).
+Windows **không** phát hành trong 1.2.0, nhưng rào cản đã dịch chỗ và không còn là Swift nữa.
+CI giờ build được **cả hai nửa trên Windows**: vỏ Flutter (`windows-shell`) và Swift core kể cả
+`azpdf-engine` (`windows-core`), nửa sau mất khoảng 90 giây, không một lỗi nào.
+
+Bản nháp trước của ghi chú này nói không tìm được URL installer Swift-for-Windows ổn định. Sai.
+Đường dẫn download.swift.org cần viết **thường** ở đoạn thư mục trong khi tên file giữ
+`-RELEASE`; nhầm chữ hoa/thường là 404, và bản nháp đã tưởng nhầm đó là "installer không tồn
+tại". Nó có thật, 1.68 GB, HTTP 200.
+
+Còn hai việc trước khi có bản Windows. Thật sự khó là đóng gói 4 runtime — OCRmyPDF cần
+Tesseract, Ghostscript và qpdf, đều installer-based. Và `swift test` chưa chạy được trên
+Windows: test binary thoát `0xC000013A` trước khi in nổi một dòng, nên `windows-core` chỉ biên
+dịch test target chứ không chạy, và **nói thẳng điều đó trong tên step** thay vì giả vờ. Mã lỗi
+và 5 lớp mà toolchain Windows cần đều được ghi trong
 
 ## Kiểm tra / cài đặt
 
