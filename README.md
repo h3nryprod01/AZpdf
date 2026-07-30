@@ -71,7 +71,7 @@ macOS releases ship with [third-party license notices](THIRD_PARTY_NOTICES.md) a
 ### Linux (v2 alpha)
 
 **Download — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, a single ~170 MB file.
-SHA-256 `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+SHA-256 `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
 (verify with `sha256sum AZpdf-x86_64.AppImage`). x86_64 only — there is no arm64 build
 yet. Make it executable and run: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
 The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu

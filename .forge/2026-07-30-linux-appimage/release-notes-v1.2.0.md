@@ -9,7 +9,7 @@ Linux download.
 
 - One file: `AZpdf-x86_64.AppImage` (~170 MB). Make it executable and run:
   `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
-- SHA-256: `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+- SHA-256: `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
   (verify with `sha256sum AZpdf-x86_64.AppImage`).
 - **x86_64 only.** There is no arm64 build yet.
 - The engine and its runtimes (MuPDF 1.28.0, OCRmyPDF/Tesseract, pyHanko) are self-contained
@@ -44,7 +44,7 @@ project targets. The full feasibility analysis is in
 
 ```bash
 sha256sum AZpdf-x86_64.AppImage
-# expect: ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112
+# expect: 6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848
 chmod +x AZpdf-x86_64.AppImage
 sudo apt-get install -y libgtk-3-0t64 libegl1 libgl1 libgles2   # only if your system lacks them
 ./AZpdf-x86_64.AppImage
@@ -60,7 +60,7 @@ Bản Linux x86_64 AppImage. macOS 1.1.0 vẫn là bản macOS mới nhất; 1.2
 
 - Một file: `AZpdf-x86_64.AppImage` (~170 MB). Cấp quyền chạy rồi mở:
   `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
-- SHA-256: `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+- SHA-256: `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
   (kiểm bằng `sha256sum AZpdf-x86_64.AppImage`).
 - **Chỉ x86_64.** Chưa có bản arm64.
 - Engine và runtime (MuPDF 1.28.0, OCRmyPDF/Tesseract, pyHanko) tự chứa và đã được kiểm chạy
@@ -95,7 +95,7 @@ dùng. Phân tích khả thi đầy đủ ở
 
 ```bash
 sha256sum AZpdf-x86_64.AppImage
-# kỳ vọng: ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112
+# kỳ vọng: 6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848
 chmod +x AZpdf-x86_64.AppImage
 sudo apt-get install -y libgtk-3-0t64 libegl1 libgl1 libgles2   # chỉ khi hệ thống thiếu
 ./AZpdf-x86_64.AppImage

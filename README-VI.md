@@ -71,7 +71,7 @@ Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) v
 ### Linux v2 alpha
 
 **Tải xuống — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, một file duy nhất ~170 MB.
-SHA-256 `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+SHA-256 `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
 (kiểm bằng `sha256sum AZpdf-x86_64.AppImage`). Chỉ có bản x86_64 — chưa có arm64.
 Cấp quyền chạy rồi mở: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
 Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
