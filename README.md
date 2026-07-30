@@ -70,7 +70,19 @@ macOS releases ship with [third-party license notices](THIRD_PARTY_NOTICES.md) a
 
 ### Linux (v2 alpha)
 
-Linux uses a Flutter shell that talks to the same Swift core over JSON Lines IPC. The alpha bundle is self-contained — engine, MuPDF 1.28.0, OCRmyPDF/Tesseract, and pyHanko; health checks, OCR to searchable PDF, and PAdES Baseline B signing/verification all ran successfully in an Ubuntu 24.04 container with no network and no preinstalled dependencies. A development Flatpak on the Freedesktop 25.08 runtime has passed the sandbox probe, runtime health checks, and a GTK document-portal end-to-end test with real PDF fixtures; a reproducible public manifest for Flathub and real KDE portals are the next steps. The shell can display the document's reading order (`DocumentIR`) as an overlay on the page for review. See the [cross-platform shell guide](Shell/azpdf_desktop/README.md), the [UI/UX report](qa-report/azpdf-linux-shell-report-2026-07-18.html), and the [Ubuntu workstation QA](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
+**Download — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, a single ~170 MB file.
+SHA-256 `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+(verify with `sha256sum AZpdf-x86_64.AppImage`). x86_64 only — there is no arm64 build
+yet. Make it executable and run: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
+The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu
+24.04 container; the Flutter shell, like every Flutter Linux app, dynamically links GTK3 and
+OpenGL, so it needs four system libraries: `libgtk-3-0t64` (or `libgtk-3-0` on older
+distributions), `libegl1`, `libgl1`, `libgles2` — e.g.
+`sudo apt-get install -y libgtk-3-0t64 libegl1 libgl1 libgles2`. Any GTK desktop (GNOME,
+XFCE, Cinnamon, MATE) already has them; only a minimal system or bare container needs to
+install them, plus a display server. An SPDX SBOM ships beside the download.
+
+Linux uses a Flutter shell that talks to the same Swift core over JSON Lines IPC. The engine and runtimes (MuPDF 1.28.0, OCRmyPDF/Tesseract, pyHanko) are self-contained; health checks, OCR to searchable PDF, and PAdES Baseline B signing/verification all ran in an Ubuntu 24.04 container — the GUI shell needs the four GTK/GL libraries listed above. A development Flatpak on the Freedesktop 25.08 runtime has passed the sandbox probe, runtime health checks, and a GTK document-portal end-to-end test with real PDF fixtures; a reproducible public manifest for Flathub and real KDE portals are the next steps. The shell can display the document's reading order (`DocumentIR`) as an overlay on the page for review. See the [cross-platform shell guide](Shell/azpdf_desktop/README.md), the [UI/UX report](qa-report/azpdf-linux-shell-report-2026-07-18.html), and the [Ubuntu workstation QA](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
 
 Technical roadmap and Windows/Linux groundwork: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Local plugin conventions: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 

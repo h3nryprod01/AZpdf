@@ -70,7 +70,19 @@ Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) v
 
 ### Linux v2 alpha
 
-Linux dùng Flutter shell gọi cùng core Swift qua JSON-line process. Bundle alpha hiện tự mang engine, MuPDF 1.28.0, OCRmyPDF/Tesseract và pyHanko; các health check, OCR searchable-PDF và ký/xác minh PAdES Baseline B đã chạy thành công trong container Ubuntu 24.04 không có mạng hay dependency cài sẵn. Development Flatpak Freedesktop 25.08 cũng đã qua sandbox probe, runtime health và GTK document-portal E2E với PDF fixture thật; manifest public reproducible/Flathub và portal KDE thật vẫn là bước tiếp theo. Shell review được `DocumentIR`/reading order trực tiếp trên trang. Xem [hướng dẫn shell đa nền tảng](Shell/azpdf_desktop/README.md), [báo cáo UI/UX](qa-report/azpdf-linux-shell-report-2026-07-18.html) và [QA workstation Ubuntu](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
+**Tải xuống — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, một file duy nhất ~170 MB.
+SHA-256 `ae5bde06c2669c30dee434cbda42f1e56295e32af7946e105c685683d5357112`
+(kiểm bằng `sha256sum AZpdf-x86_64.AppImage`). Chỉ có bản x86_64 — chưa có arm64.
+Cấp quyền chạy rồi mở: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
+Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
+Ubuntu 24.04 trắng; còn vỏ Flutter, như mọi ứng dụng Flutter Linux, link động GTK3 và
+OpenGL nên cần bốn thư viện hệ thống: `libgtk-3-0t64` (hoặc `libgtk-3-0` trên bản phân phối
+cũ), `libegl1`, `libgl1`, `libgles2` — ví dụ
+`sudo apt-get install -y libgtk-3-0t64 libegl1 libgl1 libgles2`. Mọi desktop dùng GTK
+(GNOME, XFCE, Cinnamon, MATE) đã có sẵn cả bốn; chỉ hệ thống tối giản hoặc container trống
+mới cần cài, cộng thêm một display server. SBOM SPDX đi kèm bản tải về.
+
+Linux dùng Flutter shell gọi cùng core Swift qua JSON-line process. Engine và runtime (MuPDF 1.28.0, OCRmyPDF/Tesseract, pyHanko) tự chứa; các health check, OCR searchable-PDF và ký/xác minh PAdES Baseline B đã chạy trong container Ubuntu 24.04 — vỏ GUI cần bốn thư viện GTK/GL như trên. Development Flatpak Freedesktop 25.08 cũng đã qua sandbox probe, runtime health và GTK document-portal E2E với PDF fixture thật; manifest public reproducible/Flathub và portal KDE thật vẫn là bước tiếp theo. Shell review được `DocumentIR`/reading order trực tiếp trên trang. Xem [hướng dẫn shell đa nền tảng](Shell/azpdf_desktop/README.md), [báo cáo UI/UX](qa-report/azpdf-linux-shell-report-2026-07-18.html) và [QA workstation Ubuntu](qa-report/azpdf-linux-workstation-report-2026-07-19.md).
 
 Lộ trình kỹ thuật và chuẩn bị Windows/Linux: [ROADMAP.md](ROADMAP.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md). Quy ước plugin cục bộ: [docs/PLUGIN_PROTOCOL.md](docs/PLUGIN_PROTOCOL.md).
 
