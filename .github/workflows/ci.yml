@@ -13,16 +13,28 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
-      - name: Select newest Xcode (swift-subprocess dep needs Swift >= 6.2)
+      # The newest Xcode on macos-15 ships Swift 6.2.4, which rejects the
+      # DispatchQueue.main.async + @MainActor pattern in DocumentStore+OCR with
+      # "sending 'self' risks causing data races". Swift 6.3 accepts it, and 6.3.3
+      # is what the developer and the release pipeline actually build with
+      # (script/build_linux_release.sh pins the swift:6.3.3 image too). Installing
+      # the official toolchain makes CI test the compiler we ship with instead of
+      # whatever Xcode the runner image happens to carry.
+      #
+      # download.swift.org needs the directory segment lowercased
+      # (swift-6.3.3-release) while the file keeps -RELEASE — getting that wrong
+      # 404s, which is what made this job look like "Windows/macOS has no
+      # toolchain". Swift publishes no .sha256/.sig sidecar next to these
+      # artifacts (all 404), so integrity rests on HTTPS to download.swift.org.
+      - name: Install official Swift 6.3.3 toolchain
         run: |
-          set -e
-          # macos-15 image default is Swift 6.1, but swift-subprocess (pinned dep) requires
-          # tools 6.2. Select the highest versioned Xcode installed on the runner.
-          xc=$(ls -d /Applications/Xcode_[0-9]*.app | sort -V | tail -1)
-          [ -n "$xc" ] || { echo "No versioned Xcode found:"; ls -d /Applications/Xcode*.app; exit 1; }
-          echo "Selecting $xc"
-          sudo xcode-select -s "$xc"
-          swift --version
+          set -euo pipefail
+          url='https://download.swift.org/swift-6.3.3-release/xcode/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE-osx.pkg'
+          curl -fL --retry 3 -o "$RUNNER_TEMP/swift.pkg" "$url"
+          sudo installer -pkg "$RUNNER_TEMP/swift.pkg" -target /
+          echo 'TOOLCHAINS=swift' >> "$GITHUB_ENV"
+      - name: Show toolchain in use
+        run: swift --version
       - name: Test
         run: swift test
       - name: Audit local-first policy
@@ -129,26 +141,25 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
-      - name: Install pinned official Swift toolchain (6.3.2)
+      - name: Install pinned official Swift toolchain (6.3.3)
         shell: pwsh
         run: |
-          # winget is not available on the windows-2022 Server runner, so download the official
-          # installer directly. Pinned to 6.3.2: Swift 6.3.3 has no Windows installer yet (it
-          # 404s on download.swift.org - the Windows toolchain lags behind Linux/macOS), and
-          # 6.3.2 is the latest Windows release. This DIVERGES from the Linux build line
-          # (swift:6.3.3 in script/build_linux_release.sh) - recorded in qa-report. Integrity is
-          # checked against Swift.org's own SHA256 sidecar for this exact release directory -
-          # not a floating "latest".
-          $ver = '6.3.2'
-          $base = "https://download.swift.org/swift-${ver}-RELEASE/windows10/swift-${ver}-RELEASE"
+          # winget is not on the windows-2022 Server image, so fetch the official installer
+          # directly. Pinned to 6.3.3 to match the Linux container (swift:6.3.3 in linux-core
+          # and script/build_linux_release.sh) and the macOS toolchain installed above — one
+          # Swift line across all three platforms, no divergence to reason about.
+          $ver = '6.3.3'
+          # Directory segment is lowercase (swift-6.3.3-release); the file name keeps
+          # -RELEASE. Mixing the case 404s, which is what previously made this look
+          # like "Swift 6.3.3 has no Windows installer" — it does.
+          $base = "https://download.swift.org/swift-${ver}-release/windows10/swift-${ver}-RELEASE"
           $exe = Join-Path $env:RUNNER_TEMP "swift-${ver}-RELEASE-windows10.exe"
           curl.exe -fL "$base/swift-${ver}-RELEASE-windows10.exe" -o $exe
-          curl.exe -fL "$base/swift-${ver}-RELEASE-windows10.exe.sha256" -o "$exe.sha256"
-          $expected = (Get-Content "$exe.sha256" -Raw).Trim().Split(' ')[0].ToLowerInvariant()
-          $actual = (Get-FileHash -Algorithm SHA256 $exe).Hash.ToLowerInvariant()
-          if (-not $expected) { throw "Swift SHA256 sidecar was empty for ${ver}" }
-          if ($actual -ne $expected) { throw "Swift installer SHA256 mismatch: expected $expected, got $actual" }
-          Write-Host "Swift ${ver} installer verified: $expected"
+          # No integrity sidecar to check: .sha256, .sha512 and .sig all 404 next to
+          # this artifact, unlike the Flutter SDK zip which does publish one. So the
+          # download is trusted on HTTPS to download.swift.org alone. Pin a hash here
+          # the day Swift starts publishing one.
+          Write-Host "Downloaded Swift ${ver} installer ($((Get-Item $exe).Length) bytes)"
           Start-Process -FilePath $exe -ArgumentList '/install','/quiet','/norestart' -Wait
           $swift = Get-ChildItem 'C:\Program Files\Swift\Toolchains' -Recurse -Filter swift.exe |
             Select-Object -First 1

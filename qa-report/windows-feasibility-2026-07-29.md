@@ -13,7 +13,7 @@ thật của 3 job CI liên quan Windows/macOS tại baseline `c75f7a5` (10/10 l
 | Job CI | Trạng thái | Nguyên nhân |
 |---|---|---|
 | `windows-shell` | ✅ **success** | `flutter build windows --release` xanh — **Flutter Windows đã được chứng minh**, không còn là ẩn số. |
-| `windows-core` | ❌ **failure** (chưa từng build) | `winget` không tồn tại trên image `windows-2022` → chết ở bước cài Swift, chưa chạy tới `swift test`/`swift build` lần nào. Đã bỏ winget, tải installer trực tiếp + verify SHA256 sidecar. **Cả Swift 6.3.3 LẪN 6.3.2 đều 404** trên `download.swift.org/swift-<ver>-RELEASE/windows10/...` (xác nhận từ runner, không phải sandbox) → installer Windows không còn ở đường dẫn canonical; Windows distribution chuyển sang WinGet/Swiftly. **BLOCKED** (vấp #2): không tìm được URL installer pinned ổn định; không thử thêm version ngẫu nhiên để lách. Cần người quyết: dùng Swiftly/WinGet, hoặc pin thủ công một version Windows thật có SHA. |
+| `windows-core` | ⏳ **đang chạy lại** (trước đó failure, chưa từng build) | `winget` không có trên image `windows-2022` → chết ở bước cài Swift. Vòng sửa đầu đổi sang tải installer trực tiếp nhưng **dùng URL sai chữ hoa/thường** nên kết luận nhầm là "6.3.3 và 6.3.2 đều 404 / installer Windows không còn ở đường dẫn canonical". **Sai — installer CÓ tồn tại.** Đường dẫn đúng viết THƯỜNG ở đoạn thư mục, HOA ở tên file: `download.swift.org/swift-6.3.3-release/windows10/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE-windows10.exe` → HTTP **200**, 1.76 GB (đã probe trực tiếp). Không cần Swiftly/WinGet, và **không cần lệch dòng Swift với Linux**. Lưu ý: Swift **không** publish sidecar `.sha256`/`.sha512`/`.sig` cạnh artifact này (cả ba 404), khác với Flutter SDK zip — nên bước cài chỉ dựa vào HTTPS tới download.swift.org. |
 | `macos-tests` | ❌ **failure** | Lần 1 (runner `macos-14`): Swift 5.10 < 6.0 cần cho `Package.swift`. Lần 2 (đã nâng `macos-15`): runner mặc định Swift **6.1**, nhưng dep `swift-subprocess` (commit pin `1163367…`) yêu cầu tools **6.2.0**. Đang sửa: `xcode-select` chọn Xcode version cao nhất trên runner (có Swift ≥ 6.2). |
 
 **Hệ quả cho report này:** Flutter Windows (vỏ GUI) là chuyện đã xanh trong CI, gỡ khỏi danh
@@ -26,7 +26,7 @@ sách ẩn số. Phần chưa biết thu hẹp còn: (a) `azpdf-engine` (Swift) 
 
 Windows v1 **khả thi có điều kiện**: CI đã chứng minh **Flutter Windows build xanh**
 (`windows-shell` success), nhưng **`azpdf-engine` (Swift) chưa build được trên Windows trong
-CI** — cả Swift 6.3.3 lẫn 6.3.2 đều không có installer Windows ở đường dẫn canonical (404 từ
+CI** — vòng sửa đầu tưởng Swift 6.3.3/6.3.2 không có installer Windows, nhưng đó là lỗi chữ hoa/thường trong URL; installer có thật, xem dòng `windows-core` ở bảng trên (404 ban đầu từ
 runner; Windows distribution đã chuyển sang WinGet/Swiftly), nên `windows-core` chết ở bước
 cài toolchain và chưa bao giờ chạy `swift build`; rào cản còn lại là đóng gói 4 runtime (đặc
 biệt OCRmyPDF cần Tesseract+Ghostscript+qpdf installer-based). Đến khi chọn được nguồn cài
