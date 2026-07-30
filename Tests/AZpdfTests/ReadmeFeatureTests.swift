@@ -140,8 +140,21 @@ final class ReadmeFeatureTests: XCTestCase {
     /// test cannot create. What is testable is the first step of that flow —
     /// querying the Keychain must succeed rather than throw, whether or not the
     /// machine happens to have an identity installed.
+    ///
+    /// "Found nothing" is a legitimate answer, not a failure: `availableIdentities`
+    /// reports `noIdentity` so the UI can say "install a certificate first". The
+    /// earlier `XCTAssertNoThrow` therefore asserted a property of the *host*, not
+    /// of the code — it passed on a Mac holding a Developer ID and failed on a CI
+    /// runner holding none. Only `security(status)` means the SecItemCopyMatching
+    /// call is genuinely broken.
     func testCertificateIdentityLookupQueriesTheKeychainWithoutFailing() {
-        XCTAssertNoThrow(try CertificateSigningService.availableIdentities())
+        do {
+            _ = try CertificateSigningService.availableIdentities()
+        } catch CertificateSigningError.noIdentity {
+            // Nothing installed here; the query itself still ran to completion.
+        } catch {
+            XCTFail("Truy vấn Keychain thất bại: \(error)")
+        }
     }
 
     func testCertificateSigningDoesNothingWithoutADocument() {

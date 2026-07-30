@@ -160,10 +160,35 @@ jobs:
           # download is trusted on HTTPS to download.swift.org alone. Pin a hash here
           # the day Swift starts publishing one.
           Write-Host "Downloaded Swift ${ver} installer ($((Get-Item $exe).Length) bytes)"
-          Start-Process -FilePath $exe -ArgumentList '/install','/quiet','/norestart' -Wait
-          $swift = Get-ChildItem 'C:\Program Files\Swift\Toolchains' -Recurse -Filter swift.exe |
+          # -PassThru is what makes the exit code observable. Without it a failed
+          # install counted as success and only surfaced later as a baffling
+          # "Cannot find path 'C:\Program Files\Swift\'" — the error we actually got.
+          # 3010 means "succeeded, reboot pending", which is harmless: the toolchain
+          # is usable in place and this runner is discarded after the job.
+          $proc = Start-Process -FilePath $exe `
+            -ArgumentList '/install','/quiet','/norestart' -Wait -PassThru
+          if ($proc.ExitCode -notin @(0, 3010)) {
+            throw "Swift installer exited with $($proc.ExitCode)."
+          }
+          # swift.org documents winget as the only Windows install route and never
+          # states where this .exe puts the toolchain. winget is absent from the
+          # windows-2022 image (it is not in that image's software manifest), so the
+          # .exe is the only option and its install root has to be discovered rather
+          # than hardcoded — hardcoding one guess is what broke the previous attempt.
+          $roots = @(
+            "$env:ProgramFiles\Swift"
+            "${env:ProgramFiles(x86)}\Swift"
+            "$env:LOCALAPPDATA\Programs\Swift"
+          ) | Where-Object { $_ -and (Test-Path $_) }
+          if (-not $roots) {
+            throw ("Installer reported success ($($proc.ExitCode)) but no Swift root " +
+                   "exists under Program Files, Program Files (x86) or LOCALAPPDATA.")
+          }
+          Write-Host "Swift roots present: $($roots -join ', ')"
+          $swift = Get-ChildItem $roots -Recurse -Filter swift.exe -ErrorAction SilentlyContinue |
             Select-Object -First 1
-          if (-not $swift) { throw 'Swift toolchain was installed but swift.exe was not found.' }
+          if (-not $swift) { throw "No swift.exe under: $($roots -join ', ')" }
+          Write-Host "Using $($swift.FullName)"
           $swift.Directory.FullName | Out-File -FilePath $env:GITHUB_PATH -Encoding utf8 -Append
       - name: Test portable core
         shell: pwsh
