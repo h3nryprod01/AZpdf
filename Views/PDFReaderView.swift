@@ -73,13 +73,21 @@ struct PDFReaderView: NSViewRepresentable {
         }
         if store.searchText != context.coordinator.searchText {
             context.coordinator.searchText = store.searchText
-            context.coordinator.searchResults = store.searchText.isEmpty ? [] : (view.document?.findString(store.searchText, withOptions: .caseInsensitive) ?? [])
-            context.coordinator.searchIndex = context.coordinator.searchResults.isEmpty ? -1 : 0
-            store.searchResultCount = context.coordinator.searchResults.count
-            store.searchResultIndex = context.coordinator.searchResults.isEmpty ? 0 : 1
-            if let match = context.coordinator.searchResults.first {
-                view.currentSelection = match
-                view.go(to: match)
+            let coordinator = context.coordinator
+            let document = view.document
+            // Tìm kiếm bất đồng bộ (beginFindString + debounce + huỷ lượt cũ) thay cho
+            // findString đồng bộ từng khoá main thread. onResults chạy trên main actor
+            // (runner là @MainActor) nên cập nhật store/view trực tiếp — KHÔNG bọc thêm
+            // DispatchQueue.main.async (mẫu capture-self đó từng bị Swift 6 từ chối).
+            coordinator.searchRunner.search(store.searchText, in: document) { results in
+                coordinator.searchResults = results
+                coordinator.searchIndex = results.isEmpty ? -1 : 0
+                store.searchResultCount = results.count
+                store.searchResultIndex = results.isEmpty ? 0 : 1
+                if let match = results.first {
+                    view.currentSelection = match
+                    view.go(to: match)
+                }
             }
         }
         if context.coordinator.searchNavigationID != store.searchNavigationID {
@@ -218,6 +226,7 @@ struct PDFReaderView: NSViewRepresentable {
         view.go(to: match)
     }
 
+    @MainActor
     final class Coordinator {
         var pageIndex = -1
         var documentRevision = -1
@@ -226,6 +235,7 @@ struct PDFReaderView: NSViewRepresentable {
         var searchIndex = -1
         var searchNavigationID = 0
         var actionID = -1
+        let searchRunner = PDFSearchRunner()
     }
 }
 
