@@ -275,8 +275,13 @@ jobs:
           # them on PATH the freshly built .xctest starts and dies immediately at
           # -1073741510 (0xC000013A) having printed no test output at all, which
           # reads like a hang or a cancelled run rather than a missing library.
+          # bin64 only. These ship as bin32 / bin64 / bin64a (x86, x64, ARM64) and
+          # everything here targets x86_64-unknown-windows-msvc, so putting all
+          # three on PATH lets the loader reach a 32-bit XCTest.dll first and the
+          # x64 test binary then cannot start.
           $testLibs = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
             -Include 'XCTest.dll','Testing.dll' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Directory.Name -eq 'bin64' } |
             ForEach-Object { $_.Directory.FullName } | Sort-Object -Unique
           if (-not $testLibs) { throw 'Neither XCTest.dll nor Testing.dll found; swift test cannot run.' }
           $testLibs | ForEach-Object {
