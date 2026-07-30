@@ -234,6 +234,42 @@ jobs:
             Get-ChildItem $roots -Directory | ForEach-Object { Write-Host "  root entry: $($_.Name)" }
             throw 'swiftCore.dll not found under the Swift install root; swift.exe cannot start.'
           }
+      # swift.exe runs at this point but cannot compile: "unable to load standard
+      # library for target x86_64-unknown-windows-msvc". The Windows toolchain
+      # does not carry its own libc or linker — it compiles against the MSVC
+      # toolset and the Windows SDK, whose INCLUDE/LIB/PATH normally come from a
+      # Visual Studio developer prompt. GitHub's runner has VS 2022 but starts a
+      # plain shell, so import that environment explicitly and point SDKROOT at
+      # the Swift platform SDK.
+      - name: Import the MSVC and Windows SDK environment
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          if (-not (Test-Path $vswhere)) { throw "vswhere.exe not found at $vswhere." }
+          $vs = & $vswhere -latest -products * `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+          if (-not $vs) { throw 'No Visual Studio install with the x86/x64 C++ toolset.' }
+          $vcvars = Join-Path $vs 'VC\Auxiliary\Build\vcvars64.bat'
+          if (-not (Test-Path $vcvars)) { throw "vcvars64.bat not found at $vcvars." }
+          # Run vcvars in cmd, then copy the variables it set into GITHUB_ENV so
+          # they survive into the next step — a bat file cannot alter this shell.
+          $captured = 0
+          cmd /c "`"$vcvars`" >nul 2>&1 && set" | ForEach-Object {
+            if ($_ -match '^(INCLUDE|LIB|LIBPATH|UCRTVersion|UniversalCRTSdkDir|VCToolsInstallDir|WindowsSdkDir|WindowsSDKVersion)=(.*)$') {
+              "$($Matches[1])=$($Matches[2])" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
+              $captured++
+            } elseif ($_ -match '^PATH=(.*)$') {
+              $Matches[1] -split ';' | Where-Object { $_ } |
+                Out-File $env:GITHUB_PATH -Encoding utf8 -Append
+            }
+          }
+          if ($captured -eq 0) { throw 'vcvars64.bat set no INCLUDE/LIB variables.' }
+          Write-Host "Imported $captured MSVC variables."
+          $sdk = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
+            -Filter 'Windows.sdk' -Directory -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $sdk) { throw 'Swift Windows.sdk not found under Platforms.' }
+          Write-Host "SDKROOT: $($sdk.FullName)"
+          "SDKROOT=$($sdk.FullName)" | Out-File $env:GITHUB_ENV -Encoding utf8 -Append
       - name: Test portable core
         shell: pwsh
         run: |
