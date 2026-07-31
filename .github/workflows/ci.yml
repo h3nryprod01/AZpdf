@@ -346,28 +346,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
-      # THỬ NGHIỆM lần 5 — chạy THẲNG file .xctest, hướng duy nhất chưa loại trừ.
-      # Bốn cấu hình trước đều cho 0xC000013A qua `swift test`. Gọi trực tiếp binary
-      # bỏ qua toàn bộ lớp điều phối của SwiftPM, nên nếu vẫn chết thì lỗi nằm ở chính
-      # test binary chứ không phải cách SwiftPM khởi chạy nó — đó là thông tin ta chưa có.
-      - name: Try running the .xctest binary directly (experiment)
-        shell: pwsh
-        run: |
-          $xctest = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
-            -Include 'XCTest.dll','Testing.dll' -ErrorAction SilentlyContinue |
-            Where-Object { $_.Directory.Name -eq 'bin64' } |
-            ForEach-Object { $_.Directory.FullName } | Sort-Object -Unique
-          foreach ($d in $xctest) { $env:PATH = "$d;$env:PATH"; Write-Host "PATH += $d" }
-          swift build --build-tests 2>&1 | Select-Object -Last 3
-          $bin = Get-ChildItem .build -Recurse -Include '*.xctest','*PackageTests*.exe' `
-            -ErrorAction SilentlyContinue | Select-Object -First 5
-          if (-not $bin) { throw 'khong tim thay binary test nao trong .build' }
-          foreach ($b in $bin) { Write-Host "ung vien: $($b.FullName)  ($($b.Length) bytes)" }
-          $target = $bin[0]
-          Write-Host "--- chay thang: $($target.FullName) ---"
-          & $target.FullName 2>&1 | Select-Object -First 40
-          Write-Host "exit=$LASTEXITCODE"
-          # KHÔNG throw: đây là bước lấy thông tin, không phải gate. Sẽ gỡ ngay sau khi đọc.
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
         shell: pwsh
         run: |
