@@ -123,6 +123,8 @@ jobs:
       # trên runner vài nhân là cỡ vài phút — rẻ hơn nhiều so với ước lượng "quá nặng".
       # X11/GLUT/CURL tắt: chỉ cần mutool, không cần viewer.
       - name: Build pinned mutool 1.28.0 from source
+        # Container mặc định dùng sh (dash) — không có `set -o pipefail`.
+        shell: bash
         run: |
           set -euo pipefail
           apt-get update -qq && apt-get install -y -qq build-essential >/dev/null
@@ -135,6 +137,8 @@ jobs:
             HAVE_X11=no HAVE_GLUT=no HAVE_CURL=no build=release build/release/mutool
           /tmp/mupdf-1.28.0-source/build/release/mutool -v
       - name: Run azpdf-engine selftest
+        # Container mặc định dùng sh (dash) — không có `set -o pipefail`.
+        shell: bash
         run: |
           set -euo pipefail
           swift build --product azpdf-engine
