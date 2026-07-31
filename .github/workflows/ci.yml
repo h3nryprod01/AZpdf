@@ -326,6 +326,28 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
+      # THỬ NGHIỆM B1.4 — `swift test` thật trên Windows.
+      # Bản trước kết luận từ suy đoán chứ không phải đo. Đây là phép đo: nạp DLL
+      # XCTest bin64 rồi chạy `swift test --disable-swift-testing` để tách xem
+      # runner nào chết 0xC000013A. Bước này CHẶN có chủ ý — nếu đỏ thì ta có bằng
+      # chứng verbatim, còn hơn một dự đoán không ai kiểm được.
+      - name: Try real swift test on Windows (B1.4 experiment)
+        shell: pwsh
+        run: |
+          $xctest = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
+            -Include 'XCTest.dll' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Directory.Name -eq 'bin64' } | Select-Object -First 1
+          if ($xctest) {
+            Write-Host "XCTest DLL: $($xctest.Directory.FullName)"
+            $env:PATH = "$($xctest.Directory.FullName);$env:PATH"
+          } else {
+            Write-Host 'WARNING: khong tim thay XCTest.dll bin64'
+          }
+          Write-Host '--- swift test --disable-swift-testing ---'
+          swift test --disable-swift-testing 2>&1 | Select-Object -Last 40
+          $code = $LASTEXITCODE
+          Write-Host "exit=$code"
+          if ($code -ne 0) { throw "swift test --disable-swift-testing exited $code" }
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
         shell: pwsh
         run: |
