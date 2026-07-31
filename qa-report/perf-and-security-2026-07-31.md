@@ -71,12 +71,49 @@ Hai lỗi lộ ra khi review bản sửa đầu, cả hai đều đo được:
 
 Cả hai được ghim bằng test, và mutation (trả lại nguyên code cũ) làm đúng hai test đó đỏ.
 
-### Bộ nhớ
+### Bộ nhớ — đã đo riêng, và kết luận không như dự đoán
 
-RSS đỉnh ~1,3 GB cho file 91 MB (≈14× kích thước file) sau khi mở + dựng 100 thumbnail + một
-lượt tìm toàn văn. Đo trong tiến trình riêng cho từng file; lần đo đầu chạy chung một tiến
-trình cho cả ba file và cho thấy bộ nhớ **không** được trả lại giữa các tài liệu (nền tăng dần
-9 → 114 → 483 MB) — đáng theo dõi khi mở nhiều tab, nhưng chưa đo riêng nên chưa kết luận.
+Tách từng thành phần trên tài liệu 91 MB / 6 000 trang:
+
+| Bước | RSS tăng thêm |
+|---|---|
+| Mở tài liệu | **+10 MB** |
+| Dựng 100 thumbnail | +8 MB |
+| Một lượt tìm toàn văn | **+1 419 MB** |
+
+**Mở file gần như miễn phí; gần như toàn bộ bộ nhớ đến từ tìm kiếm.**
+
+Giả thuyết đầu tiên — "app giữ 2 305 `PDFSelection` trong `coordinator.searchResults`" — **sai**,
+và phép đo bác bỏ nó dứt khoát:
+
+| Truy vấn trên cùng tài liệu | Số match | RSS tăng | Thả mảng kết quả trả lại |
+|---|---|---|---|
+| chuỗi **không tồn tại** | **0** | **+696 MB** | **0 MB** |
+| chuỗi phổ biến | 2 305 | +516 MB | **0 MB** |
+
+Một lượt tìm **không có kết quả nào** vẫn tốn ~700 MB, và thả mảng kết quả trả lại đúng 0 MB.
+Chi phí nằm ở **bản thân việc quét**: `findString`/`beginFindString` đi qua mọi trang, buộc
+PDFKit parse và cache nội dung text từng trang, rồi cache đó ở lại. Giữ ít `PDFSelection` hơn
+sẽ **không** giúp gì — đó là kết luận quan trọng, vì nó loại bỏ hướng sửa trông có vẻ hiển nhiên.
+
+Vòng đời tab (mở → dùng → đóng, lặp 3 lần trên cùng tài liệu):
+
+| | Đỉnh | Sau khi đóng |
+|---|---|---|
+| Lần 1 | 1 352 MB | 1 301 MB (trả 51 MB) |
+| Lần 2 | 1 443 MB | 1 352 MB (**+51 MB**) |
+| Lần 3 | 1 449 MB | 1 358 MB (**+6 MB**) |
+
+Đóng tài liệu gần như không trả bộ nhớ về HĐH, **nhưng các lần sau không cộng dồn** — nên đây là
+allocator giữ page để tái dùng, **không phải rò từng tài liệu**. Mở đi mở lại 10 tài liệu lớn sẽ
+không thành 13 GB.
+
+Mở **đồng thời** nhiều tab thì có cộng, xấp xỉ theo tổng số trang: 400 trang = 120 MB →
+thêm 2 000 trang = 597 MB → thêm 6 000 trang = 1 422 MB.
+
+**Không có hướng sửa ở tầng app.** PDFKit không phơi ra API xoá cache trang. Điều app làm được
+đã làm rồi: debounce gộp 11 lượt quét khi gõ còn 1, nên nó cũng cắt chi phí này đi 11 lần trong
+đúng kịch bản gây ra nó.
 
 ## 2. Quét security
 
