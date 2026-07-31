@@ -40,6 +40,7 @@ struct AZpdfEngineCLI {
             case "verify-signatures": try handleVerifySignatures(arguments, engine: engine, mutool: mutool)
             case "sign-pades": try handleSignPAdES(arguments, engine: engine, mutool: mutool)
             case "save-as": try handleSaveAs(arguments, engine: engine, mutool: mutool)
+            case "selftest": try handleSelfTest(engine: engine)
             default:
                 throw CLIError.invalidCommand(arguments.command)
             }
@@ -49,6 +50,23 @@ struct AZpdfEngineCLI {
                 message: localizedMessage(error)
             )))
             terminate(2)
+        }
+    }
+
+    private static func handleSelfTest(engine: MuPDFDocumentEngine) throws {
+        // Kiểm chứng hành vi THẬT trên nền tảng này: chạy mọi DocumentOperation qua MuPDF với
+        // fixture nhúng (không cần bash — quan trọng trên Windows), in report JSON ra stdout.
+        // ⚠️ `unsupported` KHÔNG phải lỗi: Ma trận đo MuPDF chỉ support 3/20 theo thiết kế.
+        // Chỉ `failed` mới là hồi quy → khi đó report đã in xong, thoát non-zero để CI đỏ.
+        let report = PDFEngineOperationConformance.run(
+            engine,
+            data: ConformanceFixture.pdf,
+            auxiliaryPDF: ConformanceFixture.auxiliaryPDF,
+            imagePNG: ConformanceFixture.imagePNG
+        )
+        emit(report)
+        if !report.failedOperations.isEmpty {
+            terminate(3)
         }
     }
 

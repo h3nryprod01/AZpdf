@@ -326,6 +326,27 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
+      - name: Run azpdf-engine selftest (first behavioral check on Windows)
+        shell: pwsh
+        run: |
+          # Everything above only proves the code COMPILES. This is the first *behavioral*
+          # check windows-core has ever run: the Foundation-only conformance harness
+          # (`azpdf-engine selftest`, B1.2) driven through the MuPDF engine with a pinned
+          # mutool.exe. `unsupported` is NOT failure (MuPDF supports 3/20 by design); only a
+          # non-empty `failedOperations` exits non-zero.
+          $zip = Join-Path $env:RUNNER_TEMP 'mupdf-1.28.0-windows.zip'
+          curl.exe -fL 'https://casper.mupdf.com/downloads/archive/mupdf-1.28.0-windows.zip' -o $zip
+          $actual = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          $expected = 'a0ee869bf38ee66b19cd30c281d04e91215f812f0cb20177cd1f69c74c33eb22'
+          if ($actual -ne $expected) { throw "mutool zip SHA256 mismatch: expected $expected, got $actual" }
+          Expand-Archive -Path $zip -DestinationPath $env:RUNNER_TEMP -Force
+          $mutool = Join-Path $env:RUNNER_TEMP 'mupdf-1.28.0-windows\mutool.exe'
+          if (-not (Test-Path $mutool)) { throw "mutool.exe not found in archive at $mutool" }
+          $engine = Get-ChildItem .build -Recurse -Filter 'azpdf-engine.exe' | Select-Object -First 1
+          if (-not $engine) { throw 'azpdf-engine.exe was not produced by the release build.' }
+          Write-Host '--- azpdf-engine selftest (MuPDF conformance on Windows) ---'
+          & $engine.FullName selftest --mutool $mutool
+          if ($LASTEXITCODE -ne 0) { throw "azpdf-engine selftest exited $LASTEXITCODE — failedOperations must be empty (unsupported is fine)." }
       # The engine half of a Windows smoke test. It cannot be built on a Mac or
       # in the Linux container, so CI is the only place it exists.
       - name: Stage the engine for the smoke test
