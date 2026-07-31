@@ -300,9 +300,21 @@ jobs:
       # missing test runtime nor the swift-testing runner — both were the obvious
       # suspects and both are now eliminated.
       #
-      # Untried: run the built .xctest binary directly to get a real error instead of
-      # a console-control status. The DLLs are at
-      # Platforms\6.3.3\Windows.platform\Developer\Library\{XCTest,Testing}-6.3.3\usr\bin64.
+      # Chạy thẳng binary test thì ĐI XA HƠN NHIỀU — đây là kết quả đo, không phải suy đoán:
+      #   lần 5: gọi .xctest trong pipeline PowerShell → "Cannot run a document in the
+      #          middle of a pipeline". Lỗi ở CÁCH GỌI, chưa chạm tới binary.
+      #   lần 6: copy sang .exe rồi chạy qua cmd → 9/14 suite CHẠY THẬT, 27 test, 0 fail,
+      #          rồi đứt giữa MuPDFDocumentEngineTests.
+      #   lần 7: nạp thêm mutool.exe → 13/14 suite, 32 test, 0 fail, VẪN đứt đúng
+      #          MuPDFDocumentEngineTests (run 30658607145).
+      # Nên `swift test` báo 0xC000013A chưa bao giờ có nghĩa "Windows không chạy được
+      # test". Test chạy tốt; đúng MỘT suite giết tiến trình. Linux chạy 14 suite/60 test
+      # để đối chiếu.
+      #
+      # Chưa làm thành gate: một lần chạy bị cụt ở suite đã biết thì không phải bằng chứng
+      # "Windows đạt" — gate lên nó là tự dối. Hướng tiếp: tìm xem
+      # MuPDFDocumentEngineTests làm gì mà các suite spawn khác không làm.
+      # DLL ở Platforms\6.3.3\Windows.platform\Developer\Library\{XCTest,Testing}-6.3.3\usr\bin64.
       #
       # Windows is NOT unverified, though: `azpdf-engine selftest` below runs the
       # Foundation-only conformance harness through MuPDF and is a real behavioural
@@ -351,29 +363,9 @@ jobs:
             -ErrorAction SilentlyContinue | Select-Object -First 5
           if (-not $bin) { throw 'khong tim thay binary test nao trong .build' }
           foreach ($b in $bin) { Write-Host "ung vien: $($b.FullName)  ($($b.Length) bytes)" }
-          # Lần trước gọi thẳng .xctest và PowerShell từ chối: "Cannot run a document
-          # in the middle of a pipeline" — nó coi đuôi lạ là document chứ không phải
-          # executable. Đó là lỗi của cách GỌI, chưa chạm tới binary. Đổi đuôi .exe rồi
-          # chạy qua cmd để loại hẳn PowerShell khỏi đường đi.
-          # Lần 6: 9/14 suite chạy được rồi ĐỨT giữa MuPDFDocumentEngineTests — suite
-          # đầu tiên sinh tiến trình con. Năm suite thiếu cũng đều sinh subprocess.
-          # Giả thuyết: thiếu mutool.exe làm spawn chết cứng. Nạp mutool rồi chạy lại:
-          # nếu đủ 14 suite thì đã giải xong; nếu vẫn đứt đúng chỗ đó thì lỗi nằm ở
-          # chính việc spawn subprocess trên Windows, không phải ở mutool.
-          $zip = Join-Path $env:RUNNER_TEMP 'mupdf-probe.zip'
-          curl.exe -fL 'https://casper.mupdf.com/downloads/archive/mupdf-1.28.0-windows.zip' -o $zip
-          $h = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
-          if ($h -ne 'a0ee869bf38ee66b19cd30c281d04e91215f812f0cb20177cd1f69c74c33eb22') { throw "SHA mismatch: $h" }
-          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\probe" -Force
-          $md = (Get-ChildItem "$env:RUNNER_TEMP\probe" -Recurse -Filter 'mutool.exe' | Select-Object -First 1).Directory.FullName
-          $env:PATH = "$md;$env:PATH"
-          $env:AZPDF_MUTOOL = Join-Path $md 'mutool.exe'
-          Write-Host "mutool: $env:AZPDF_MUTOOL"
           $target = $bin[0]
-          $exe = Join-Path $env:RUNNER_TEMP 'AZpdfPackageTests.exe'
-          Copy-Item $target.FullName $exe -Force
-          Write-Host "--- chay $exe qua cmd ---"
-          cmd /c "`"$exe`" 2>&1"
+          Write-Host "--- chay thang: $($target.FullName) ---"
+          & $target.FullName 2>&1 | Select-Object -First 40
           Write-Host "exit=$LASTEXITCODE"
           # KHÔNG throw: đây là bước lấy thông tin, không phải gate. Sẽ gỡ ngay sau khi đọc.
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
