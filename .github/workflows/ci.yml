@@ -289,16 +289,24 @@ jobs:
       # `swift test` then exits -1073741510 (0xC000013A, STATUS_CONTROL_C_EXIT)
       # without printing a single test line, and PowerShell reads that status as
       # an interrupt and drops into debug mode, so it looks like a cancelled run.
-      # Ruled out by measurement, not assumption: the build is fine, and the exit
-      # code is unchanged whether the XCTest/Testing DLL directories are absent,
-      # all present (bin32+bin64+bin64a), or x64-only — so it is not the missing
-      # or mismatched test runtime that first looked responsible.
+      # Ruled out by measurement, not assumption. The exit code is identical across
+      # four configurations, each one actually run in CI rather than reasoned about:
+      #   1. no XCTest/Testing DLL directory on PATH
+      #   2. all three architectures on PATH (bin32 + bin64 + bin64a)
+      #   3. bin64 only
+      #   4. bin64 present AND `swift test --disable-swift-testing`
+      # Run 30655416779 logged the fourth: the DLL was found and added to PATH,
+      # `Build complete! (1.97s)`, then exit -1073741510 again. So it is neither the
+      # missing test runtime nor the swift-testing runner — both were the obvious
+      # suspects and both are now eliminated.
       #
-      # Untried next steps, cheapest first: `swift test --disable-swift-testing`
-      # (both runners are invoked; this isolates which one dies), then running
-      # the built .xctest binary directly to get a real error instead of a
-      # console-control status. The DLLs, when needed, are at
+      # Untried: run the built .xctest binary directly to get a real error instead of
+      # a console-control status. The DLLs are at
       # Platforms\6.3.3\Windows.platform\Developer\Library\{XCTest,Testing}-6.3.3\usr\bin64.
+      #
+      # Windows is NOT unverified, though: `azpdf-engine selftest` below runs the
+      # Foundation-only conformance harness through MuPDF and is a real behavioural
+      # check — it fails the job if any operation regresses.
       #
       # Not made non-blocking on purpose: a step that cannot fail is worthless —
       # that lesson cost this repo two fail-open security gates. Better a job with
@@ -326,28 +334,6 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
-      # THỬ NGHIỆM B1.4 — `swift test` thật trên Windows.
-      # Bản trước kết luận từ suy đoán chứ không phải đo. Đây là phép đo: nạp DLL
-      # XCTest bin64 rồi chạy `swift test --disable-swift-testing` để tách xem
-      # runner nào chết 0xC000013A. Bước này CHẶN có chủ ý — nếu đỏ thì ta có bằng
-      # chứng verbatim, còn hơn một dự đoán không ai kiểm được.
-      - name: Try real swift test on Windows (B1.4 experiment)
-        shell: pwsh
-        run: |
-          $xctest = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
-            -Include 'XCTest.dll' -ErrorAction SilentlyContinue |
-            Where-Object { $_.Directory.Name -eq 'bin64' } | Select-Object -First 1
-          if ($xctest) {
-            Write-Host "XCTest DLL: $($xctest.Directory.FullName)"
-            $env:PATH = "$($xctest.Directory.FullName);$env:PATH"
-          } else {
-            Write-Host 'WARNING: khong tim thay XCTest.dll bin64'
-          }
-          Write-Host '--- swift test --disable-swift-testing ---'
-          swift test --disable-swift-testing 2>&1 | Select-Object -Last 40
-          $code = $LASTEXITCODE
-          Write-Host "exit=$code"
-          if ($code -ne 0) { throw "swift test --disable-swift-testing exited $code" }
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
         shell: pwsh
         run: |
