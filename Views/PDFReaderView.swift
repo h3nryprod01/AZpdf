@@ -79,7 +79,12 @@ struct PDFReaderView: NSViewRepresentable {
             // findString đồng bộ từng khoá main thread. onResults chạy trên main actor
             // (runner là @MainActor) nên cập nhật store/view trực tiếp — KHÔNG bọc thêm
             // DispatchQueue.main.async (mẫu capture-self đó từng bị Swift 6 từ chối).
-            coordinator.searchRunner.search(store.searchText, in: document) { results in
+            // `weak coordinator` phá vòng giữ: coordinator sở hữu searchRunner, runner giữ
+            // closure này, nên bắt coordinator mạnh sẽ khiến nó không bao giờ được giải
+            // phóng khi còn một lượt tìm chưa xong — kéo theo cả PDFView và tài liệu. Đo
+            // được: đóng tab giữa lúc đang tìm là rò nguyên tài liệu.
+            coordinator.searchRunner.search(store.searchText, in: document) { [weak coordinator, weak view] results in
+                guard let coordinator, let view else { return }
                 coordinator.searchResults = results
                 coordinator.searchIndex = results.isEmpty ? -1 : 0
                 store.searchResultCount = results.count

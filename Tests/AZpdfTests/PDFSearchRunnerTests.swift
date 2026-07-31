@@ -62,6 +62,53 @@ final class PDFSearchRunnerTests: XCTestCase {
         runner.search("word", in: document) { _ in expectation.fulfill() }
         runner.cancel()
         await fulfillment(of: [expectation], timeout: 1.0)
+        // Không giao kết quả là chưa đủ: lượt đã huỷ cũng không được KHỞI ĐỘNG tìm kiếm.
+        // Thiếu assert này thì bỏ `guard !Task.isCancelled` vẫn qua được test, vì
+        // cancel() đã bỏ callback rồi — lãng phí một lượt quét toàn tài liệu mà không ai thấy.
+        XCTAssertFalse(document.isFinding, "lượt đã huỷ không được khởi động find")
+    }
+
+    /// Huỷ khi lượt tìm ĐANG BAY — khác hẳn huỷ trước khi debounce trôi qua.
+    ///
+    /// Đây là đường mà bản đầu tiên bị lỗi: `cancelFindString()` chạy trước khi gỡ observer,
+    /// nên `handleEnd` vẫn kích và giao kết quả dở dang; tệ hơn, nó set `onResults = nil`
+    /// khiến kết quả đúng của lượt kế tiếp không bao giờ tới. Trong thực tế đây chính là
+    /// tình huống gõ thêm một ký tự vào ô tìm kiếm trên tài liệu lớn.
+    func testCancelDuringFlightStopsDelivery() async throws {
+        let document = makeTextDocument(pageCount: 4000, containing: "needle")
+        let runner = PDFSearchRunner(debounce: .zero, sleeper: { _ in })
+        let expectation = expectation(description: "không giao sau khi huỷ lượt đang bay")
+        expectation.isInverted = true
+        runner.search("needle", in: document) { _ in expectation.fulfill() }
+        // Nhường luồng để Task chạy tới startFind, tức find thật sự bắt đầu.
+        try? await Task.sleep(for: .milliseconds(1))
+        try XCTSkipUnless(document.isFinding,
+                          "máy này tìm xong 4000 trang quá nhanh nên không đo được đường đang-bay")
+        runner.cancel()
+        await fulfillment(of: [expectation], timeout: 2.0)
+    }
+
+    /// Huỷ xong thì runner phải NHẢ callback.
+    ///
+    /// Trong lúc một lượt còn đang chờ, closure giữ chặt captures của nó là đúng — đó là
+    /// cách closure hoạt động, không phải rò. Điều runner phải bảo đảm là sau `cancel()`
+    /// nó không ôm callback nữa. Nếu ôm, và callback lại giữ chủ sở hữu runner (ở
+    /// `PDFReaderView` là Coordinator), thì thành vòng giữ và Coordinator không bao giờ
+    /// chết — kéo theo cả `PDFView` lẫn tài liệu. Bản đầu tiên không null `onResults` trong
+    /// `cancel()`, nên đóng tab giữa lúc đang tìm là rò nguyên tài liệu.
+    func testCancelReleasesTheCallbackSoItsOwnerCanDie() {
+        @MainActor final class Owner { let runner = PDFSearchRunner(sleeper: { _ in }) }
+        weak var weakOwner: Owner?
+        do {
+            let owner = Owner()
+            weakOwner = owner
+            owner.runner.search("x", in: makeTextDocument(pageCount: 2, containing: "x")) { _ in
+                _ = owner   // cố ý bắt mạnh, đúng như call site từng làm
+            }
+            XCTAssertNotNil(weakOwner, "lượt còn đang chờ thì giữ là đúng")
+            owner.runner.cancel()
+        }
+        XCTAssertNil(weakOwner, "sau cancel() runner phải nhả callback; còn sống = vòng giữ")
     }
 
     func testResultsMatchSynchronousFindString() async throws {

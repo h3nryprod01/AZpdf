@@ -62,12 +62,16 @@ final class PDFSearchRunner: NSObject {
     func cancel() {
         task?.cancel()
         task = nil
-        if let document, document.isFinding { document.cancelFindString() }
+        // Gỡ observer TRƯỚC khi cancelFindString: đo được rằng huỷ một lượt đang bay vẫn
+        // kích handleEnd và giao kết quả dở dang. Tệ hơn, handleEnd set onResults = nil,
+        // nên kết quả ĐÚNG của lượt kế tiếp không bao giờ tới. Thứ tự này đóng cửa sổ đó.
         removeObservers()
-        // Không null onResults ở đây: guard `!Task.isCancelled` trong search mới là điểm
-        // chặn delivery cho lượt vừa huỷ (nếu null ở đây, guard trở thành dư thừa và test
-        // mutation bỏ-guard sẽ không cắn được). onResults được ghi đè ở lượt search kế tiếp
-        // và được dọn sau khi giao trong handleEnd.
+        if let document, document.isFinding { document.cancelFindString() }
+        // Bỏ luôn callback và kết quả đã gom: đã huỷ thì không còn ai chờ nghe nữa. Cùng
+        // với việc gỡ observer ở trên, đây là hai lớp chặn độc lập cho cùng một hợp đồng
+        // "huỷ rồi thì không giao".
+        onResults = nil
+        collected = []
     }
 
     private func startFind(_ text: String) {
@@ -100,10 +104,12 @@ final class PDFSearchRunner: NSObject {
     }
 
     private func removeObservers() {
-        guard let document else { return }
+        // Không lọc theo `object:` khi gỡ. `document` là weak, nên nếu tài liệu đã chết thì
+        // bản gỡ có lọc sẽ không khớp gì cả và observer nằm lại. Runner chỉ theo dõi một
+        // tài liệu tại một thời điểm, nên gỡ theo tên là đúng và không gỡ nhầm của ai khác.
         let center = NotificationCenter.default
-        center.removeObserver(self, name: .PDFDocumentDidFindMatch, object: document)
-        center.removeObserver(self, name: .PDFDocumentDidEndFind, object: document)
+        center.removeObserver(self, name: .PDFDocumentDidFindMatch, object: nil)
+        center.removeObserver(self, name: .PDFDocumentDidEndFind, object: nil)
     }
 
     // Không cần deinit: selector-observer tự bị NotificationCenter gỡ khi `self` (observer)
