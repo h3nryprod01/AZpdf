@@ -111,6 +111,35 @@ jobs:
             ldd .build-linux-static/release/azpdf-engine
             exit 1
           fi
+      # Đối xứng với windows-core: cùng một lệnh selftest, cùng một kỳ vọng.
+      #
+      # Phải dựng mutool từ nguồn. Đã đo, không phải đoán: apt của Ubuntu 24.04 lẫn
+      # container swift:6.3.3 chỉ có mutool 1.23.10, và chạy selftest với bản đó làm
+      # ĐÚNG 3 thao tác MuPDF hỗ trợ (upsertAnnotation, upsertImageAnnotation,
+      # removeAnnotation) chuyển thành `failed` → đỏ giả. mupdf.com chỉ publish
+      # -source.tar.gz và -windows.zip, không có binary Linux dựng sẵn.
+      #
+      # Dựng từ nguồn tốn 16 giây trên máy 32 nhân (đo trong đúng container này), nên
+      # trên runner vài nhân là cỡ vài phút — rẻ hơn nhiều so với ước lượng "quá nặng".
+      # X11/GLUT/CURL tắt: chỉ cần mutool, không cần viewer.
+      - name: Build pinned mutool 1.28.0 from source
+        run: |
+          set -euo pipefail
+          apt-get update -qq && apt-get install -y -qq build-essential >/dev/null
+          curl -fsSL -o /tmp/mupdf.tar.gz \
+            https://casper.mupdf.com/downloads/archive/mupdf-1.28.0-source.tar.gz
+          echo '21c7f064903154f1c3a7458bee81f130fc36f9b5147ea13328f9980e02d2dea2  /tmp/mupdf.tar.gz' \
+            | sha256sum -c -
+          tar xf /tmp/mupdf.tar.gz -C /tmp
+          make -C /tmp/mupdf-1.28.0-source -j"$(nproc)" \
+            HAVE_X11=no HAVE_GLUT=no HAVE_CURL=no build=release build/release/mutool
+          /tmp/mupdf-1.28.0-source/build/release/mutool -v
+      - name: Run azpdf-engine selftest
+        run: |
+          set -euo pipefail
+          swift build --product azpdf-engine
+          .build/debug/azpdf-engine selftest \
+            --mutool /tmp/mupdf-1.28.0-source/build/release/mutool
       - name: Audit portable core boundary
         run: ./script/audit_portable_core.sh
 
