@@ -47,9 +47,29 @@ Không debounce. Mỗi ký tự gõ vào ô tìm kiếm đổi `store.searchText
 Với tài liệu 6 000 trang, gõ một từ khoá ngắn khoá giao diện gần hai phút. Người dùng sẽ coi
 đây là treo máy, không phải chậm.
 
-Hướng sửa (chưa làm — đổi hành vi tìm kiếm, cần verify GUI):
-`PDFDocument.beginFindString(_:withOptions:)` là API bất đồng bộ sẵn có của PDFKit, báo kết quả
-qua notification; cộng thêm debounce ~250 ms trên ô nhập và huỷ lượt tìm cũ khi có lượt mới.
+### ĐÃ SỬA — đo lại trên đúng fixture đó
+
+`Stores/DocumentStore+Search.swift` bọc `PDFDocument.beginFindString(_:withOptions:)` (API bất
+đồng bộ sẵn có của PDFKit, báo kết quả qua notification) kèm debounce 250 ms và huỷ lượt cũ.
+
+| Gõ truy vấn 11 ký tự · 6 000 trang · 91 MB | Main thread bị giữ | Số lượt quét |
+|---|---|---|
+| Trước | **12 362 ms** | 11 |
+| Sau | **0,0 ms** (dưới ngưỡng đo) | **1** |
+
+Con số "sau" không phải là tìm kiếm chạy nhanh hơn — bản thân lượt quét vẫn mất chừng ấy thời
+gian, nhưng nó chạy ngoài main thread và 11 keystroke gộp còn một lượt, nên giao diện không
+còn bị giữ. Đó mới là thứ người dùng cảm nhận.
+
+Hai lỗi lộ ra khi review bản sửa đầu, cả hai đều đo được:
+
+1. Huỷ một lượt **đang bay** vẫn giao kết quả, vì `cancelFindString()` chạy trước khi gỡ
+   observer. Tệ hơn: `handleEnd` set `onResults = nil`, nên kết quả **đúng** của lượt kế tiếp
+   không bao giờ tới — chính là tình huống gõ thêm một ký tự trên tài liệu lớn.
+2. Vòng giữ `Coordinator → PDFSearchRunner → onResults → Coordinator`: đóng tab giữa lúc đang
+   tìm rò cả `PDFView` lẫn tài liệu.
+
+Cả hai được ghim bằng test, và mutation (trả lại nguyên code cũ) làm đúng hai test đó đỏ.
 
 ### Bộ nhớ
 
