@@ -351,9 +351,15 @@ jobs:
             -ErrorAction SilentlyContinue | Select-Object -First 5
           if (-not $bin) { throw 'khong tim thay binary test nao trong .build' }
           foreach ($b in $bin) { Write-Host "ung vien: $($b.FullName)  ($($b.Length) bytes)" }
+          # Lần trước gọi thẳng .xctest và PowerShell từ chối: "Cannot run a document
+          # in the middle of a pipeline" — nó coi đuôi lạ là document chứ không phải
+          # executable. Đó là lỗi của cách GỌI, chưa chạm tới binary. Đổi đuôi .exe rồi
+          # chạy qua cmd để loại hẳn PowerShell khỏi đường đi.
           $target = $bin[0]
-          Write-Host "--- chay thang: $($target.FullName) ---"
-          & $target.FullName 2>&1 | Select-Object -First 40
+          $exe = Join-Path $env:RUNNER_TEMP 'AZpdfPackageTests.exe'
+          Copy-Item $target.FullName $exe -Force
+          Write-Host "--- chay $exe qua cmd ---"
+          cmd /c "`"$exe`" 2>&1"
           Write-Host "exit=$LASTEXITCODE"
           # KHÔNG throw: đây là bước lấy thông tin, không phải gate. Sẽ gỡ ngay sau khi đọc.
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
