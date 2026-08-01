@@ -117,7 +117,10 @@ extension DocumentStore {
         }
     }
 
-    nonisolated private static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
+    // internal: exercised directly by characterization tests so the warning
+    // decision (multi-column / low-confidence / no-lines) is pinned without
+    // depending on a live Vision round-trip.
+    nonisolated static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
         let warning: String?
         if needsLayoutReview {
             warning = L("Possible multi-column layout; check the reading order before exporting.")
