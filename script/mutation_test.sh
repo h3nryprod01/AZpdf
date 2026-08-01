@@ -128,24 +128,28 @@ python3 - "$MAX_MUTATIONS" <<'PY' > "$CANDS"
 import sys, os, re
 maxn = int(sys.argv[1])
 dirs = ["Core", "Models", "Services", "Stores"]
-per = max(1, maxn // 4)
-counts = {"cmp": 0, "guard": 0, "const": 0, "bool": 0}
+# Cap theo TỪNG THƯ MỤC, không chỉ theo toán tử. Lượt đầu chỉ cap theo toán tử nên cả 80
+# candidate rơi hết vào Core/ — vòng duyệt chạm nó trước và lấp đầy cap trước khi tới ba
+# thư mục còn lại. Kill rate khi đó là của Core, không đại diện dự án. Đếm được:
+# Core 193 dòng mutate được, Models 29, Services 148, Stores 337 — Stores NHIỀU NHẤT mà
+# chưa đo dòng nào, dù nó chứa logic app.
+per_dir = max(1, maxn // len(dirs))
+per_op_dir = max(1, per_dir // 4)
 order = ["cmp", "const", "bool", "guard"]  # ưu tiên op ít nhiễu trước
 comp = re.compile(r'(?<![<>=!])(?:<=|>=|==|!=)(?![=])')
 const = re.compile(r'(?<![\w.])[01](?![\w.])')
 boolt = re.compile(r'\b(?:true|false)\b')
 guardif = re.compile(r'\b(?:guard|if)\b\s+.+?(?:\belse\b|\{)')
 cands = []
-done = False
 for d in dirs:
-    if done:
-        break
     if not os.path.isdir(d):
         continue
-    for root, _, files in os.walk(d):
-        if done:
+    counts = {"cmp": 0, "guard": 0, "const": 0, "bool": 0}   # đếm lại cho MỖI thư mục
+    dir_done = False
+    for root, _, files in sorted(os.walk(d)):
+        if dir_done:
             break
-        for fn in files:
+        for fn in sorted(files):
             if not fn.endswith(".swift"):
                 continue
             p = os.path.join(root, fn)
@@ -157,20 +161,20 @@ for d in dirs:
                 s = line.strip()
                 if not s or s.startswith("//") or s.startswith("*"):
                     continue
-                # chọn op đầu tiên khớp (theo `order`) còn dưới ngưỡng
+                # chọn op đầu tiên khớp (theo `order`) còn dưới ngưỡng CỦA THƯ MỤC NÀY
                 hits = []
                 if comp.search(line): hits.append("cmp")
                 if const.search(line): hits.append("const")
                 if boolt.search(line): hits.append("bool")
                 if guardif.search(line): hits.append("guard")
-                op = next((o for o in order if o in hits and counts[o] < per), None)
+                op = next((o for o in order if o in hits and counts[o] < per_op_dir), None)
                 if op:
                     cands.append((p, i, op))
                     counts[op] += 1
-                    if sum(counts.values()) >= maxn:
-                        done = True
+                    if sum(counts.values()) >= per_dir:
+                        dir_done = True
                         break
-            if done:
+            if dir_done:
                 break
 for p, i, op in cands:
     print("%s\t%d\t%s" % (p, i, op))
