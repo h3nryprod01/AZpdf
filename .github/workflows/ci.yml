@@ -356,7 +356,7 @@ jobs:
       # Not made non-blocking on purpose: a step that cannot fail is worthless —
       # that lesson cost this repo two fail-open security gates. Better a job with
       # an honest, narrow contract than a green tick that means nothing.
-      - name: Build portable core (build only — tests do not run on Windows yet)
+      - name: Build portable core
         shell: pwsh
         run: |
           # GitHub's pwsh shell only checks the exit code of the LAST command, so
@@ -379,11 +379,21 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
-      # KIỂM CHỨNG giả thuyết console-control: trước khi sửa, chạy thẳng test binary
-      # cho 13/14 suite rồi chết ở MuPDFDocumentEngineTests. Nếu nguyên nhân đúng là
-      # gracefulShutDown gửi CTRL_C tới cả console, thì sau khi bỏ nó trên Windows
-      # phải chạy đủ 14/14.
-      - name: Verify Windows test suite after teardown fix
+      # Windows CHẠY ĐỦ BỘ TEST. Trước đây không — `swift test` chết ở
+      # -1073741510 (0xC000013A, STATUS_CONTROL_C_EXIT) và bảy lần đo mới ra nguyên nhân:
+      # swift-subprocess cài `.gracefulShutDown` bằng
+      # `GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0)`, mà group 0 là MỌI tiến trình trên
+      # console — kể cả chính test host. Mã lỗi nghĩa đen là "bị Ctrl+C". Sửa ở
+      # Adapters/MuPDF/MuPDFDocumentEngine.swift (bỏ teardown trên Windows).
+      #
+      # Vẫn chạy binary trực tiếp chứ không qua `swift test`: PowerShell từ chối chạy file
+      # đuôi .xctest ("Cannot run a document in the middle of a pipeline"), nên copy sang
+      # .exe và gọi qua cmd.
+      #
+      # Gate theo NỘI DUNG chứ không chỉ theo exit code: phải có dòng tổng kết cuối và
+      # số failure bằng 0. Thiếu dòng tổng kết = chạy bị cụt, và một lần chạy cụt không
+      # được tính là đạt.
+      - name: Run the full test suite on Windows
         shell: pwsh
         run: |
           $dirs = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
@@ -394,15 +404,30 @@ jobs:
           $zip = Join-Path $env:RUNNER_TEMP 'mupdf-t.zip'
           curl.exe -fL 'https://casper.mupdf.com/downloads/archive/mupdf-1.28.0-windows.zip' -o $zip
           $h = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
-          if ($h -ne 'a0ee869bf38ee66b19cd30c281d04e91215f812f0cb20177cd1f69c74c33eb22') { throw "SHA: $h" }
+          if ($h -ne 'a0ee869bf38ee66b19cd30c281d04e91215f812f0cb20177cd1f69c74c33eb22') { throw "mutool SHA: $h" }
           Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\mt" -Force
           $md = (Get-ChildItem "$env:RUNNER_TEMP\mt" -Recurse -Filter 'mutool.exe' | Select-Object -First 1).Directory.FullName
           $env:PATH = "$md;$env:PATH"; $env:AZPDF_MUTOOL = Join-Path $md 'mutool.exe'
-          swift build --build-tests 2>&1 | Select-Object -Last 2
+          swift build --build-tests
+          if ($LASTEXITCODE -ne 0) { throw "build --build-tests failed" }
           $b = Get-ChildItem .build -Recurse -Filter '*.xctest' | Select-Object -First 1
-          $exe = Join-Path $env:RUNNER_TEMP 'T.exe'; Copy-Item $b.FullName $exe -Force
-          cmd /c "`"$exe`" 2>&1"
-          Write-Host "exit=$LASTEXITCODE"
+          if (-not $b) { throw 'khong tim thay binary test' }
+          $exe = Join-Path $env:RUNNER_TEMP 'AZpdfTests.exe'
+          Copy-Item $b.FullName $exe -Force
+          $out = cmd /c "`"$exe`" 2>&1" | Out-String
+          Write-Host $out
+          $m = [regex]::Matches($out, 'Executed (\d+) tests?, with (?:(\d+) tests? skipped, )?(\d+) failures?')
+          if ($m.Count -eq 0) { throw 'khong co dong tong ket — lan chay bi cut, khong tinh la dat' }
+          $last = $m[$m.Count - 1]
+          $total = [int]$last.Groups[1].Value
+          $failed = [int]$last.Groups[3].Value
+          Write-Host "TONG KET: $total test, $failed failure"
+          if ($failed -ne 0) { throw "$failed test that bai tren Windows" }
+          if ($total -lt 50) { throw "chi $total test chay — qua it so voi 60 tren Linux, nghi bi cut" }
+      # KIỂM CHỨNG giả thuyết console-control: trước khi sửa, chạy thẳng test binary
+      # cho 13/14 suite rồi chết ở MuPDFDocumentEngineTests. Nếu nguyên nhân đúng là
+      # gracefulShutDown gửi CTRL_C tới cả console, thì sau khi bỏ nó trên Windows
+      # phải chạy đủ 14/14.
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
         shell: pwsh
         run: |

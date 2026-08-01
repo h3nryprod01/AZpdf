@@ -4,6 +4,13 @@ import XCTest
 
 final class FlatpakSpawnStructuredOCRRunnerTests: XCTestCase {
     func testBuildsTightCapabilitiesInvocationWithoutHostEscape() throws {
+        #if os(Windows)
+        // bubblewrap và flatpak-spawn là sandbox CHỈ có trên Linux, và các assert
+        // dưới đây so khớp hình dạng tham số POSIX (--ro-bind, /work, đường dẫn /).
+        // Trên Windows chúng kiểm một thứ không bao giờ chạy ở đó. Skip chứ không
+        // xoá: skip hiện ra trong báo cáo, xoá thì biến mất không dấu vết.
+        throw XCTSkip("sandbox Linux-only; không áp dụng cho Windows")
+        #endif
         let fixture = try makeFixture()
         let runner = makeRunner(fixture: fixture, launcher: RecordingRunner())
 
@@ -25,6 +32,13 @@ final class FlatpakSpawnStructuredOCRRunnerTests: XCTestCase {
     }
 
     func testStagesRecognizeFilesWithLeastPrivilegeExposePolicy() throws {
+        #if os(Windows)
+        // bubblewrap và flatpak-spawn là sandbox CHỈ có trên Linux, và các assert
+        // dưới đây so khớp hình dạng tham số POSIX (--ro-bind, /work, đường dẫn /).
+        // Trên Windows chúng kiểm một thứ không bao giờ chạy ở đó. Skip chứ không
+        // xoá: skip hiện ra trong báo cáo, xoá thì biến mất không dấu vết.
+        throw XCTSkip("sandbox Linux-only; không áp dụng cho Windows")
+        #endif
         let fixture = try makeFixture()
         let input = try makeFile(name: "input.pdf", data: Data("%PDF-fixture".utf8))
         let request = try makeFile(name: "request.json", data: Data("{}".utf8))
@@ -62,6 +76,13 @@ final class FlatpakSpawnStructuredOCRRunnerTests: XCTestCase {
     }
 
     func testRejectsProviderOutsidePackagedAppAndUnsafeInvocation() throws {
+        #if os(Windows)
+        // bubblewrap và flatpak-spawn là sandbox CHỈ có trên Linux, và các assert
+        // dưới đây so khớp hình dạng tham số POSIX (--ro-bind, /work, đường dẫn /).
+        // Trên Windows chúng kiểm một thứ không bao giờ chạy ở đó. Skip chứ không
+        // xoá: skip hiện ra trong báo cáo, xoá thì biến mất không dấu vết.
+        throw XCTSkip("sandbox Linux-only; không áp dụng cho Windows")
+        #endif
         let fixture = try makeFixture()
         let runner = makeRunner(fixture: fixture, launcher: RecordingRunner())
 

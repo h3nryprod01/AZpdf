@@ -4,6 +4,13 @@ import XCTest
 
 final class BubblewrapStructuredOCRRunnerTests: XCTestCase {
     func testBuildsNetworkIsolatedRecognizeInvocation() throws {
+        #if os(Windows)
+        // bubblewrap và flatpak-spawn là sandbox CHỈ có trên Linux, và các assert
+        // dưới đây so khớp hình dạng tham số POSIX (--ro-bind, /work, đường dẫn /).
+        // Trên Windows chúng kiểm một thứ không bao giờ chạy ở đó. Skip chứ không
+        // xoá: skip hiện ra trong báo cáo, xoá thì biến mất không dấu vết.
+        throw XCTSkip("sandbox Linux-only; không áp dụng cho Windows")
+        #endif
         let provider = try makeExecutable(name: "provider")
         let input = try makeFile(name: "input.pdf", data: Data("%PDF-fixture".utf8))
         let work = FileManager.default.temporaryDirectory
