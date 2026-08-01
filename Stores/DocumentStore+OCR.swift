@@ -36,20 +36,17 @@ extension DocumentStore {
         placementInstruction = nil
         do {
             let image = try OCRService.render(page, crop: bounds, scale: 3)
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-                let result = Result { try OCRService.recognizeDetailed(image) }
-                DispatchQueue.main.async {
-                    guard let self else { return }
-                    self.isOCRProcessing = false
-                    self.ocrCompletedPages = 1
-                    switch result {
-                    case let .success(recognition):
-                        self.ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + recognition.text
-                        self.ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
-                    case .failure:
-                        self.ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + L("[No text recognized]")
-                        self.ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized in the selected region."))]
-                    }
+            Task {
+                let result = await Task.detached(priority: .userInitiated) { Result { try OCRService.recognizeDetailed(image) } }.value
+                isOCRProcessing = false
+                ocrCompletedPages = 1
+                switch result {
+                case let .success(recognition):
+                    ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + recognition.text
+                    ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
+                case .failure:
+                    ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + L("[No text recognized]")
+                    ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized in the selected region."))]
                 }
             }
         } catch {
