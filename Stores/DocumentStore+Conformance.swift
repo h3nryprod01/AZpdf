@@ -14,15 +14,12 @@ extension DocumentStore {
         guard let data = document?.dataRepresentation(), !isConformanceChecking else { return }
         isConformanceChecking = true
         conformanceError = nil
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Result { try PDFConformanceService.validate(data, profile: profile) }
-            DispatchQueue.main.async {
-                guard let self else { return }
-                self.isConformanceChecking = false
-                switch result {
-                case let .success(report): self.conformanceReport = report
-                case let .failure(error): self.conformanceError = error.localizedDescription
-                }
+        Task {
+            let result = await Task.detached(priority: .userInitiated) { Result { try PDFConformanceService.validate(data, profile: profile) } }.value
+            isConformanceChecking = false
+            switch result {
+            case let .success(report): conformanceReport = report
+            case let .failure(error): conformanceError = error.localizedDescription
             }
         }
     }
