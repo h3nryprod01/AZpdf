@@ -75,7 +75,7 @@ extension DocumentStore {
                 isOCRProcessing = false
                 return
             }
-            DispatchQueue.global(qos: .userInitiated).async { [weak self] in
+            Task {
                 var pages: [String] = []
                 for (index, textLayer, image) in pageInputs {
                     let pageText: String
@@ -84,7 +84,7 @@ extension DocumentStore {
                         pageText = L("## Page \(index + 1) · \(OCRService.Source.textLayer.displayName)") + "\n" + textLayer
                         review = Self.makeOCRReview(pageIndex: index, source: .textLayer, confidence: nil, lineCount: textLayer.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
                     } else {
-                        let result = Result { try OCRService.recognizeDetailed(image!) }
+                        let result = await Task.detached(priority: .userInitiated) { Result { try OCRService.recognizeDetailed(image!) } }.value
                         switch result {
                         case let .success(recognition):
                             pageText = L("## Page \(index + 1) · \(OCRService.Source.vision.displayName)") + "\n" + recognition.text
@@ -95,18 +95,11 @@ extension DocumentStore {
                         }
                     }
                     pages.append(pageText)
-                    let previewText = pages.joined(separator: "\n\n")
-                    DispatchQueue.main.async {
-                        guard let self else { return }
-                        self.ocrCompletedPages += 1
-                        self.ocrText = previewText
-                        self.ocrReviews.append(review)
-                    }
+                    ocrCompletedPages += 1
+                    ocrText = pages.joined(separator: "\n\n")
+                    ocrReviews.append(review)
                 }
-                DispatchQueue.main.async {
-                    guard let self else { return }
-                    self.isOCRProcessing = false
-                }
+                isOCRProcessing = false
             }
         } catch {
             isOCRProcessing = false

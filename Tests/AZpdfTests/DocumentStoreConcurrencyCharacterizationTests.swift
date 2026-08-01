@@ -117,6 +117,23 @@ final class DocumentStoreConcurrencyCharacterizationTests: XCTestCase {
         XCTAssertTrue(store.ocrText.contains("Page 1"))
     }
 
+    // MARK: - beginOCR (document/page) async completion (pins +OCR L81/102/109)
+
+    func testBeginOCRDocumentCompletesWithOneReviewPerPage() {
+        let store = DocumentStore()
+        store.document = makeDocument(pageCount: 1)
+
+        store.beginOCRDocument()
+
+        waitFor { store.isOCRProcessing == false }
+
+        XCTAssertFalse(store.isOCRProcessing)
+        XCTAssertEqual(store.ocrCompletedPages, 1)
+        XCTAssertEqual(store.ocrReviews.count, 1)
+        XCTAssertEqual(store.ocrReviews.first?.source, .unavailable)
+        XCTAssertTrue(store.ocrText.contains("Page 1"))
+    }
+
     // MARK: - Conformance synchronous setup + guards (pins +Conformance L7/10/15)
 
     func testBeginConformanceCheckPresentsSheetWhenDocumentExists() {
