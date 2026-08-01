@@ -68,7 +68,7 @@ struct ContentView: View {
                     url = item as? URL
                 }
                 guard let url, url.pathExtension.lowercased() == "pdf" else { return }
-                DispatchQueue.main.async { store.open(url) }
+                Task { @MainActor in store.open(url) }
             }
             return true
         }
