@@ -36,9 +36,27 @@ public struct SubprocessMuPDFCommandRunner: MuPDFCommandRunning {
         let task = Task.detached(priority: .userInitiated) {
             do {
                 var platformOptions = Subprocess.PlatformOptions()
+                #if !os(Windows)
+                // Cho mutool cơ hội tự dọn trước khi bị giết. KHÔNG áp dụng trên Windows:
+                // swift-subprocess cài `.gracefulShutDown` ở đó bằng console control event
+                // (`Teardown.swift`: `AttachConsole` rồi
+                // `GenerateConsoleCtrlEvent(CTRL_C_EVENT, 0)`), và **group 0 nghĩa là mọi
+                // tiến trình đang gắn vào console đó — kể cả tiến trình đang gọi**. Kết quả
+                // là bên gọi tự chết với STATUS_CONTROL_C_EXIT (0xC000013A).
+                //
+                // Không phải chuyện lý thuyết: chính nó làm test host trên Windows chết đúng
+                // ở `testSubprocessRunnerTerminatesTimedOutProcess` — suite duy nhất kích
+                // hoạt đường timeout — và khiến `swift test` trên Windows đỏ suốt. Trong app
+                // đã ship còn tệ hơn: một lần mutool treo sẽ **giết engine** thay vì trả về
+                // lỗi timeout.
+                //
+                // Bỏ teardownSequence trên Windows thì swift-subprocess dùng `TerminateProcess`
+                // — giết thẳng tiến trình con, không đụng tới console. Với một mutool đã treo
+                // thì đó mới là hành vi đúng.
                 platformOptions.teardownSequence = [
                     .gracefulShutDown(allowedDurationToNextStep: .milliseconds(250))
                 ]
+                #endif
                 let result = try await Subprocess.run(
                     .path(.init(executablePath)),
                     arguments: Arguments(arguments),

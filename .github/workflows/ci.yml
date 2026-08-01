@@ -379,6 +379,30 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw "swift build --build-tests failed ($LASTEXITCODE)." }
           swift build -c release --product azpdf-engine
           if ($LASTEXITCODE -ne 0) { throw "swift build failed ($LASTEXITCODE)." }
+      # KIỂM CHỨNG giả thuyết console-control: trước khi sửa, chạy thẳng test binary
+      # cho 13/14 suite rồi chết ở MuPDFDocumentEngineTests. Nếu nguyên nhân đúng là
+      # gracefulShutDown gửi CTRL_C tới cả console, thì sau khi bỏ nó trên Windows
+      # phải chạy đủ 14/14.
+      - name: Verify Windows test suite after teardown fix
+        shell: pwsh
+        run: |
+          $dirs = Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Platforms" -Recurse `
+            -Include 'XCTest.dll','Testing.dll' -ErrorAction SilentlyContinue |
+            Where-Object { $_.Directory.Name -eq 'bin64' } |
+            ForEach-Object { $_.Directory.FullName } | Sort-Object -Unique
+          foreach ($d in $dirs) { $env:PATH = "$d;$env:PATH" }
+          $zip = Join-Path $env:RUNNER_TEMP 'mupdf-t.zip'
+          curl.exe -fL 'https://casper.mupdf.com/downloads/archive/mupdf-1.28.0-windows.zip' -o $zip
+          $h = (Get-FileHash -Algorithm SHA256 $zip).Hash.ToLowerInvariant()
+          if ($h -ne 'a0ee869bf38ee66b19cd30c281d04e91215f812f0cb20177cd1f69c74c33eb22') { throw "SHA: $h" }
+          Expand-Archive -Path $zip -DestinationPath "$env:RUNNER_TEMP\mt" -Force
+          $md = (Get-ChildItem "$env:RUNNER_TEMP\mt" -Recurse -Filter 'mutool.exe' | Select-Object -First 1).Directory.FullName
+          $env:PATH = "$md;$env:PATH"; $env:AZPDF_MUTOOL = Join-Path $md 'mutool.exe'
+          swift build --build-tests 2>&1 | Select-Object -Last 2
+          $b = Get-ChildItem .build -Recurse -Filter '*.xctest' | Select-Object -First 1
+          $exe = Join-Path $env:RUNNER_TEMP 'T.exe'; Copy-Item $b.FullName $exe -Force
+          cmd /c "`"$exe`" 2>&1"
+          Write-Host "exit=$LASTEXITCODE"
       - name: Run azpdf-engine selftest (first behavioral check on Windows)
         shell: pwsh
         run: |
