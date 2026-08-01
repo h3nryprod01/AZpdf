@@ -3,7 +3,7 @@
 #
 # Áp các mutation văn bản lên Core/Models/Services/Stores, chạy `swift test`, phân loại
 # killed / survived / skipped, rồi LUÔN khôi phục file (git checkout + trap EXIT). Mọi file
-# về nguyên状 sau khi chạy — `git status --porcelain` phải rỗng.
+# về nguyên trạng sau khi chạy — `git status --porcelain` phải rỗng.
 #
 # Catalogue (thuần văn bản, dễ áp + dễ hoàn tác; ~tối đa bằng nhau mỗi loại):
 #   cmp    đảo so sánh   ==/!=/<=/>=
@@ -27,6 +27,23 @@ RUNLOG="$WORK/run.out"
 : > "$SURVIVED_TSV"
 
 restore_all() { git checkout -q -- "${SCOPE[@]}" 2>/dev/null || true; }
+
+# Khôi phục bằng `git checkout --` nghĩa là XOÁ mọi sửa đổi chưa commit trong scope.
+# Đo được: thêm một dòng vào Core/DocumentIR.swift rồi chạy đúng lệnh khôi phục đó →
+# dòng biến mất, không một lời cảnh báo. Với một script nằm trong repo và người ta chạy
+# tại máy mình, đó là mất việc thật. Từ chối chạy còn hơn âm thầm nuốt.
+dirty="$(git status --porcelain -- "${SCOPE[@]}" 2>/dev/null)"
+if [ -n "$dirty" ]; then
+  {
+    echo "Từ chối chạy: có thay đổi chưa commit trong ${SCOPE[*]}:"
+    echo "$dirty"
+    echo
+    echo "Script khôi phục sau mỗi mutation bằng 'git checkout --', thao tác đó sẽ XOÁ"
+    echo "những thay đổi trên. Hãy commit hoặc 'git stash' trước khi chạy."
+  } >&2
+  exit 1
+fi
+
 trap 'restore_all' EXIT INT TERM
 
 # classify <logfile> <rc>  → đặt $status toàn cục
