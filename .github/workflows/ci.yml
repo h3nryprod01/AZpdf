@@ -26,13 +26,12 @@ jobs:
       # 404s, which is what made this job look like "Windows/macOS has no
       # toolchain". Swift publishes no .sha256/.sig sidecar next to these
       # artifacts (all 404), so integrity rests on HTTPS to download.swift.org.
-      - name: Install official Swift 6.3.3 toolchain
-        run: |
-          set -euo pipefail
-          url='https://download.swift.org/swift-6.3.3-release/xcode/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE-osx.pkg'
-          curl -fL --retry 3 -o "$RUNNER_TEMP/swift.pkg" "$url"
-          sudo installer -pkg "$RUNNER_TEMP/swift.pkg" -target /
-          echo 'TOOLCHAINS=swift' >> "$GITHUB_ENV"
+      # THÍ NGHIỆM B3.3 — CỐ Ý dùng Xcode mặc định của runner (Swift 6.2.4) thay vì
+      # cài 6.3.3. Đây là phép đo duy nhất trả lời được câu hỏi của PHA 3: sau khi gỡ
+      # hết mẫu DispatchQueue+@MainActor, compiler 6.2.4 có còn từ chối không? Build
+      # bằng 6.3.3 rồi suy ra "6.2 chắc cũng được" là suy luận, không phải bằng chứng.
+      - name: Install official Swift 6.3.3 toolchain (TẠM TẮT cho thí nghiệm B3.3)
+        run: swift --version
       - name: Show toolchain in use
         run: swift --version
       - name: Test

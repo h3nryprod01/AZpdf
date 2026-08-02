@@ -1,4 +1,4 @@
-// swift-tools-version: 6.3
+// swift-tools-version: 6.0
 // 6.3 is the real floor, not a preference. The macOS app target uses a
 // DispatchQueue.main.async + @MainActor pattern (DocumentStore+OCR.swift) that
 // Swift 6.2.4 rejects with "sending 'self' risks causing data races" and 6.3
