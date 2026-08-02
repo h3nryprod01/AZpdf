@@ -151,6 +151,15 @@ extension DocumentStore {
         panel.allowedContentTypes = [.pdf]
         panel.nameFieldStringValue = "\(title)-searchable.pdf"
         guard panel.runModal() == .OK, let url = panel.url else { return }
+        performSearchablePDFExport(documentData: documentData, to: url)
+    }
+
+    /// Phần việc sau khi người dùng đã chọn nơi lưu.
+    ///
+    /// Tách ra khỏi `exportSearchablePDF()` vì phần trên bị chặn bởi `panel.runModal()` —
+    /// NSSavePanel không chạy được headless, nên toàn bộ nhánh này trước đây không có cách
+    /// nào viết test đặc tính. Đo được: mutation trên vùng này sống sót 100 %.
+    func performSearchablePDFExport(documentData: Data, to url: URL) {
         isSearchablePDFExporting = true
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             let result = Result { try OCRMyPDFService.createSearchablePDF(documentData: documentData) }
