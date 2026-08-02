@@ -26,14 +26,10 @@ jobs:
       # 404s, which is what made this job look like "Windows/macOS has no
       # toolchain". Swift publishes no .sha256/.sig sidecar next to these
       # artifacts (all 404), so integrity rests on HTTPS to download.swift.org.
-      # Cài 6.2.0 — ĐÚNG sàn mà Package.swift khai, để CI kiểm chứng lời khai đó thay vì
-      # build bằng một toolchain cao hơn rồi suy ra. Sàn này do dependency đặt
-      # (swift-subprocess tự khai tools 6.2), không phải do code ở đây: thử hạ xuống 6.0
-      # thì SwiftPM từ chối resolve ngay, trước cả khi biên dịch dòng nào.
-      - name: Install official Swift 6.2.0 toolchain
+      - name: Install official Swift 6.3.3 toolchain
         run: |
           set -euo pipefail
-          url='https://download.swift.org/swift-6.2-release/xcode/swift-6.2-RELEASE/swift-6.2-RELEASE-osx.pkg'
+          url='https://download.swift.org/swift-6.3.3-release/xcode/swift-6.3.3-RELEASE/swift-6.3.3-RELEASE-osx.pkg'
           curl -fL --retry 3 -o "$RUNNER_TEMP/swift.pkg" "$url"
           sudo installer -pkg "$RUNNER_TEMP/swift.pkg" -target /
           echo 'TOOLCHAINS=swift' >> "$GITHUB_ENV"

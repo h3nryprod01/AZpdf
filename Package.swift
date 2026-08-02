@@ -1,20 +1,21 @@
-// swift-tools-version: 6.2
-// 6.2 là sàn THẬT, và nó không đến từ code của dự án này.
+// swift-tools-version: 6.3
+// 6.3 là sàn thật — nhưng KHÔNG phải vì lý do bản trước ghi. Ba lần đo, ba lý do khác nhau,
+// mỗi lần bác bỏ lần trước:
 //
-// Bản trước ghi 6.3 với lý do: mẫu `DispatchQueue.main.async` + `@MainActor` trong
-// `DocumentStore+OCR.swift` bị Swift 6.2.4 từ chối. Lý do đó **đã hết hiệu lực** — PHA 3
-// gỡ toàn bộ 10/10 chỗ đó sang `Task`/`async` (không còn `DispatchQueue` nào trong
-// `Stores/` lẫn `Views/`).
+//   1. Giả định cũ: "code ta dùng DispatchQueue+@MainActor mà 6.2.4 từ chối".
+//      → HẾT HIỆU LỰC. PHA 3 gỡ 10/10 chỗ sang Task/async; `Stores/` và `Views/` không còn
+//        `DispatchQueue` nào.
+//   2. Thử hạ 6.0 → SwiftPM từ chối trước cả khi biên dịch:
+//        package 'swift-subprocess' is using Swift tools version 6.2.0
+//      Dependency đặt sàn, không phải ta. Vậy 6.2 là mức thấp nhất khai được.
+//   3. Đặt 6.2 và build bằng toolchain 6.2 THẬT → code của dự án biên dịch sạch, nhưng
+//      `swift-system` (bắc cầu qua swift-subprocess) gãy:
+//        Constants.swift:680: cannot find 'AT_RESOLVE_BENEATH' in scope
+//      Hằng số đó cần SDK mới hơn bản mà Swift 6.2 mang theo.
 //
-// Thử hạ thẳng xuống 6.0 thì CI trả lời dứt khoát, và trả lời một chuyện khác hẳn:
-//   error: package 'swift-subprocess' is using Swift tools version 6.2.0
-//          but the installed version is 6.1.0
-// Sàn do **dependency** đặt ra, không phải do code ở đây. `swift-subprocess` (đã ghim theo
-// revision) tự khai `swift-tools-version: 6.2`, nên 6.2 là mức thấp nhất có thể — hạ nữa
-// là SwiftPM từ chối resolve, bất kể code của ta viết thế nào.
-//
-// Nói cách khác: cái giá "chặn người dùng Swift 6.0-6.2" mà bản trước tự nhận là đã trả,
-// thực ra chỉ chặn 6.0-6.1, và không phải do ta chọn.
+// Nên sàn 6.3 giữ nguyên, và giờ lý do là đúng: nó do **SDK mà dependency cần**, không phải
+// do concurrency trong code ứng dụng. Ai muốn hạ tiếp thì phải giải bài swift-system/SDK,
+// đừng đi sửa lại code app — hướng đó đã đo và đã hết.
 import PackageDescription
 
 var products: [Product] = [
