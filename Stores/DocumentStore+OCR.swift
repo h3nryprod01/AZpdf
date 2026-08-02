@@ -161,23 +161,22 @@ extension DocumentStore {
     /// nào viết test đặc tính. Đo được: mutation trên vùng này sống sót 100 %.
     func performSearchablePDFExport(documentData: Data, to url: URL) {
         isSearchablePDFExporting = true
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            let result = Result { try OCRMyPDFService.createSearchablePDF(documentData: documentData) }
-            DispatchQueue.main.async {
-                guard let self else { return }
-                self.isSearchablePDFExporting = false
-                switch result {
-                case let .success(data):
-                    do {
-                        try data.write(to: url, options: .atomic)
-                        self.isOCRSheetPresented = false
-                        self.open(url)
-                    } catch {
-                        self.lastError = L("Could not save the searchable PDF: \(error.localizedDescription)")
-                    }
-                case let .failure(error):
-                    self.lastError = error.localizedDescription
+        Task {
+            let result = await Task.detached(priority: .userInitiated) {
+                Result { try OCRMyPDFService.createSearchablePDF(documentData: documentData) }
+            }.value
+            isSearchablePDFExporting = false
+            switch result {
+            case let .success(data):
+                do {
+                    try data.write(to: url, options: .atomic)
+                    isOCRSheetPresented = false
+                    open(url)
+                } catch {
+                    lastError = L("Could not save the searchable PDF: \(error.localizedDescription)")
                 }
+            case let .failure(error):
+                lastError = error.localizedDescription
             }
         }
     }
