@@ -233,3 +233,48 @@ final class DocumentStoreConcurrencyCharacterizationTests: XCTestCase {
         return document
     }
 }
+
+// MARK: - exportSearchablePDF (phần B3.2 bị NSSavePanel chặn)
+
+extension DocumentStoreConcurrencyCharacterizationTests {
+
+    /// Ghim hành vi `performSearchablePDFExport` TRƯỚC khi đổi concurrency.
+    ///
+    /// Phần này trước đây nằm sau `panel.runModal()` nên không viết test được, và mutation
+    /// trên vùng đó sống sót 100 %. Test dùng `waitFor` (quay run loop) nên chạy được cả
+    /// trên bản `DispatchQueue` lẫn bản `async` — nghĩa là nó ghim HÀNH VI, không mô tả
+    /// cách cài đặt.
+    ///
+    /// Đường đo được là nhánh THẤT BẠI: máy chạy test không có runtime OCRmyPDF nên
+    /// `createSearchablePDF` ném `runtimeUnavailable`. Bất biến phải giữ: hạ cờ bận, đẩy lỗi
+    /// lên `lastError`, KHÔNG đóng sheet OCR, và không ghi file ra đích.
+    func testSearchablePDFExportFailureClearsBusyFlagAndSurfacesError() {
+        let store = DocumentStore()
+        store.isOCRSheetPresented = true
+        let destination = FileManager.default.temporaryDirectory
+            .appending(path: "azpdf-searchable-\(UUID().uuidString).pdf")
+        defer { try? FileManager.default.removeItem(at: destination) }
+
+        store.performSearchablePDFExport(documentData: Data("%PDF-1.4 fixture".utf8), to: destination)
+        waitFor { !store.isSearchablePDFExporting }
+
+        XCTAssertNotNil(store.lastError, "thất bại phải nổi lên lastError")
+        XCTAssertTrue(store.isOCRSheetPresented, "thất bại thì KHÔNG được đóng sheet OCR")
+        XCTAssertFalse(FileManager.default.fileExists(atPath: destination.path),
+                       "thất bại thì không được ghi file ra đích")
+    }
+
+    /// Cờ bận phải bật ĐỒNG BỘ ngay khi gọi. Nếu nó chỉ bật bên trong tác vụ nền thì UI có
+    /// một khoảng hở cho phép bấm Export lần thứ hai.
+    func testSearchablePDFExportSetsBusyFlagSynchronously() {
+        let store = DocumentStore()
+        let destination = FileManager.default.temporaryDirectory
+            .appending(path: "azpdf-searchable-\(UUID().uuidString).pdf")
+        defer { try? FileManager.default.removeItem(at: destination) }
+
+        XCTAssertFalse(store.isSearchablePDFExporting)
+        store.performSearchablePDFExport(documentData: Data("%PDF-1.4 fixture".utf8), to: destination)
+        XCTAssertTrue(store.isSearchablePDFExporting, "cờ bận phải bật ngay, không đợi tác vụ nền")
+        waitFor { !store.isSearchablePDFExporting }
+    }
+}
