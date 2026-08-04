@@ -79,6 +79,25 @@ final class DocumentStoreConcurrencyCharacterizationTests: XCTestCase {
         XCTAssertNil(review.warning)
     }
 
+    // MARK: - makeOCRReview page-level formula/figure signal (B3.5.5 — ≥2 low-letter-ratio lines)
+
+    func testOCRReviewWarnsOnMultipleLowLetterRatioLines() {
+        // confidence/minConfidence are high so only the letter-ratio branch can fire.
+        let review = DocumentStore.makeOCRReview(
+            pageIndex: 0, source: .vision, confidence: 0.99, minConfidence: 0.90,
+            lowLetterRatioLineCount: 2,
+            lineCount: 8, layoutSummary: "single", needsLayoutReview: false)
+        XCTAssertNotNil(review.warning)
+    }
+
+    func testOCRReviewNoFormulaWarningBelowTwoLowLetterRatioLines() {
+        let review = DocumentStore.makeOCRReview(
+            pageIndex: 0, source: .vision, confidence: 0.99, minConfidence: 0.90,
+            lowLetterRatioLineCount: 1,
+            lineCount: 8, layoutSummary: "single", needsLayoutReview: false)
+        XCTAssertNil(review.warning)
+    }
+
     // MARK: - beginOCRRegion synchronous setup + guards (pins +OCR L28-36)
 
     func testBeginOCRRegionSetsProcessingStateSynchronously() {

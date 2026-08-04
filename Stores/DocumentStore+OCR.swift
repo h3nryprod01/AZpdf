@@ -43,7 +43,7 @@ extension DocumentStore {
                 switch result {
                 case let .success(recognition):
                     ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + recognition.text
-                    ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
+                    ocrReviews = [Self.makeOCRReview(pageIndex: pageIndex, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lowLetterRatioLineCount: recognition.lowLetterRatioLineCount, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)]
                 case .failure:
                     ocrText = L("## Page \(pageIndex + 1) · Vision OCR Region") + "\n" + L("[No text recognized]")
                     ocrReviews = [OCRPageReview(pageIndex: pageIndex, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized in the selected region."))]
@@ -88,7 +88,7 @@ extension DocumentStore {
                         switch result {
                         case let .success(recognition):
                             pageText = L("## Page \(index + 1) · \(OCRService.Source.vision.displayName)") + "\n" + recognition.text
-                            review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
+                            review = Self.makeOCRReview(pageIndex: index, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lowLetterRatioLineCount: recognition.lowLetterRatioLineCount, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
                         case .failure:
                             pageText = L("## Page \(index + 1)") + "\n" + L("[No text recognized]")
                             review = OCRPageReview(pageIndex: index, source: .unavailable, confidence: nil, lineCount: 0, layoutSummary: L("Unavailable"), warning: L("No text recognized on this page."))
@@ -110,10 +110,17 @@ extension DocumentStore {
     // internal: exercised directly by characterization tests so the warning
     // decision (multi-column / low-confidence / no-lines) is pinned without
     // depending on a live Vision round-trip.
-    nonisolated static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, minConfidence: Float? = nil, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
+    nonisolated static func makeOCRReview(pageIndex: Int, source: OCRPageReview.Source, confidence: Float?, minConfidence: Float? = nil, lowLetterRatioLineCount: Int = 0, lineCount: Int, layoutSummary: String, needsLayoutReview: Bool) -> OCRPageReview {
         let warning: String?
         if needsLayoutReview {
             warning = L("Possible multi-column layout; check the reading order before exporting.")
+        } else if lowLetterRatioLineCount >= 2 {
+            // ponytail: ≥ 2 lines with letter-ratio < 0.5 ⇒ an OCR region it can't read
+            // (formula/figure). Threshold + count from qa-report/ocr-flag-signal-2026-08-04.md
+            // (FP=0 at page level on the 8-page corpus). Placed before the confidence
+            // branches so a garbage page gets the specific message even when Vision is
+            // wrongly confident. Not a config knob; re-measure before changing.
+            warning = L("This page has an OCR region that could not be read: likely a formula or figure.")
         } else if source == .vision, let confidence, confidence < 0.85 {
             warning = L("Low confidence; double-check the reading order and characters before exporting.")
         } else if let minConfidence, minConfidence < 0.5 {

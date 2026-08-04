@@ -32,6 +32,7 @@ enum OCRService {
         let source: Source
         let confidence: Float?
         let minConfidence: Float?
+        let lowLetterRatioLineCount: Int
         let lineCount: Int
         let layoutSummary: String
         let needsLayoutReview: Bool
@@ -41,6 +42,7 @@ enum OCRService {
         let text: String
         let confidence: Float
         let minConfidence: Float?
+        let lowLetterRatioLineCount: Int
         let lineCount: Int
         let layoutSummary: String
         let needsLayoutReview: Bool
@@ -90,10 +92,10 @@ enum OCRService {
     /// to Vision at high resolution.
     static func recognize(_ page: PDFPage, scale: CGFloat = 3) throws -> PageResult {
         if let text = textLayer(from: page) {
-            return PageResult(text: text, source: .textLayer, confidence: nil, minConfidence: nil, lineCount: text.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
+            return PageResult(text: text, source: .textLayer, confidence: nil, minConfidence: nil, lowLetterRatioLineCount: 0, lineCount: text.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
         }
         let recognition = try recognizeDetailed(render(page, scale: scale))
-        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
+        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lowLetterRatioLineCount: recognition.lowLetterRatioLineCount, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
     }
 
     static func textLayer(from page: PDFPage) -> String? {
@@ -108,6 +110,26 @@ enum OCRService {
             .replacingOccurrences(of: "\u{00A0}", with: " ")
             .replacingOccurrences(of: "\r\n", with: "\n")
             .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    /// letters / non-whitespace characters. Letters are Unicode general category L*
+    /// (Vietnamese precomposed diacritics count). Garbage OCR lines (mis-rendered
+    /// formulas, hex, code) score low; real prose scores high. See B3.5.4.
+    static func letterRatio(_ value: String) -> Double {
+        var letters = 0
+        var nonWhitespace = 0
+        for character in value {
+            if character.isWhitespace { continue }
+            nonWhitespace += 1
+            guard let scalar = character.unicodeScalars.first else { continue }
+            switch scalar.properties.generalCategory {
+            case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter:
+                letters += 1
+            default:
+                break
+            }
+        }
+        return nonWhitespace == 0 ? 0 : Double(letters) / Double(nonWhitespace)
     }
 
     static func recognize(_ image: CGImage) throws -> String {
@@ -134,10 +156,15 @@ enum OCRService {
         // Keep `confidence` (avg) for display, expose the per-page min so the review
         // can flag pages where at least one line was uncertain.
         let minConfidence = candidates.map(\.confidence).min()
+        // ponytail: fixed 0.5 threshold from qa-report/ocr-flag-signal-2026-08-04.md (FP=0
+        // at page level on the 8-page corpus). Count lines whose letter ratio falls below
+        // it — ≥ 2 on a page is the formula/figure signal (see makeOCRReview). Not a config
+        // knob; re-measure on real scans before changing.
+        let lowLetterRatioLineCount = candidates.filter { letterRatio($0.string) < 0.5 }.count
         let leftColumnLines = observations.filter { $0.boundingBox.midX < 0.45 }.count
         let rightColumnLines = observations.filter { $0.boundingBox.midX > 0.55 }.count
         let hasMultipleColumns = leftColumnLines >= 3 && rightColumnLines >= 3
         let layoutSummary = hasMultipleColumns ? L("Possible multi-column layout") : L("Single-column / simple layout")
-        return Recognition(text: text, confidence: confidence, minConfidence: minConfidence, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
+        return Recognition(text: text, confidence: confidence, minConfidence: minConfidence, lowLetterRatioLineCount: lowLetterRatioLineCount, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
     }
 }
