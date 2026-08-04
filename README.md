@@ -2,7 +2,7 @@
 
 **English** | [Tiếng Việt](README-VI.md)
 
-An open-source, local-first PDF reader and editor. macOS is the first release platform; the Linux port (v2) is in alpha and Windows is next on the roadmap.
+An open-source, local-first PDF reader and editor. macOS is the first release platform. The Linux port (v2) is in alpha and is the only downloadable build so far — an AppImage on the [releases page](https://github.com/h3nryprod01/AZpdf/releases). Windows builds and runs the core test suite in CI on every push, but has no installer yet.
 
 <img width="254" height="254" alt="AZpdf icon" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -30,7 +30,7 @@ An open-source, local-first PDF reader and editor. macOS is the first release pl
 - Print (`⌘P`) through the system print dialog; annotations are included, and rotated pages come out the right way up
 - Export the current page as a separate PDF
 - Open password-protected PDFs with a native, on-device prompt
-- OCR a drag-selected region, the current page, or the whole document through a hybrid local-first pipeline: the PDF text layer is preferred, with Apple's Vision framework at 3× render scale for scanned pages; review, edit, copy, or export the result as `.txt`
+- OCR a drag-selected region, the current page, or the whole document through a hybrid local-first pipeline: the PDF text layer is preferred, with Apple's Vision framework at 3× render scale for scanned pages; review, edit, copy, or export the result as `.txt`. Pages carrying a region OCR could not read — a formula, a chart — are flagged in the review list rather than passed off silently: measured, all three engines we tested destroy mathematical notation, and Vision reports full confidence while doing it
 - Export a password-protected copy through the native Save panel
 - Redact the selection destructively: the page is rasterized and the original content is removed from the page's content stream
 - Detect PDF forms; type directly into native widget fields in the document
@@ -45,10 +45,10 @@ An open-source, local-first PDF reader and editor. macOS is the first release pl
 ## Privacy and plugins
 
 - **Local-first:** AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server.
-- CI scans the source to block networking APIs in the app and core targets.
+- CI scans the source to block networking APIs in the app and core targets. On every run it also plants a real `URLSession` violation and fails the build unless the scanner catches it — a gate that quietly stopped scanning cannot pass as green.
 - **Plugin-ready:** OCR, translation, and summarization will ship as optional installable plugins; AZpdf itself depends on no cloud service.
 - Plugins are only discovered locally at `~/Library/Application Support/AZpdf/Plugins/`; see [Plugins/README.md](Plugins/README.md) and the [sandbox model](docs/PLUGIN_PROTOCOL.md). v1 does not run third-party binaries.
-- **OCR to searchable PDF:** after reviewing the preview, you can export a new PDF through OCRmyPDF in a mode that preserves the original text layer. The Linux alpha bundle ships a portable OCR runtime with Tesseract, Ghostscript, qpdf, and `vie`/`eng`/`osd` language data; on macOS, OCR itself uses Vision; searchable-PDF export additionally uses OCRmyPDF when its runtime is bundled or installed.
+- **OCR to searchable PDF:** after reviewing the preview, you can export a new PDF through OCRmyPDF in a mode that preserves the original text layer. The Linux alpha bundle ships a portable OCR runtime with Tesseract, Ghostscript, qpdf, and `vie`/`eng`/`osd` language data; on macOS, OCR itself uses Vision; searchable-PDF export additionally uses OCRmyPDF when its runtime is bundled or installed. Before writing that file AZpdf warns you if any page was flagged as unreadable, because a searchable PDF bakes the current text in permanently.
 
 ## Support the project
 

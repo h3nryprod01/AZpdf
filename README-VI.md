@@ -2,7 +2,7 @@
 
 [English](README.md) | **Tiếng Việt**
 
-Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là nền tảng phát hành đầu tiên; Linux v2 đang ở giai đoạn alpha và Windows nằm trong lộ trình tiếp theo.
+Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là nền tảng phát hành đầu tiên. Bản Linux v2 đang ở giai đoạn alpha và hiện là bản duy nhất tải về được — một AppImage ở [trang releases](https://github.com/h3nryprod01/AZpdf/releases). Windows đã build và chạy được bộ test core trong CI mỗi lần push, nhưng chưa có gói cài đặt.
 
 <img width="254" height="254" alt="Biểu tượng AZpdf" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -30,7 +30,7 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 - In tài liệu (`⌘P`) qua hộp thoại in của hệ thống; annotation in ra và trang xoay in đúng chiều
 - Xuất trang hiện tại thành một PDF riêng biệt
 - Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
-- OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
+- OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`. Trang có vùng OCR không đọc được — công thức, biểu đồ — sẽ bị đánh dấu trong danh sách review thay vì lặng lẽ cho qua: đã đo, cả ba engine thử nghiệm đều phá nát ký hiệu toán học, và Vision vẫn báo độ tin cậy tối đa khi làm vậy
 - Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
 - Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF
 - Phát hiện form PDF; nhập trực tiếp vào trường widget native trong tài liệu
@@ -45,10 +45,10 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 ## Quyền riêng tư và plugin
 
 - **Local-first:** AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.
-- CI kiểm tra source để chặn API client mạng trong app/core.
+- CI kiểm tra source để chặn API client mạng trong app/core. Mỗi lần chạy, CI còn cấy một vi phạm `URLSession` thật và bắt build đỏ nếu bộ quét không bắt được — một gate đã âm thầm ngừng quét thì không thể qua mặt thành màu xanh.
 - **Plugin-ready:** OCR, dịch và tóm tắt sẽ là plugin cài đặt tùy chọn; bản thân AZpdf không phụ thuộc dịch vụ cloud.
 - Plugin chỉ được phát hiện cục bộ tại `~/Library/Application Support/AZpdf/Plugins/`; xem [Plugins/README.md](Plugins/README.md) và [mô hình sandbox](docs/PLUGIN_PROTOCOL.md). Bản v1 không thực thi executable bên thứ ba.
-- **OCR searchable PDF:** sau khi review preview, có thể xuất PDF mới qua OCRmyPDF theo chế độ giữ text layer gốc. Bundle Linux alpha đã đóng gói runtime OCR portable cùng Tesseract, Ghostscript, qpdf và language data `vie`/`eng`/`osd`; macOS vẫn dùng pipeline Vision + OCRmyPDF tùy runtime.
+- **OCR searchable PDF:** sau khi review preview, có thể xuất PDF mới qua OCRmyPDF theo chế độ giữ text layer gốc. Bundle Linux alpha đã đóng gói runtime OCR portable cùng Tesseract, Ghostscript, qpdf và language data `vie`/`eng`/`osd`; macOS vẫn dùng pipeline Vision + OCRmyPDF tùy runtime. Trước khi ghi file đó, AZpdf cảnh báo nếu có trang nào bị đánh dấu không đọc được, vì PDF tìm kiếm được sẽ nướng text hiện tại vào vĩnh viễn.
 
 ## Ủng hộ
 
