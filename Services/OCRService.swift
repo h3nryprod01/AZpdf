@@ -31,6 +31,7 @@ enum OCRService {
         let text: String
         let source: Source
         let confidence: Float?
+        let minConfidence: Float?
         let lineCount: Int
         let layoutSummary: String
         let needsLayoutReview: Bool
@@ -39,6 +40,7 @@ enum OCRService {
     struct Recognition: Sendable {
         let text: String
         let confidence: Float
+        let minConfidence: Float?
         let lineCount: Int
         let layoutSummary: String
         let needsLayoutReview: Bool
@@ -88,10 +90,10 @@ enum OCRService {
     /// to Vision at high resolution.
     static func recognize(_ page: PDFPage, scale: CGFloat = 3) throws -> PageResult {
         if let text = textLayer(from: page) {
-            return PageResult(text: text, source: .textLayer, confidence: nil, lineCount: text.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
+            return PageResult(text: text, source: .textLayer, confidence: nil, minConfidence: nil, lineCount: text.split(separator: "\n").count, layoutSummary: "Text layer PDF", needsLayoutReview: false)
         }
         let recognition = try recognizeDetailed(render(page, scale: scale))
-        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
+        return PageResult(text: recognition.text, source: .vision, confidence: recognition.confidence, minConfidence: recognition.minConfidence, lineCount: recognition.lineCount, layoutSummary: recognition.layoutSummary, needsLayoutReview: recognition.needsLayoutReview)
     }
 
     static func textLayer(from page: PDFPage) -> String? {
@@ -128,10 +130,14 @@ enum OCRService {
         let text = normalized(candidates.map(\.string).joined(separator: "\n"))
         guard !text.isEmpty else { throw OCRServiceError.noTextFound }
         let confidence = candidates.map(\.confidence).reduce(0, +) / Float(candidates.count)
+        // Average hides outliers: a page can average 0.96 while one line is at 0.30.
+        // Keep `confidence` (avg) for display, expose the per-page min so the review
+        // can flag pages where at least one line was uncertain.
+        let minConfidence = candidates.map(\.confidence).min()
         let leftColumnLines = observations.filter { $0.boundingBox.midX < 0.45 }.count
         let rightColumnLines = observations.filter { $0.boundingBox.midX > 0.55 }.count
         let hasMultipleColumns = leftColumnLines >= 3 && rightColumnLines >= 3
         let layoutSummary = hasMultipleColumns ? L("Possible multi-column layout") : L("Single-column / simple layout")
-        return Recognition(text: text, confidence: confidence, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
+        return Recognition(text: text, confidence: confidence, minConfidence: minConfidence, lineCount: candidates.count, layoutSummary: layoutSummary, needsLayoutReview: hasMultipleColumns)
     }
 }

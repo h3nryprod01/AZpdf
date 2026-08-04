@@ -322,6 +322,7 @@
 "Could not save the searchable PDF: %@" = "Không thể lưu PDF có lớp chữ: %@";
 "Drag on the PDF to select the region to OCR." = "Kéo trên PDF để chọn vùng cần OCR.";
 "Low confidence; double-check the reading order and characters before exporting." = "Độ tin cậy thấp; kiểm tra lại thứ tự đọc và ký tự trước khi xuất.";
+"At least one line was recognized with low confidence; re-check this page before exporting." = "Có dòng được nhận diện với độ tin cậy thấp; hãy xem lại trang này trước khi xuất.";
 "No reviewable lines of text found." = "Không tìm thấy dòng văn bản có thể kiểm tra.";
 "No text recognized in the selected region." = "Không nhận dạng được văn bản trong vùng đã chọn.";
 "No text recognized on this page." = "Không nhận dạng được văn bản trên trang này.";

@@ -59,6 +59,26 @@ final class DocumentStoreConcurrencyCharacterizationTests: XCTestCase {
         XCTAssertNil(review.warning)
     }
 
+    // MARK: - makeOCRReview minConfidence (B3.5.3 — avg hides outlier, min doesn't)
+
+    func testOCRReviewWarnsOnLowMinConfidence() {
+        // avg confidence is high (0.96) so the existing avg<0.85 branch must NOT fire;
+        // only the new minConfidence<0.5 branch can. Written RED before that branch exists.
+        let review = DocumentStore.makeOCRReview(
+            pageIndex: 0, source: .vision, confidence: 0.96,
+            minConfidence: 0.30,
+            lineCount: 8, layoutSummary: "single", needsLayoutReview: false)
+        XCTAssertNotNil(review.warning)
+    }
+
+    func testOCRReviewNoWarningWhenMinConfidenceIsHigh() {
+        let review = DocumentStore.makeOCRReview(
+            pageIndex: 0, source: .vision, confidence: 0.96,
+            minConfidence: 0.90,
+            lineCount: 8, layoutSummary: "single", needsLayoutReview: false)
+        XCTAssertNil(review.warning)
+    }
+
     // MARK: - beginOCRRegion synchronous setup + guards (pins +OCR L28-36)
 
     func testBeginOCRRegionSetsProcessingStateSynchronously() {

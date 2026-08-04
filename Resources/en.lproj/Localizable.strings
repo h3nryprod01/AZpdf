@@ -320,6 +320,7 @@
 "Could not save the searchable PDF: %@" = "Could not save the searchable PDF: %@";
 "Drag on the PDF to select the region to OCR." = "Drag on the PDF to select the region to OCR.";
 "Low confidence; double-check the reading order and characters before exporting." = "Low confidence; double-check the reading order and characters before exporting.";
+"At least one line was recognized with low confidence; re-check this page before exporting." = "At least one line was recognized with low confidence; re-check this page before exporting.";
 "No reviewable lines of text found." = "No reviewable lines of text found.";
 "No text recognized in the selected region." = "No text recognized in the selected region.";
 "No text recognized on this page." = "No text recognized on this page.";
