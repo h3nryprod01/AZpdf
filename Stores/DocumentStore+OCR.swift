@@ -133,6 +133,12 @@ extension DocumentStore {
         return OCRPageReview(pageIndex: pageIndex, source: source, confidence: confidence, lineCount: lineCount, layoutSummary: layoutSummary, warning: warning)
     }
 
+    /// Indices of pages the OCR review flagged (warning != nil). Pure + testable so the
+    /// searchable-PDF export can warn before baking these pages permanently.
+    nonisolated static func flaggedPageIndices(_ reviews: [OCRPageReview]) -> [Int] {
+        reviews.filter { $0.warning != nil }.map(\.pageIndex)
+    }
+
     @MainActor
     func copyOCRText() {
         NSPasteboard.general.clearContents()
@@ -156,6 +162,16 @@ extension DocumentStore {
     @MainActor
     func exportSearchablePDF() {
         guard let documentData = document?.dataRepresentation(), !ocrText.isEmpty, !isSearchablePDFExporting else { return }
+        let flagged = Self.flaggedPageIndices(ocrReviews)
+        if !flagged.isEmpty {
+            let alert = NSAlert()
+            alert.alertStyle = .warning
+            alert.messageText = L("Some pages have OCR regions that could not be read")
+            alert.informativeText = "\(flagged.count) " + L("page(s) may contain formulas or figures. A searchable PDF bakes the current text into them permanently.")
+            alert.addButton(withTitle: L("Cancel"))
+            alert.addButton(withTitle: L("Continue"))
+            if alert.runModal() == .alertFirstButtonReturn { return }
+        }
         let panel = NSSavePanel()
         panel.allowedContentTypes = [.pdf]
         panel.nameFieldStringValue = "\(title)-searchable.pdf"

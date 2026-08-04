@@ -322,6 +322,9 @@
 "Low confidence; double-check the reading order and characters before exporting." = "Low confidence; double-check the reading order and characters before exporting.";
 "At least one line was recognized with low confidence; re-check this page before exporting." = "At least one line was recognized with low confidence; re-check this page before exporting.";
 "This page has an OCR region that could not be read: likely a formula or figure." = "This page has an OCR region that could not be read: likely a formula or figure.";
+"Some pages have OCR regions that could not be read" = "Some pages have OCR regions that could not be read";
+"page(s) may contain formulas or figures. A searchable PDF bakes the current text into them permanently." = "page(s) may contain formulas or figures. A searchable PDF bakes the current text into them permanently.";
+"Continue" = "Continue";
 "No reviewable lines of text found." = "No reviewable lines of text found.";
 "No text recognized in the selected region." = "No text recognized in the selected region.";
 "No text recognized on this page." = "No text recognized on this page.";
