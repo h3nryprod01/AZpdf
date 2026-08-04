@@ -1,0 +1,13 @@
+- Thêm hộp văn bản (free-text annotation) qua sheet native, chỉnh phông chữ, cỡ, đậm/nghiêng, căn lề, khung viền và nền hộp
+- Vẽ và chèn chữ ký tay thành ink annotation PDF
+- Chèn hình: chữ nhật, hình bầu dục, đường kẻ, mũi tên, ngôi sao, tam giác — mỗi hình là một subtype PDF thật nên trình đọc khác vẫn vẽ đúng, không phải hộp trắng
+- Chỉnh sửa chú thích ngay trên đối tượng: nhấp để chọn (khung nét đứt cho hộp chữ), kéo tay cầm để đổi kích thước, popover neo vào đối tượng để sửa thuộc tính; phím mũi tên để dịch chuyển, Delete để xóa
+- Quản lý và xóa các chú thích trên trang qua Inspector, hỗ trợ undo
+- Chèn toàn bộ trang từ PDF khác để ghép tài liệu, có thể hoàn tác
+- Chèn ảnh trực tiếp lên trang PDF; kéo để di chuyển, kéo tay cầm ở góc để đổi kích thước (giữ tỉ lệ), lưu thành stamp annotation bền vững
+- In tài liệu (`⌘P`) qua hộp thoại in của hệ thống; annotation in ra và trang xoay in đúng chiều
+- Xuất trang hiện tại thành một PDF riêng biệt
+- Mở PDF được bảo vệ bằng mật khẩu bằng prompt native trên máy
+- OCR vùng kéo trực tiếp, trang hiện tại hoặc toàn bộ tài liệu theo pipeline hybrid local-first: ưu tiên text layer PDF, Vision 3× cho trang scan; xem, sửa, sao chép hoặc xuất kết quả `.txt`
+- Xuất bản sao PDF được bảo vệ bằng mật khẩu qua Save Panel native
+- Redact lựa chọn theo chế độ phá hủy: raster hóa trang và loại bỏ nội dung gốc khỏi luồng PDF

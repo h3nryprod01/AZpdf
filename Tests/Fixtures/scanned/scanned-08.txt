@@ -1,0 +1,7 @@
+Trang công thức (ground truth F1–F6):
+F1 x = (-b ± √(b² - 4ac)) / 2a
+F2 e^(iπ) + 1 = 0
+F3 a² + b² = c²
+F4 ∫₀^∞ e^(-x²) dx = √π / 2
+F5 Σ(n=1..∞) 1/n² = π²/6
+F6 E = mc²
