@@ -7,15 +7,23 @@ set -euo pipefail
 APP_BUNDLE="${1:?Usage: generate_sbom.sh /path/to/AZpdf.app /path/to/SBOM.spdx}"
 OUTPUT="${2:?Usage: generate_sbom.sh /path/to/AZpdf.app /path/to/SBOM.spdx}"
 HELPERS="$APP_BUNDLE/Contents/Resources/Helpers"
-[[ -x "$HELPERS/mutool" && -x "$HELPERS/veraPDF/verapdf" && -x "$HELPERS/pyhanko/pyhanko" && -x "$HELPERS/ocrmypdf/ocrmypdf" ]] || {
-  echo "All four release helpers must be bundled before generating the SBOM" >&2; exit 2;
+# mutool and pyHanko are in every build. veraPDF and OCRmyPDF are droppable
+# (AZPDF_OMIT_RUNTIMES in package_release.sh) — so this SBOM describes what is ACTUALLY in
+# the bundle rather than a fixed list of four. An SBOM is a supply-chain declaration:
+# listing veraPDF in a bundle that has no veraPDF is a false statement, not a harmless
+# leftover. The "did you forget a runtime?" gate lives upstream in package_release.sh,
+# which is the only caller; duplicating it here would just be a second place to keep in sync.
+[[ -x "$HELPERS/mutool" && -x "$HELPERS/pyhanko/pyhanko" ]] || {
+  echo "mutool and pyHanko must be bundled before generating the SBOM" >&2; exit 2;
 }
+has_vera=0; [[ -x "$HELPERS/veraPDF/verapdf" ]] && has_vera=1
+has_ocr=0;  [[ -x "$HELPERS/ocrmypdf/ocrmypdf" ]] && has_ocr=1
 
 safe_version() { "$@" 2>&1 | head -n 1 | tr '\r\n' ' ' | sed 's/[[:space:]]\+$//; s/[^[:print:]]//g'; }
 mutool_version="$(safe_version "$HELPERS/mutool" --version || true)"
-vera_version="$(safe_version "$HELPERS/veraPDF/verapdf" --version || true)"
 pyhanko_version="$(safe_version "$HELPERS/pyhanko/pyhanko" --version || true)"
-ocr_version="$(safe_version "$HELPERS/ocrmypdf/ocrmypdf" --version || true)"
+vera_version=""; ((has_vera)) && vera_version="$(safe_version "$HELPERS/veraPDF/verapdf" --version || true)"
+ocr_version="";  ((has_ocr))  && ocr_version="$(safe_version "$HELPERS/ocrmypdf/ocrmypdf" --version || true)"
 mkdir -p "$(dirname "$OUTPUT")"
 
 cat >"$OUTPUT" <<EOF
@@ -39,17 +47,28 @@ PackageVersion: ${mutool_version:-NOASSERTION}
 PackageLicenseDeclared: AGPL-3.0-or-later
 PackageDownloadLocation: https://mupdf.com/
 
-PackageName: veraPDF
-SPDXID: SPDXRef-veraPDF
-PackageVersion: ${vera_version:-NOASSERTION}
-PackageLicenseDeclared: GPL-3.0-or-later OR MPL-2.0
-PackageDownloadLocation: https://verapdf.org/
-
 PackageName: pyHanko
 SPDXID: SPDXRef-pyHanko
 PackageVersion: ${pyhanko_version:-NOASSERTION}
 PackageLicenseDeclared: MIT
 PackageDownloadLocation: https://github.com/MatthiasValvekens/pyHanko
+EOF
+
+if ((has_vera)); then
+  cat >>"$OUTPUT" <<EOF
+
+PackageName: veraPDF
+SPDXID: SPDXRef-veraPDF
+PackageVersion: ${vera_version:-NOASSERTION}
+PackageLicenseDeclared: GPL-3.0-or-later OR MPL-2.0
+PackageDownloadLocation: https://verapdf.org/
+EOF
+fi
+
+# Tesseract/Ghostscript/qpdf are OCRmyPDF's native dependencies — they ship only inside that
+# runtime, so they leave the SBOM with it.
+if ((has_ocr)); then
+  cat >>"$OUTPUT" <<EOF
 
 PackageName: OCRmyPDF
 SPDXID: SPDXRef-OCRmyPDF
@@ -71,15 +90,16 @@ PackageName: qpdf
 SPDXID: SPDXRef-qpdf
 PackageLicenseDeclared: Apache-2.0
 PackageDownloadLocation: https://qpdf.readthedocs.io/
-
-Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-MuPDF
-Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-veraPDF
-Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-pyHanko
-Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-OCRmyPDF
-Relationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-Tesseract
-Relationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-Ghostscript
-Relationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-qpdf
 EOF
+fi
+
+{
+  printf '\nRelationship: SPDXRef-AZpdf CONTAINS SPDXRef-MuPDF\n'
+  printf 'Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-pyHanko\n'
+  ((has_vera)) && printf 'Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-veraPDF\n'
+  ((has_ocr)) && printf 'Relationship: SPDXRef-AZpdf CONTAINS SPDXRef-OCRmyPDF\nRelationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-Tesseract\nRelationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-Ghostscript\nRelationship: SPDXRef-OCRmyPDF DEPENDS_ON SPDXRef-qpdf\n'
+  true
+} >>"$OUTPUT"
 
 while IFS= read -r file; do
   relative="${file#"$APP_BUNDLE/"}"

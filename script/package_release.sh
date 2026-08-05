@@ -4,9 +4,30 @@ set -euo pipefail
 # Required for distribution: a "Developer ID Application" identity, not Apple Development.
 : "${SIGNING_IDENTITY:?Set SIGNING_IDENTITY to a Developer ID Application identity.}"
 : "${MUTOOL_RUNTIME_DIR:?Set MUTOOL_RUNTIME_DIR to a self-contained, redistributable MuPDF runtime directory.}"
-: "${VERAPDF_RUNTIME_DIR:?Set VERAPDF_RUNTIME_DIR to a self-contained veraPDF runtime directory.}"
 : "${PYHANKO_RUNTIME_DIR:?Set PYHANKO_RUNTIME_DIR to a self-contained, redistributable pyHanko runtime directory.}"
-: "${OCRMY_PDF_RUNTIME_DIR:?Set OCRMY_PDF_RUNTIME_DIR to a self-contained, redistributable OCRmyPDF runtime directory.}"
+
+# veraPDF and OCRmyPDF are droppable, but never SILENTLY: an unset variable used to be a
+# hard error, and turning that into "just skip it" would be the same fail-open shape this
+# repo already got burned by twice — a forgotten export would ship a release missing a
+# runtime with nothing going red. So omitting one is opt-in and must be named:
+#
+#   AZPDF_OMIT_RUNTIMES="verapdf ocrmypdf" ./script/package_release.sh
+#
+# Measured reason this exists (2026-08-05): the veraPDF runtime is 413 MB, of which 380 MB
+# is the bundled JRE — 9x the size of veraPDF itself — to serve PDF/A validation alone.
+# OCRmyPDF needs Tesseract/Ghostscript/qpdf built from source (docs/MACOS_RELEASE.md forbids
+# shipping Homebrew builds). The app already treats both as runtime-optional.
+AZPDF_OMIT_RUNTIMES="${AZPDF_OMIT_RUNTIMES:-}"
+omitted() { [[ " $AZPDF_OMIT_RUNTIMES " == *" $1 "* ]]; }
+for pair in "verapdf:VERAPDF_RUNTIME_DIR" "ocrmypdf:OCRMY_PDF_RUNTIME_DIR"; do
+  name="${pair%%:*}"; var="${pair#*:}"
+  if omitted "$name"; then
+    [[ -z "${!var:-}" ]] || { echo "$var is set but '$name' is listed in AZPDF_OMIT_RUNTIMES; pick one." >&2; exit 2; }
+    echo "package_release: shipping WITHOUT the $name runtime (AZPDF_OMIT_RUNTIMES)." >&2
+  else
+    [[ -n "${!var:-}" ]] || { echo "Set $var, or list '$name' in AZPDF_OMIT_RUNTIMES to ship without it." >&2; exit 2; }
+  fi
+done
 export SWIFT_CONFIGURATION="${SWIFT_CONFIGURATION:-release}"
 # Release builds go into a neutral scratch directory: SwiftPM embeds the
 # absolute build path in the binary (Bundle.module's fallback), so building
@@ -31,7 +52,7 @@ APP_BUNDLE="$SIGNED_APP_BUNDLE"
   echo "Release packaging failed: bundled MuPDF runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Helpers/veraPDF/verapdf" ]] || {
+omitted verapdf || [[ -x "$APP_BUNDLE/Contents/Resources/Helpers/veraPDF/verapdf" ]] || {
   echo "Release packaging failed: bundled veraPDF runtime is missing." >&2
   exit 1
 }
@@ -39,14 +60,14 @@ APP_BUNDLE="$SIGNED_APP_BUNDLE"
   echo "Release packaging failed: bundled pyHanko runtime is missing." >&2
   exit 1
 }
-[[ -x "$APP_BUNDLE/Contents/Resources/Helpers/ocrmypdf/ocrmypdf" ]] || {
+omitted ocrmypdf || [[ -x "$APP_BUNDLE/Contents/Resources/Helpers/ocrmypdf/ocrmypdf" ]] || {
   echo "Release packaging failed: bundled OCRmyPDF runtime is missing." >&2
   exit 1
 }
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers" "mutool"
-"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers/veraPDF" "verapdf"
+omitted verapdf || "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers/veraPDF" "verapdf"
 "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers/pyhanko" "pyhanko"
-"$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers/ocrmypdf" "ocrmypdf"
+omitted ocrmypdf || "$ROOT_DIR/script/audit_runtime.sh" "$APP_BUNDLE/Contents/Resources/Helpers/ocrmypdf" "ocrmypdf"
 cp "$ROOT_DIR/THIRD_PARTY_NOTICES.md" "$APP_BUNDLE/Contents/Resources/THIRD_PARTY_NOTICES.md"
 "$ROOT_DIR/script/generate_sbom.sh" "$APP_BUNDLE" "$APP_BUNDLE/Contents/Resources/SBOM.spdx"
 "$ROOT_DIR/script/sign_bundle.sh" "$APP_BUNDLE" "$SIGNING_IDENTITY"
