@@ -469,11 +469,88 @@ jobs:
           Get-ChildItem "$env:LOCALAPPDATA\Programs\Swift\Runtimes" -Recurse -Filter '*.dll' |
             Where-Object { $_.Directory.Name -eq 'bin' } |
             ForEach-Object { Copy-Item $_.FullName win-engine\ -ErrorAction SilentlyContinue }
+          # mutool.exe đi cùng luôn: bước selftest trên đã tải và ĐỐI CHIẾU SHA-256 rồi, nên
+          # job đóng gói không phải tải lại — và không phải giữ bản sao thứ hai của checksum
+          # ghim. Hai chỗ ghim là hai chỗ trôi lệch. ($mutool không sống qua step vì mỗi
+          # `run:` là một shell riêng, nên dựng lại đường dẫn từ RUNNER_TEMP.)
+          $mutool = Join-Path $env:RUNNER_TEMP 'mupdf-1.28.0-windows\mutool.exe'
+          if (-not (Test-Path $mutool)) { throw "mutool.exe missing at $mutool" }
+          Copy-Item $mutool win-engine\
           Get-ChildItem win-engine | ForEach-Object { Write-Host "  $($_.Name)" }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: azpdf-engine-windows-x64
           path: win-engine/
+          if-no-files-found: error
+
+  # Gói portable Windows. Cố ý KHÔNG cài Swift ở job này: nếu azpdf-engine.exe còn thiếu DLL
+  # runtime nào thì `health` sẽ đỏ ngay đây, trên một máy sạch — thay vì đỏ trên máy người dùng.
+  # Chính cấu trúc job là phép thử.
+  windows-package:
+    runs-on: windows-2022
+    needs: [windows-core, windows-shell]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: azpdf-engine-windows-x64
+          path: stage/
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: azpdf-shell-windows-x64
+          path: stage/
+      - name: Build the pyHanko runtime for Windows
+        shell: pwsh
+        run: |
+          # Lặp đúng vai trò của script/build_pyhanko_runtime.sh trên macOS/Linux: một .exe
+          # tự chứa, không cần Python trên máy người dùng. tzdata/certifi phải khai tường minh
+          # — đo được trên macOS 2026-08-05: thiếu tzdata thì PyInstaller dựng xong nhưng
+          # preflight đỏ, và lỗi chỉ hiện lúc chạy chứ không lúc build.
+          python -m venv $env:RUNNER_TEMP\pyhanko-env
+          $py = "$env:RUNNER_TEMP\pyhanko-env\Scripts\python.exe"
+          & $py -m pip install --quiet --upgrade pip
+          & $py -m pip install --quiet pyhanko-cli pyinstaller tzdata certifi
+          & $py -m pip list | Select-String -Pattern 'pyhanko|pyinstaller|tzdata'
+          & $py -m PyInstaller --onefile --name pyhanko --distpath $env:RUNNER_TEMP\pyhanko-dist `
+            --workpath $env:RUNNER_TEMP\pyhanko-work --specpath $env:RUNNER_TEMP `
+            --collect-all pyhanko --collect-all pyhanko_certvalidator --collect-all asn1crypto `
+            --copy-metadata pyhanko --copy-metadata pyhanko-cli `
+            "$env:RUNNER_TEMP\pyhanko-env\Scripts\pyhanko-script.py"
+          New-Item -ItemType Directory -Force -Path stage\pyhanko | Out-Null
+          Copy-Item $env:RUNNER_TEMP\pyhanko-dist\pyhanko.exe stage\pyhanko\
+          & stage\pyhanko\pyhanko.exe --version
+          if ($LASTEXITCODE -ne 0) { throw "pyhanko.exe failed to run: $LASTEXITCODE" }
+      - name: Assemble the portable zip
+        shell: pwsh
+        run: |
+          if (-not (Test-Path stage\azpdf_desktop.exe)) { throw 'azpdf_desktop.exe missing from the shell artifact.' }
+          if (-not (Test-Path stage\azpdf-engine.exe))  { throw 'azpdf-engine.exe missing from the engine artifact.' }
+          if (-not (Test-Path stage\mutool.exe))        { throw 'mutool.exe missing from the engine artifact.' }
+          $ver = (Get-Content VERSION -Raw).Trim()
+          New-Item -ItemType Directory -Force -Path out | Out-Null
+          Compress-Archive -Path stage\* -DestinationPath "out\AZpdf-Windows-x64-$ver.zip" -Force
+          Get-ChildItem out | ForEach-Object { Write-Host "  $($_.Name)  $([math]::Round($_.Length/1MB,1)) MB" }
+      - name: Prove the zip works after extraction, in a different directory
+        shell: pwsh
+        run: |
+          # Thư mục khác là cố ý: bắt đường dẫn tuyệt đối lọt vào gói. Đây là verify quan
+          # trọng nhất — trước bước này, smoke test trên Windows 11 thật trả
+          # {"ok":false,"error":{"code":"runtime_unavailable"}}: app chạy nhưng vô dụng.
+          $dest = Join-Path $env:RUNNER_TEMP 'azpdf-extract-elsewhere'
+          if (Test-Path $dest) { Remove-Item $dest -Recurse -Force }
+          Expand-Archive -Path (Get-ChildItem out\*.zip | Select-Object -First 1).FullName -DestinationPath $dest
+          Push-Location $dest
+          $out = & .\azpdf-engine.exe health 2>&1 | Out-String
+          Pop-Location
+          Write-Host "health: $out"
+          if ($out -notmatch '"ok"\s*:\s*true') {
+            throw "azpdf-engine health did not report ok:true after extraction. Got: $out"
+          }
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: azpdf-windows-portable
+          path: out/
           if-no-files-found: error
 
   windows-shell:

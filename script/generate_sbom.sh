@@ -19,6 +19,11 @@ HELPERS="$APP_BUNDLE/Contents/Resources/Helpers"
 has_vera=0; [[ -x "$HELPERS/veraPDF/verapdf" ]] && has_vera=1
 has_ocr=0;  [[ -x "$HELPERS/ocrmypdf/ocrmypdf" ]] && has_ocr=1
 
+# Cùng nguồn với Info.plist (script/build_and_run.sh). Trước đây số này nằm cứng ở đây là
+# 1.1.0 trong khi tag mới nhất đã là v1.2.0 — SBOM của mọi bản tải về đều khai sai phiên bản.
+azpdf_version="$(tr -d '[:space:]' < "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/VERSION")"
+[[ -n "$azpdf_version" ]] || { echo "VERSION file is empty" >&2; exit 2; }
+
 safe_version() { "$@" 2>&1 | head -n 1 | tr '\r\n' ' ' | sed 's/[[:space:]]\+$//; s/[^[:print:]]//g'; }
 mutool_version="$(safe_version "$HELPERS/mutool" --version || true)"
 pyhanko_version="$(safe_version "$HELPERS/pyhanko/pyhanko" --version || true)"
@@ -37,7 +42,7 @@ Created: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 
 PackageName: AZpdf
 SPDXID: SPDXRef-AZpdf
-PackageVersion: 1.1.0
+PackageVersion: ${azpdf_version:-NOASSERTION}
 PackageLicenseDeclared: AGPL-3.0-only
 PackageDownloadLocation: NOASSERTION
 

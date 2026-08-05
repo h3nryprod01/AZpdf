@@ -5,6 +5,11 @@ MODE="${1:-run}"
 APP_NAME="AZpdf"
 BUNDLE_ID="org.azpdf.mac"
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# Đúng một nguồn cho số phiên bản. Trước đây nó nằm cứng ở hai chỗ (Info.plist ở đây và
+# PackageVersion trong generate_sbom.sh) và cả hai đã trôi: app khai 1.1.0 trong khi tag mới
+# nhất là v1.2.0 — nghĩa là mọi bản tải về từ v1.2.0 đều tự khai sai phiên bản, kể cả trong SBOM.
+AZPDF_VERSION="$(tr -d '[:space:]' < "$ROOT_DIR/VERSION")"
+[[ -n "$AZPDF_VERSION" ]] || { echo "VERSION file is empty" >&2; exit 2; }
 APP_BUNDLE="$ROOT_DIR/dist/$APP_NAME.app"
 APP_MACOS="$APP_BUNDLE/Contents/MacOS"
 APP_RESOURCES="$APP_BUNDLE/Contents/Resources"
@@ -78,7 +83,7 @@ cat >"$APP_BUNDLE/Contents/Info.plist" <<PLIST
 <key>CFBundleExecutable</key><string>$APP_NAME</string>
 <key>CFBundleIdentifier</key><string>$BUNDLE_ID</string>
 <key>CFBundleName</key><string>$APP_NAME</string>
-<key>CFBundleShortVersionString</key><string>1.1.0</string>
+<key>CFBundleShortVersionString</key><string>$AZPDF_VERSION</string>
 <key>CFBundleVersion</key><string>1</string>
 <key>CFBundleIconFile</key><string>AZpdf.icns</string>
 <key>CFBundlePackageType</key><string>APPL</string>
