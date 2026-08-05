@@ -57,7 +57,13 @@ struct AZpdfApp: App {
             // items. When the toolbar overflowed they were dropped with no
             // menu or shortcut fallback, making them unreachable at every
             // window size. These commands are that fallback.
-            CommandMenu(L("View")) {
+            // CommandGroup(after: .sidebar), KHÔNG phải CommandMenu("View"): SwiftUI đã tự
+            // sinh sẵn một menu View (Show Tab Bar / Show All Tabs / Enter Full Screen), nên
+            // thêm CommandMenu cùng tên tạo ra menu THỨ HAI trùng tên trên thanh menu —
+            // `AZpdf File Edit View View Go PDF Window Help`. Người dùng phải đoán mở cái nào.
+            // `.sidebar` là placement nằm trong menu View, nên các lệnh này về đúng chỗ.
+            CommandGroup(after: .sidebar) {
+                Divider()
                 Button(L("Find in PDF…")) { workspace.activeStore.isFindBarPresented = true }
                     .keyboardShortcut("f", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)

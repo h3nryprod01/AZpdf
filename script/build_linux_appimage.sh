@@ -86,6 +86,23 @@ cat > "$APPDIR/AppRun" <<'APPRUN'
 # libraries next to the binary, so the loader needs that directory on the path.
 HERE=$(dirname $(readlink -f "$0"))
 export LD_LIBRARY_PATH="$HERE/usr/bin/lib:$LD_LIBRARY_PATH"
+
+# Đường dẫn tương đối phải thành tuyệt đối NGAY TẠI ĐÂY, chỗ duy nhất $PWD còn là thư mục
+# người dùng thật sự gọi lệnh. Đo được 2026-08-05: chạy `./AZpdf.AppImage ./tài-liệu.pdf`
+# thì /proc/<pid>/cwd của app trỏ về $HOME, không phải thư mục gọi — runtime của AppImage đổi
+# thư mục làm việc trước khi app khởi động (AppRun này không hề `cd`). Hệ quả: file mở ra rỗng,
+# không báo lỗi gì. Dùng `set --` để dựng lại danh sách tham số cho an toàn với tên có dấu cách.
+n=$#
+i=0
+while [ "$i" -lt "$n" ]; do
+  a="$1"; shift
+  case "$a" in
+    /*) set -- "$@" "$a" ;;
+    *) if [ -e "$PWD/$a" ]; then set -- "$@" "$PWD/$a"; else set -- "$@" "$a"; fi ;;
+  esac
+  i=$((i + 1))
+done
+
 exec "$HERE/usr/bin/azpdf_desktop" "$@"
 APPRUN
 chmod +x "$APPDIR/AppRun"
