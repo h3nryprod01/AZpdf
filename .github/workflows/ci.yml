@@ -512,11 +512,15 @@ jobs:
           & $py -m pip install --quiet --upgrade pip
           & $py -m pip install --quiet pyhanko-cli pyinstaller tzdata certifi
           & $py -m pip list | Select-String -Pattern 'pyhanko|pyinstaller|tzdata'
-          & $py -m PyInstaller --onefile --name pyhanko --distpath $env:RUNNER_TEMP\pyhanko-dist `
+          # Cùng entry point và cùng cờ với script/build_pyhanko_runtime.sh (macOS/Linux) —
+          # một cách dựng cho cả ba nền tảng, không phải ba cách phải giữ đồng bộ.
+          # Lượt trước đỏ vì trỏ vào Scripts\pyhanko-script.py: pip trên Windows sinh .exe
+          # wrapper chứ không sinh file -script.py, nên đường đó không tồn tại.
+          & $py -m PyInstaller --noconfirm --clean --onefile `
+            --collect-submodules pyhanko --collect-all tzdata `
+            --name pyhanko --distpath $env:RUNNER_TEMP\pyhanko-dist `
             --workpath $env:RUNNER_TEMP\pyhanko-work --specpath $env:RUNNER_TEMP `
-            --collect-all pyhanko --collect-all pyhanko_certvalidator --collect-all asn1crypto `
-            --copy-metadata pyhanko --copy-metadata pyhanko-cli `
-            "$env:RUNNER_TEMP\pyhanko-env\Scripts\pyhanko-script.py"
+            script\pyhanko_entry.py
           New-Item -ItemType Directory -Force -Path stage\pyhanko | Out-Null
           Copy-Item $env:RUNNER_TEMP\pyhanko-dist\pyhanko.exe stage\pyhanko\
           & stage\pyhanko\pyhanko.exe --version
