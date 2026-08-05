@@ -2,7 +2,7 @@
 
 **English** | [Tiếng Việt](README-VI.md)
 
-An open-source, local-first PDF reader and editor. macOS is the first release platform. The Linux port (v2) is in alpha and is the only downloadable build so far — an AppImage on the [releases page](https://github.com/h3nryprod01/AZpdf/releases). Windows builds and runs the core test suite in CI on every push, but has no installer yet.
+An open-source, local-first PDF reader and editor. **v1.3.0 ships downloads for all three platforms** — macOS (signed and notarized), Linux (AppImage) and Windows (portable package). See [Download](#download--v130) for files and checksums. The Windows build is still a portable ZIP rather than an installer, and is not yet code-signed.
 
 <img width="254" height="254" alt="AZpdf icon" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -42,6 +42,45 @@ An open-source, local-first PDF reader and editor. macOS is the first release pl
 - Save in place or export a new PDF
 - English and Vietnamese interface; pick the language in Settings and it applies immediately, no relaunch
 
+## Download — v1.3.0
+
+Three installers, one version. Verify what you downloaded before running it.
+
+| Platform | File | Size | SHA-256 |
+|---|---|---|---|
+| **macOS** 14+ | `AZpdf-macOS-1.3.0.zip` | 52 MB | `4f3922c0bba1432f28d389ba85af181ee883b6f3861d4dd3bc8e7b196822f0b2` |
+| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 177 MB | `fdf91d9bc0cc1955d14ca532781d8e1e3bab62e855d0329b14b8580f8147f6f9` |
+| **Windows** x64 | `AZpdf-Windows-x64-1.3.0.zip` | 91 MB | `0d11015d1035cec8556362284096fb3db6177128a224a09488e4810354703474` |
+
+```bash
+shasum -a 256 AZpdf-macOS-1.3.0.zip      # macOS
+sha256sum AZpdf-x86_64.AppImage          # Linux
+```
+
+**macOS** is signed with a Developer ID and notarized by Apple, so it opens with no Gatekeeper
+warning. **Linux**: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`; x86_64 only, no
+arm64 build yet. **Windows** is a portable ZIP, not an installer — unzip it anywhere and run
+`AZpdf.exe`. It is **not code-signed**, so SmartScreen will warn on first run; check the SHA-256
+above before choosing to continue.
+
+### What each platform ships
+
+Not every platform carries every runtime, and the difference is deliberate rather than an
+oversight:
+
+| | macOS | Linux | Windows |
+|---|---|---|---|
+| Read, annotate, sign, edit pages | ✅ | ✅ | ✅ |
+| OCR | ✅ Apple Vision | ✅ OCRmyPDF | ❌ |
+| Export a searchable PDF | ❌ | ✅ | ❌ |
+| Validate PDF/A · PDF/UA | ❌ | ❌ | ❌ |
+
+veraPDF needs a bundled JRE — measured at **380 MB of the 413 MB runtime**, nine times veraPDF
+itself, for one narrow feature. OCRmyPDF on macOS and Windows needs Tesseract, Ghostscript and
+qpdf built from source (macOS) or packaged from installers (Windows); only Linux has a working
+portable recipe today. Both are candidates for a separate Studio build rather than tax every
+download.
+
 ## Privacy and plugins
 
 - **Local-first:** AZpdf never uploads your PDFs, their contents, passwords, or your document history to any server.
@@ -70,11 +109,7 @@ macOS releases ship with [third-party license notices](THIRD_PARTY_NOTICES.md) a
 
 ### Linux (v2 alpha)
 
-**Download — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, a single ~170 MB file.
-SHA-256 `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
-(verify with `sha256sum AZpdf-x86_64.AppImage`). x86_64 only — there is no arm64 build
-yet. Make it executable and run: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
-The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu
+See [Download](#download--v130) for the file and its checksum. The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu
 24.04 container; the Flutter shell, like every Flutter Linux app, dynamically links GTK3 and
 OpenGL, so it needs four system libraries: `libgtk-3-0t64` (or `libgtk-3-0` on older
 distributions), `libegl1`, `libgl1`, `libgles2` — e.g.

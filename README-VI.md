@@ -2,7 +2,7 @@
 
 [English](README.md) | **Tiếng Việt**
 
-Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là nền tảng phát hành đầu tiên. Bản Linux v2 đang ở giai đoạn alpha và hiện là bản duy nhất tải về được — một AppImage ở [trang releases](https://github.com/h3nryprod01/AZpdf/releases). Windows đã build và chạy được bộ test core trong CI mỗi lần push, nhưng chưa có gói cài đặt.
+Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. **v1.3.0 có bản tải về cho cả ba nền tảng** — macOS (đã ký và notarize), Linux (AppImage) và Windows (gói portable). Xem [Tải xuống](#tải-xuống--v130) kèm checksum. Bản Windows vẫn còn ở mức portable zip chứ chưa phải bộ cài, và chưa được ký số.
 
 <img width="254" height="254" alt="Biểu tượng AZpdf" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -42,6 +42,44 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. macOS là n�
 - Lưu đè hoặc xuất ra PDF mới
 - Giao diện tiếng Anh và tiếng Việt; chọn ngôn ngữ trong Settings, áp dụng ngay không cần khởi động lại
 
+## Tải xuống — v1.3.0
+
+Ba bộ cài, cùng một phiên bản. Đối chiếu checksum trước khi chạy.
+
+| Nền tảng | File | Dung lượng | SHA-256 |
+|---|---|---|---|
+| **macOS** 14+ | `AZpdf-macOS-1.3.0.zip` | 52 MB | `4f3922c0bba1432f28d389ba85af181ee883b6f3861d4dd3bc8e7b196822f0b2` |
+| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 177 MB | `fdf91d9bc0cc1955d14ca532781d8e1e3bab62e855d0329b14b8580f8147f6f9` |
+| **Windows** x64 | `AZpdf-Windows-x64-1.3.0.zip` | 91 MB | `0d11015d1035cec8556362284096fb3db6177128a224a09488e4810354703474` |
+
+```bash
+shasum -a 256 AZpdf-macOS-1.3.0.zip      # macOS
+sha256sum AZpdf-x86_64.AppImage          # Linux
+```
+
+**macOS** đã ký Developer ID và được Apple notarize nên mở không gặp cảnh báo Gatekeeper.
+**Linux**: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`; chỉ có x86_64, chưa có
+bản arm64. **Windows** là gói portable chứ chưa phải bộ cài — giải nén ra đâu cũng được rồi chạy
+`AZpdf.exe`. Gói này **chưa được ký số**, nên SmartScreen sẽ cảnh báo ở lần chạy đầu; hãy đối
+chiếu SHA-256 ở trên trước khi bấm tiếp tục.
+
+### Mỗi nền tảng có gì
+
+Không phải nền tảng nào cũng mang đủ runtime, và đó là lựa chọn có chủ đích chứ không phải bỏ sót:
+
+| | macOS | Linux | Windows |
+|---|---|---|---|
+| Đọc, chú thích, ký, sửa trang | ✅ | ✅ | ✅ |
+| OCR | ✅ Apple Vision | ✅ OCRmyPDF | ❌ |
+| Xuất PDF tìm kiếm được | ❌ | ✅ | ❌ |
+| Kiểm PDF/A · PDF/UA | ❌ | ❌ | ❌ |
+
+veraPDF cần đóng kèm JRE — đo được **380 MB trong tổng 413 MB runtime**, gấp chín lần chính
+veraPDF, chỉ để phục vụ một tính năng hẹp. OCRmyPDF trên macOS và Windows cần Tesseract,
+Ghostscript và qpdf build từ source (macOS) hoặc gói lại từ installer (Windows); hiện chỉ Linux
+có công thức portable chạy được. Cả hai là ứng viên cho một bản Studio riêng, thay vì bắt mọi
+lượt tải phải gánh.
+
 ## Quyền riêng tư và plugin
 
 - **Local-first:** AZpdf không tải PDF, nội dung, mật khẩu hoặc lịch sử tài liệu lên máy chủ.
@@ -70,7 +108,7 @@ Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) v
 
 ### Linux v2 alpha
 
-**Tải xuống — Linux x86_64 (AppImage):** `AZpdf-x86_64.AppImage`, một file duy nhất ~170 MB.
+Xem mục [Tải xuống](#tải-xuống--v130) cho file và checksum.
 SHA-256 `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
 (kiểm bằng `sha256sum AZpdf-x86_64.AppImage`). Chỉ có bản x86_64 — chưa có arm64.
 Cấp quyền chạy rồi mở: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
