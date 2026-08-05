@@ -108,11 +108,7 @@ Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) v
 
 ### Linux v2 alpha
 
-Xem mục [Tải xuống](#tải-xuống--v130) cho file và checksum.
-SHA-256 `6be2dd1726f99d0a2de4edbb3f769bd62d794069c02a6afd148a18f6756cc848`
-(kiểm bằng `sha256sum AZpdf-x86_64.AppImage`). Chỉ có bản x86_64 — chưa có arm64.
-Cấp quyền chạy rồi mở: `chmod +x AZpdf-x86_64.AppImage && ./AZpdf-x86_64.AppImage`.
-Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
+Xem mục [Tải xuống](#tải-xuống--v130) cho file và checksum. Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
 Ubuntu 24.04 trắng; còn vỏ Flutter, như mọi ứng dụng Flutter Linux, link động GTK3 và
 OpenGL nên cần bốn thư viện hệ thống: `libgtk-3-0t64` (hoặc `libgtk-3-0` trên bản phân phối
 cũ), `libegl1`, `libgl1`, `libgles2` — ví dụ
