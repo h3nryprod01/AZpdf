@@ -168,8 +168,22 @@ extension DocumentStore {
             alert.alertStyle = .warning
             alert.messageText = L("Some pages have OCR regions that could not be read")
             alert.informativeText = "\(flagged.count) " + L("page(s) may contain formulas or figures. A searchable PDF bakes the current text into them permanently.")
-            alert.addButton(withTitle: L("Cancel"))
-            alert.addButton(withTitle: L("Continue"))
+            let cancelButton = alert.addButton(withTitle: L("Cancel"))
+            let continueButton = alert.addButton(withTitle: L("Continue"))
+            // Bàn phím. Đo trên bản 1.3.0 (2026-08-07): mặc định thì **Return kích hoạt
+            // Continue** và **Escape không làm gì** — phím duy nhất ăn lại là phím tiến hành
+            // thao tác KHÔNG HOÀN TÁC ĐƯỢC. Gõ nhầm Enter là nướng text hỏng vào file.
+            //
+            // Gỡ Return khỏi Continue: ĐÃ ĐO LÀ ĂN — sau khi sửa, Enter chờ 12 giây không mở
+            // save panel nữa.
+            //
+            // Gán Escape cho Cancel: ĐÃ ĐO LÀ KHÔNG ĂN — Escape vẫn không đóng hộp thoại, kể
+            // cả khi đã set keyEquivalent. Giữ lại dòng đó vì nó vô hại và đúng ý định, nhưng
+            // ĐỪNG tin là Escape hoạt động; muốn huỷ thì phải bấm chuột. Chưa tìm ra vì sao
+            // (nghi cách macOS mới trình bày alert giữ riêng phím Escape) — cần một lượt đo
+            // riêng, đừng "sửa" mù thêm.
+            cancelButton.keyEquivalent = "\u{1b}"
+            continueButton.keyEquivalent = ""
             if alert.runModal() == .alertFirstButtonReturn { return }
         }
         let panel = NSSavePanel()
