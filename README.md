@@ -68,18 +68,25 @@ above before choosing to continue.
 Not every platform carries every runtime, and the difference is deliberate rather than an
 oversight:
 
+"Bundled" means it works out of the box. "Optional" means the feature is present but needs the
+tool installed on your machine — AZpdf finds a Homebrew install automatically, and tells you
+exactly what to install if it can't.
+
 | | macOS | Linux | Windows |
 |---|---|---|---|
-| Read, annotate, sign, edit pages | ✅ | ✅ | ✅ |
-| OCR | ✅ Apple Vision | ✅ OCRmyPDF | ❌ |
-| Export a searchable PDF | ❌ | ✅ | ❌ |
-| Validate PDF/A · PDF/UA | ❌ | ❌ | ❌ |
+| Read, annotate, sign, edit pages | ✅ bundled | ✅ bundled | ✅ bundled |
+| OCR | ✅ Apple Vision, built in | ✅ bundled OCRmyPDF | ❌ not in v1 |
+| Export a searchable PDF | ⚙️ optional — `brew install ocrmypdf` | ✅ bundled | ❌ not in v1 |
+| Validate PDF/A · PDF/UA | ⚙️ optional — `brew install verapdf` | ❌ not bundled | ❌ not in v1 |
 
-veraPDF needs a bundled JRE — measured at **380 MB of the 413 MB runtime**, nine times veraPDF
-itself, for one narrow feature. OCRmyPDF on macOS and Windows needs Tesseract, Ghostscript and
-qpdf built from source (macOS) or packaged from installers (Windows); only Linux has a working
-portable recipe today. Both are candidates for a separate Studio build rather than tax every
-download.
+The macOS download does not bundle veraPDF or OCRmyPDF, and that is a size decision rather than
+a missing feature: the veraPDF runtime measures **413 MB, of which 380 MB is the bundled JRE** —
+nine times veraPDF itself — for one narrow feature. Packaging OCRmyPDF for macOS additionally
+requires Tesseract, Ghostscript and qpdf built from source, since the release may not ship
+Homebrew binaries. Install either with Homebrew and AZpdf picks it up on the next launch.
+
+On Windows neither is available in v1: the three OCRmyPDF native dependencies are installer-based
+there with no portable recipe yet.
 
 ## Privacy and plugins
 

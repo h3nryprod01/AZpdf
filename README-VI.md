@@ -67,18 +67,24 @@ chiếu SHA-256 ở trên trước khi bấm tiếp tục.
 
 Không phải nền tảng nào cũng mang đủ runtime, và đó là lựa chọn có chủ đích chứ không phải bỏ sót:
 
+"Đóng kèm" là chạy được ngay. "Tuỳ chọn" là tính năng vẫn có nhưng cần cài công cụ trên máy —
+AZpdf tự tìm bản cài qua Homebrew, và nếu không thấy thì báo rõ cần cài gì.
+
 | | macOS | Linux | Windows |
 |---|---|---|---|
-| Đọc, chú thích, ký, sửa trang | ✅ | ✅ | ✅ |
-| OCR | ✅ Apple Vision | ✅ OCRmyPDF | ❌ |
-| Xuất PDF tìm kiếm được | ❌ | ✅ | ❌ |
-| Kiểm PDF/A · PDF/UA | ❌ | ❌ | ❌ |
+| Đọc, chú thích, ký, sửa trang | ✅ đóng kèm | ✅ đóng kèm | ✅ đóng kèm |
+| OCR | ✅ Apple Vision, có sẵn | ✅ OCRmyPDF đóng kèm | ❌ chưa có ở v1 |
+| Xuất PDF tìm kiếm được | ⚙️ tuỳ chọn — `brew install ocrmypdf` | ✅ đóng kèm | ❌ chưa có ở v1 |
+| Kiểm PDF/A · PDF/UA | ⚙️ tuỳ chọn — `brew install verapdf` | ❌ không đóng kèm | ❌ chưa có ở v1 |
 
-veraPDF cần đóng kèm JRE — đo được **380 MB trong tổng 413 MB runtime**, gấp chín lần chính
-veraPDF, chỉ để phục vụ một tính năng hẹp. OCRmyPDF trên macOS và Windows cần Tesseract,
-Ghostscript và qpdf build từ source (macOS) hoặc gói lại từ installer (Windows); hiện chỉ Linux
-có công thức portable chạy được. Cả hai là ứng viên cho một bản Studio riêng, thay vì bắt mọi
-lượt tải phải gánh.
+Bản macOS không đóng kèm veraPDF và OCRmyPDF — đó là quyết định về dung lượng chứ không phải
+thiếu tính năng: runtime veraPDF đo được **413 MB, trong đó 380 MB là JRE đi kèm**, gấp chín lần
+chính veraPDF, chỉ cho một tính năng hẹp. Đóng gói OCRmyPDF cho macOS còn phải build thêm
+Tesseract, Ghostscript và qpdf từ source, vì bản phát hành không được phép mang binary Homebrew.
+Cài bằng Homebrew là AZpdf nhận ra ở lần khởi động sau.
+
+Trên Windows thì cả hai đều chưa có ở v1: ba thư viện native của OCRmyPDF ở đó đều theo dạng
+installer, chưa có công thức portable.
 
 ## Quyền riêng tư và plugin
 
