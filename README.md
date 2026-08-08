@@ -2,7 +2,7 @@
 
 **English** | [Tiếng Việt](README-VI.md)
 
-An open-source, local-first PDF reader and editor. **v1.3.0 ships downloads for all three platforms** — macOS (signed and notarized), Linux (AppImage) and Windows (portable package). See [Download](#download--v130) for files and checksums. The Windows build is still a portable ZIP rather than an installer, and is not yet code-signed.
+An open-source, local-first PDF reader and editor. **v1.3.1 ships downloads for all three platforms** — macOS (signed and notarized), Linux (AppImage) and Windows (portable package). See [Download](#download--v131) for files and checksums. The Windows build is still a portable ZIP rather than an installer, and is not yet code-signed.
 
 <img width="254" height="254" alt="AZpdf icon" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -42,18 +42,18 @@ An open-source, local-first PDF reader and editor. **v1.3.0 ships downloads for 
 - Save in place or export a new PDF
 - English and Vietnamese interface; pick the language in Settings and it applies immediately, no relaunch
 
-## Download — v1.3.0
+## Download — v1.3.1
 
 Three installers, one version. Verify what you downloaded before running it.
 
 | Platform | File | Size | SHA-256 |
 |---|---|---|---|
-| **macOS** 14+ | `AZpdf-macOS-1.3.0.zip` | 52 MB | `4f3922c0bba1432f28d389ba85af181ee883b6f3861d4dd3bc8e7b196822f0b2` |
-| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 177 MB | `fdf91d9bc0cc1955d14ca532781d8e1e3bab62e855d0329b14b8580f8147f6f9` |
-| **Windows** x64 | `AZpdf-Windows-x64-1.3.0.zip` | 91 MB | `0d11015d1035cec8556362284096fb3db6177128a224a09488e4810354703474` |
+| **macOS** 14+ | `AZpdf-macOS-1.3.1.zip` | 52 MB | `aa17eec6e62a3d312f73c58053dc49632b8b23fff2cb5322ba064720fff70d5c` |
+| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 176 MB | `ae8b188f1f3d9cd708fdb7009d0f0e772fe55fa86ef4fdf63fdd19c10205de43` |
+| **Windows** x64 | `AZpdf-Windows-x64-1.3.1.zip` | 91 MB | `e160e4b547f86e109611b952f6e07f2a3f361f6f8756c1e12b20bcc313d25db0` |
 
 ```bash
-shasum -a 256 AZpdf-macOS-1.3.0.zip      # macOS
+shasum -a 256 AZpdf-macOS-1.3.1.zip      # macOS
 sha256sum AZpdf-x86_64.AppImage          # Linux
 ```
 
@@ -66,9 +66,7 @@ above before choosing to continue.
 ### What each platform ships
 
 Not every platform carries every runtime, and the difference is deliberate rather than an
-oversight:
-
-"Bundled" means it works out of the box. "Optional" means the feature is present but needs the
+oversight. "Bundled" means it works out of the box. "Optional" means the feature is present but needs the
 tool installed on your machine — AZpdf finds a Homebrew install automatically, and tells you
 exactly what to install if it can't.
 
@@ -116,7 +114,7 @@ macOS releases ship with [third-party license notices](THIRD_PARTY_NOTICES.md) a
 
 ### Linux (v2 alpha)
 
-See [Download](#download--v130) for the file and its checksum. The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu
+See [Download](#download--v131) for the file and its checksum. The engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) is self-contained and runs in a clean Ubuntu
 24.04 container; the Flutter shell, like every Flutter Linux app, dynamically links GTK3 and
 OpenGL, so it needs four system libraries: `libgtk-3-0t64` (or `libgtk-3-0` on older
 distributions), `libegl1`, `libgl1`, `libgles2` — e.g.

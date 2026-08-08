@@ -2,7 +2,7 @@
 
 [English](README.md) | **Tiếng Việt**
 
-Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. **v1.3.0 có bản tải về cho cả ba nền tảng** — macOS (đã ký và notarize), Linux (AppImage) và Windows (gói portable). Xem [Tải xuống](#tải-xuống--v130) kèm checksum. Bản Windows vẫn còn ở mức portable zip chứ chưa phải bộ cài, và chưa được ký số.
+Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. **v1.3.1 có bản tải về cho cả ba nền tảng** — macOS (đã ký và notarize), Linux (AppImage) và Windows (gói portable). Xem [Tải xuống](#tải-xuống--v131) kèm checksum. Bản Windows vẫn còn ở mức portable zip chứ chưa phải bộ cài, và chưa được ký số.
 
 <img width="254" height="254" alt="Biểu tượng AZpdf" src="https://github.com/user-attachments/assets/53716e43-aa4a-4f71-ae2f-37f782328eb2" />
 
@@ -42,18 +42,18 @@ Trình đọc và chỉnh sửa PDF mã nguồn mở, local-first. **v1.3.0 có 
 - Lưu đè hoặc xuất ra PDF mới
 - Giao diện tiếng Anh và tiếng Việt; chọn ngôn ngữ trong Settings, áp dụng ngay không cần khởi động lại
 
-## Tải xuống — v1.3.0
+## Tải xuống — v1.3.1
 
 Ba bộ cài, cùng một phiên bản. Đối chiếu checksum trước khi chạy.
 
 | Nền tảng | File | Dung lượng | SHA-256 |
 |---|---|---|---|
-| **macOS** 14+ | `AZpdf-macOS-1.3.0.zip` | 52 MB | `4f3922c0bba1432f28d389ba85af181ee883b6f3861d4dd3bc8e7b196822f0b2` |
-| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 177 MB | `fdf91d9bc0cc1955d14ca532781d8e1e3bab62e855d0329b14b8580f8147f6f9` |
-| **Windows** x64 | `AZpdf-Windows-x64-1.3.0.zip` | 91 MB | `0d11015d1035cec8556362284096fb3db6177128a224a09488e4810354703474` |
+| **macOS** 14+ | `AZpdf-macOS-1.3.1.zip` | 52 MB | `aa17eec6e62a3d312f73c58053dc49632b8b23fff2cb5322ba064720fff70d5c` |
+| **Linux** x86_64 | `AZpdf-x86_64.AppImage` | 176 MB | `ae8b188f1f3d9cd708fdb7009d0f0e772fe55fa86ef4fdf63fdd19c10205de43` |
+| **Windows** x64 | `AZpdf-Windows-x64-1.3.1.zip` | 91 MB | `e160e4b547f86e109611b952f6e07f2a3f361f6f8756c1e12b20bcc313d25db0` |
 
 ```bash
-shasum -a 256 AZpdf-macOS-1.3.0.zip      # macOS
+shasum -a 256 AZpdf-macOS-1.3.1.zip      # macOS
 sha256sum AZpdf-x86_64.AppImage          # Linux
 ```
 
@@ -65,9 +65,8 @@ chiếu SHA-256 ở trên trước khi bấm tiếp tục.
 
 ### Mỗi nền tảng có gì
 
-Không phải nền tảng nào cũng mang đủ runtime, và đó là lựa chọn có chủ đích chứ không phải bỏ sót:
-
-"Đóng kèm" là chạy được ngay. "Tuỳ chọn" là tính năng vẫn có nhưng cần cài công cụ trên máy —
+Không phải nền tảng nào cũng mang đủ runtime, và đó là lựa chọn có chủ đích chứ không phải bỏ
+sót. "Đóng kèm" là chạy được ngay. "Tuỳ chọn" là tính năng vẫn có nhưng cần cài công cụ trên máy —
 AZpdf tự tìm bản cài qua Homebrew, và nếu không thấy thì báo rõ cần cài gì.
 
 | | macOS | Linux | Windows |
@@ -114,7 +113,7 @@ Bản phát hành macOS đi kèm [thông báo license](THIRD_PARTY_NOTICES.md) v
 
 ### Linux v2 alpha
 
-Xem mục [Tải xuống](#tải-xuống--v130) cho file và checksum. Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
+Xem mục [Tải xuống](#tải-xuống--v131) cho file và checksum. Phần engine (MuPDF 1.28.0, OCRmyPDF, pyHanko) tự chứa và chạy được trong container
 Ubuntu 24.04 trắng; còn vỏ Flutter, như mọi ứng dụng Flutter Linux, link động GTK3 và
 OpenGL nên cần bốn thư viện hệ thống: `libgtk-3-0t64` (hoặc `libgtk-3-0` trên bản phân phối
 cũ), `libegl1`, `libgl1`, `libgles2` — ví dụ
