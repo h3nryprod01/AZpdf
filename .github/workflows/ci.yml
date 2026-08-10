@@ -448,8 +448,14 @@ jobs:
           Expand-Archive -Path $zip -DestinationPath $env:RUNNER_TEMP -Force
           $mutool = Join-Path $env:RUNNER_TEMP 'mupdf-1.28.0-windows\mutool.exe'
           if (-not (Test-Path $mutool)) { throw "mutool.exe not found in archive at $mutool" }
-          $engine = Get-ChildItem .build -Recurse -Filter 'azpdf-engine.exe' | Select-Object -First 1
+          # Lọc theo thư mục `release`, không lấy `-First 1` của cả cây .build. Bước trên chạy
+          # `swift build --build-tests` (debug) TRƯỚC `swift build -c release`, mà duyệt đệ quy
+          # gặp `debug\` trước `release\` theo thứ tự bảng chữ cái — nên bản cũ tự nhận là
+          # "the release build" trong khi thực tế đang chạy binary debug.
+          $engine = Get-ChildItem .build -Recurse -Filter 'azpdf-engine.exe' |
+            Where-Object { $_.Directory.Name -eq 'release' } | Select-Object -First 1
           if (-not $engine) { throw 'azpdf-engine.exe was not produced by the release build.' }
+          Write-Host "engine: $($engine.FullName)"
           Write-Host '--- azpdf-engine selftest (MuPDF conformance on Windows) ---'
           & $engine.FullName selftest --mutool $mutool
           if ($LASTEXITCODE -ne 0) { throw "azpdf-engine selftest exited $LASTEXITCODE — failedOperations must be empty (unsupported is fine)." }
@@ -459,10 +465,28 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path win-engine | Out-Null
+          # Cùng bộ lọc `release` với bước selftest, và vì cùng lý do: không kèm nó thì bản
+          # DEBUG là bản được đóng gói. Đây chính là nửa đầu của lỗi bản 1.3.1 — thông báo
+          # crash của người dùng in ra đường dẫn dự phòng `...\.build\...\debug\` nhúng trong
+          # binary, tự nó là bằng chứng gói phát hành mang binary debug.
           $engine = Get-ChildItem .build -Recurse -Filter 'azpdf-engine.exe' |
-            Select-Object -First 1
+            Where-Object { $_.Directory.Name -eq 'release' } | Select-Object -First 1
           if (-not $engine) { throw 'azpdf-engine.exe was not produced by the release build.' }
           Copy-Item $engine.FullName win-engine\
+          # Nửa sau của lỗi 1.3.1: resource bundle của SwiftPM. `.copy("Resources")` trong
+          # Package.swift sinh AZpdf_AZpdfMuPDF.resources CẠNH binary, và `Bundle.module` chỉ
+          # tìm nó ở đó. Bước này trước đây chỉ chép mỗi .exe, nên mọi thao tác annotation
+          # trên máy người dùng chết ở preconditionFailure.
+          $bundles = Get-ChildItem $engine.Directory.FullName -Directory -Filter '*.resources'
+          if (-not $bundles) {
+            throw "Khong tim thay resource bundle nao trong $($engine.Directory.FullName) — Bundle.module se chet luc chay."
+          }
+          foreach ($b in $bundles) {
+            Copy-Item $b.FullName win-engine\ -Recurse
+            Write-Host "  bundle: $($b.Name)"
+          }
+          $scriptPath = 'win-engine\AZpdf_AZpdfMuPDF.resources\Resources\azpdf_annotations.js'
+          if (-not (Test-Path $scriptPath)) { throw "Thieu $scriptPath sau khi chep bundle." }
           # Ship the Swift runtime DLLs beside it: the machine under test has no
           # Swift toolchain, so without these the exe cannot start there, and the
           # failure would look like a bug in the engine rather than a packaging gap.
@@ -531,6 +555,11 @@ jobs:
           if (-not (Test-Path stage\azpdf_desktop.exe)) { throw 'azpdf_desktop.exe missing from the shell artifact.' }
           if (-not (Test-Path stage\azpdf-engine.exe))  { throw 'azpdf-engine.exe missing from the engine artifact.' }
           if (-not (Test-Path stage\mutool.exe))        { throw 'mutool.exe missing from the engine artifact.' }
+          # Kiểm tra ĐÚNG file mà `Bundle.module` cần, không chỉ kiểm tra thư mục bundle: một
+          # thư mục rỗng vẫn qua được `Test-Path` nhưng vẫn làm engine chết.
+          if (-not (Test-Path stage\AZpdf_AZpdfMuPDF.resources\Resources\azpdf_annotations.js)) {
+            throw 'AZpdf_AZpdfMuPDF.resources/Resources/azpdf_annotations.js missing — annotation se crash tren may nguoi dung.'
+          }
           $ver = (Get-Content VERSION -Raw).Trim()
           New-Item -ItemType Directory -Force -Path out | Out-Null
           Compress-Archive -Path stage\* -DestinationPath "out\AZpdf-Windows-x64-$ver.zip" -Force
@@ -550,6 +579,25 @@ jobs:
           Write-Host "health: $out"
           if ($out -notmatch '"ok"\s*:\s*true') {
             throw "azpdf-engine health did not report ok:true after extraction. Got: $out"
+          }
+          # `health` chỉ gọi `mutool -v`, không chạm resource bundle — nên nó xanh trong khi
+          # gói 1.3.1 đã hỏng. Đây là cổng thực sự: `selftest` chạy upsertAnnotation, tức đi
+          # qua đúng đường `Bundle.module` đã giết engine trên máy người dùng. Chạy TỪ THƯ MỤC
+          # GIẢI NÉN mới có nghĩa; chạy trong .build thì bundle luôn có sẵn và không đo được gì.
+          # Gọi qua cmd để gộp stderr vào stdout dưới dạng text thuần. `2>&1` của PowerShell
+          # bọc mỗi dòng stderr thành ErrorRecord và, với $ErrorActionPreference='stop' mà
+          # GitHub đặt sẵn cho pwsh, có thể làm step chết vì một dòng cảnh báo vô hại.
+          Push-Location $dest
+          $self = & cmd /c ".\azpdf-engine.exe selftest 2>&1" | Out-String
+          $code = $LASTEXITCODE
+          Pop-Location
+          Write-Host "selftest: $self"
+          if ($code -ne 0) { throw "azpdf-engine selftest exited $code sau khi giai nen." }
+          if ($self -match 'could not load resource bundle') {
+            throw 'Gói thiếu resource bundle — đúng lỗi đã phát hành trong 1.3.1.'
+          }
+          if ($self -notmatch '"upsertAnnotation"') {
+            throw "selftest khong chay upsertAnnotation — cong nay khong con do dung thu can do. Got: $self"
           }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:

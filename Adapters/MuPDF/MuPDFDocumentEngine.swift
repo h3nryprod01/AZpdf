@@ -315,7 +315,49 @@ public struct MuPDFDocumentEngine: PDFDocumentReadingEngine, PDFDocumentStructur
         return result
     }
 
+    /// Các thư mục có thể chứa resource bundle của target, xếp theo thứ tự dò.
+    ///
+    /// Không dùng `Bundle.module` đầu tiên là CỐ Ý. `Bundle.module` là accessor do SwiftPM
+    /// sinh, và khi không tìm thấy bundle nó gọi `preconditionFailure` — giết tiến trình kèm
+    /// stack trace chứ KHÔNG throw, nên không có cách nào bắt lại. Bản Windows portable 1.3.1
+    /// dính đúng chỗ này: gói zip thiếu `AZpdf_AZpdfMuPDF.resources`, và mọi thao tác
+    /// annotation làm azpdf-engine chết ngay thay vì trả lỗi để UI hiển thị.
+    private static var resourceBundleSearchRoots: [URL] {
+        var roots: [URL] = []
+        // .app trên macOS: bundle nằm trong Contents/Resources.
+        if let resources = Bundle.main.resourceURL { roots.append(resources) }
+        // CLI trên Windows/Linux: SwiftPM đặt bundle NGAY CẠNH binary, và gói portable
+        // cũng phải đặt đúng chỗ đó.
+        roots.append(Bundle.main.bundleURL)
+        if let executable = Bundle.main.executableURL?.deletingLastPathComponent() {
+            roots.append(executable)
+        }
+        return roots
+    }
+
+    /// Tên bundle khác nhau theo nền tảng: Apple sinh `.bundle`, Linux/Windows sinh
+    /// `.resources`. Dò cả hai để một đường tìm dùng chung cho ba nền tảng.
+    private static let resourceBundleNames = ["AZpdf_AZpdfMuPDF.bundle", "AZpdf_AZpdfMuPDF.resources"]
+
     private func annotationScriptURL() throws -> URL {
+        for root in Self.resourceBundleSearchRoots {
+            for name in Self.resourceBundleNames {
+                guard let bundle = Bundle(url: root.appendingPathComponent(name)) else { continue }
+                if let script = bundle.url(
+                    forResource: "azpdf_annotations",
+                    withExtension: "js",
+                    subdirectory: "Resources"
+                ) ?? bundle.url(forResource: "azpdf_annotations", withExtension: "js") {
+                    return script
+                }
+            }
+        }
+        #if canImport(Darwin)
+        // Chỉ Apple mới còn cần lối này: `swift test` trên macOS chạy qua host `xctest`, nên
+        // `Bundle.main` trỏ vào Xcode chứ không vào .build và vòng dò trên trượt hết. Trên
+        // Windows/Linux binary test nằm cùng thư mục với bundle nên vòng trên đã đủ — và ở
+        // đó ta CỐ Ý không đụng `Bundle.module`, để thiếu bundle thành lỗi báo được thay vì
+        // một tiến trình chết.
         if let script = Bundle.module.url(
             forResource: "azpdf_annotations",
             withExtension: "js",
@@ -323,7 +365,12 @@ public struct MuPDFDocumentEngine: PDFDocumentReadingEngine, PDFDocumentStructur
         ) ?? Bundle.module.url(forResource: "azpdf_annotations", withExtension: "js") {
             return script
         }
-        throw PDFEngineError.ioFailure("Không tìm thấy azpdf_annotations.js trong runtime.")
+        #endif
+        let searched = Self.resourceBundleSearchRoots.map(\.path).joined(separator: ", ")
+        throw PDFEngineError.ioFailure(
+            "Không tìm thấy azpdf_annotations.js: thiếu AZpdf_AZpdfMuPDF.resources cạnh "
+            + "azpdf-engine. Đã dò: \(searched)."
+        )
     }
 
     private func upsertAnnotation(
