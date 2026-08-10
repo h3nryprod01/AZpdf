@@ -316,6 +316,119 @@ void main() {
     source.deleteSync();
     certificate.deleteSync();
   });
+
+  testWidgets('renders at devicePixelRatio, not at zoom alone', (tester) async {
+    // Lỗi đã phát hành: engine nhận thẳng `zoom`, đổi thành `72 * zoom` DPI. Ở
+    // 100% trên màn 150% thì trang A4 chỉ có 595 px phủ 892 px vật lý, và
+    // Flutter kéo giãn phần thiếu — đó là chỗ chữ nhòe so với Chrome.
+    tester.view.devicePixelRatio = 1.5;
+    addTearDown(tester.view.resetDevicePixelRatio);
+    final source = File('/tmp/dpr-sample.pdf')
+      ..writeAsBytesSync('%PDF-test'.codeUnits);
+    final engine = _FakeEngine();
+    final controller = WorkspaceController(engine);
+    await tester.pumpWidget(AZpdfApp(controller: controller));
+    await tester.pump();
+    await tester.runAsync(() => controller.openPath(source.path));
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(engine.renderScales.last, closeTo(1.5, 0.001));
+    expect(engine.thumbnailScales, everyElement(closeTo(0.27, 0.001)));
+
+    // Ảnh dày hơn nhưng Ô LAYOUT phải giữ nguyên point × zoom, nếu không trang
+    // sẽ to gấp 1,5 lần và lớp phủ annotation lệch khỏi chữ.
+    expect(controller.current?.pageWidthPoints, closeTo(595, 0.001));
+    expect(controller.current?.layoutWidth, closeTo(595, 0.001));
+
+    await tester.runAsync(() => controller.changeZoom(2));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(engine.renderScales.last, closeTo(3, 0.001));
+    expect(controller.current?.layoutWidth, closeTo(1190, 0.001));
+
+    controller.dispose();
+    source.deleteSync();
+  });
+
+  testWidgets('mouse wheel scrolls the page; Ctrl+wheel zooms', (tester) async {
+    // Bản trước dùng InteractiveViewer, và nó đọc con lăn chuột là cử chỉ
+    // PHÓNG TO — nên cuộn xem tài liệu lại đổi mức phóng.
+    await tester.binding.setSurfaceSize(const Size(1200, 820));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final source = File('/tmp/wheel-sample.pdf')
+      ..writeAsBytesSync('%PDF-test'.codeUnits);
+    final controller = WorkspaceController(_FakeEngine());
+    await tester.pumpWidget(AZpdfApp(controller: controller));
+    await tester.pump();
+    await tester.runAsync(() => controller.openPath(source.path));
+    await tester.pump(const Duration(milliseconds: 250));
+
+    // Điểm nằm trong vùng xem trang: bên phải cột trang, dưới thanh công cụ.
+    const overCanvas = Offset(800, 500);
+    final pointer = TestPointer(1, PointerDeviceKind.mouse);
+    await tester.sendEventToBinding(pointer.hover(overCanvas));
+    await tester.sendEventToBinding(pointer.scroll(const Offset(0, 160)));
+    await tester.pump(const Duration(milliseconds: 250));
+    expect(controller.current?.zoom, 1, reason: 'con lăn trần không được phóng');
+
+    // Giữ Ctrl thì cùng sự kiện đó phải phóng — cũng là bằng chứng sự kiện
+    // con lăn CÓ tới được vùng xem, nên khẳng định ở trên không rỗng.
+    await tester.sendKeyDownEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+    await tester.sendEventToBinding(pointer.scroll(const Offset(0, -160)));
+    await tester.pump(const Duration(milliseconds: 250));
+    await tester.sendKeyUpEvent(LogicalKeyboardKey.controlLeft);
+    await tester.pump();
+    expect(controller.current?.zoom, closeTo(1.25, 0.001));
+
+    controller.dispose();
+    source.deleteSync();
+  });
+
+  testWidgets('fit to width fills the viewport and stops recomputing', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(1600, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final source = File('/tmp/fit-sample.pdf')
+      ..writeAsBytesSync('%PDF-test'.codeUnits);
+    final controller = WorkspaceController(_FakeEngine());
+    await tester.pumpWidget(AZpdfApp(controller: controller));
+    await tester.pump();
+    await tester.runAsync(() => controller.openPath(source.path));
+    await tester.pump(const Duration(milliseconds: 250));
+
+    // Thanh công cụ cuộn ngang được, nên nút có thể nằm ngoài khung nhìn ở bề
+    // ngang này; kéo nó vào trước rồi mới bấm.
+    await tester.ensureVisible(find.byTooltip(L('fit_width')));
+    await tester.pump();
+    await tester.tap(find.byTooltip(L('fit_width')));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    final fitted = controller.current!.zoom;
+    expect(fitted, isNot(closeTo(1, 0.001)));
+    expect(controller.current?.fitMode, PdfFitMode.width);
+
+    // Hội tụ: vòng layout → tính zoom → render → layout phải tự dừng. Nếu
+    // không, `zoom` còn dao động ở các frame sau và app quay tít.
+    for (var i = 0; i < 4; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(controller.current!.zoom, closeTo(fitted, 0.0001));
+
+    // Tự đặt mức phóng thì bỏ chế độ khớp, nếu không lần layout sau sẽ giật
+    // ngược về mức fit và nút +/− trông như hỏng.
+    await tester.ensureVisible(find.byTooltip(L('zoom_in_shortcut')));
+    await tester.pump();
+    await tester.tap(find.byTooltip(L('zoom_in_shortcut')));
+    for (var i = 0; i < 6; i++) {
+      await tester.pump(const Duration(milliseconds: 50));
+    }
+    expect(controller.current?.fitMode, PdfFitMode.free);
+
+    controller.dispose();
+    source.deleteSync();
+  });
 }
 
 void _expectBounds(PdfBounds actual, PdfBounds expected) {
@@ -332,6 +445,8 @@ class _FakeEngine implements PdfEngineClient {
   String? savedDestination;
   String? lastOcrLanguage;
   PdfSignatureProfile? lastSignatureProfile;
+  final List<double> renderScales = [];
+  final List<double> thumbnailScales = [];
 
   @override
   Future<EngineHealth> health() async => const EngineHealth(
@@ -466,6 +581,11 @@ class _FakeEngine implements PdfEngineClient {
     double scale,
     String output,
   ) async {
+    if (output.contains('-thumb-')) {
+      thumbnailScales.add(scale);
+    } else {
+      renderScales.add(scale);
+    }
     final file = File(output);
     file.parent.createSync(recursive: true);
     file.writeAsBytesSync(const [
@@ -540,10 +660,14 @@ class _FakeEngine implements PdfEngineClient {
       0x60,
       0x82,
     ]);
+    // Engine thật trả về kích thước PIXEL, tức đã nhân scale
+    // (MuPDFDocumentEngine.render: `baseSize.width * request.scale`). Fake phải
+    // giống ở điểm này, nếu không nó che mất chính lỗi đang được canh: quy
+    // ngược ra point là chia cho scale.
     return RenderedPdfPage(
       page: page,
-      width: 595,
-      height: 842,
+      width: 595 * scale,
+      height: 842 * scale,
       format: 'png',
       output: output,
     );
