@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:file_selector/file_selector.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,23 @@ class _WorkspacePageState extends State<WorkspacePage> with WindowListener {
     super.initState();
     windowManager.addListener(this);
     _initialize();
+  }
+
+  /// Chỗ duy nhất biết mật độ điểm ảnh thật của cửa sổ. Chạy cả lúc khởi động
+  /// lẫn khi người dùng kéo cửa sổ sang màn hình có tỉ lệ khác, nên đổi màn là
+  /// trang được render lại đúng độ nét chứ không giữ ảnh cũ bị kéo giãn.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final needsRerender = widget.controller.updateRenderPixelRatio(
+      MediaQuery.devicePixelRatioOf(context),
+);
+    if (!needsRerender) return;
+    // Hoãn sang sau frame: hàm này chạy trong pha build, mà renderCurrent()
+    // notify ngay dòng đầu.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) widget.controller.renderCurrent();
+    });
   }
 
   @override
@@ -400,6 +418,22 @@ class _Toolbar extends StatelessWidget {
                 onPressed: document == null
                     ? null
                     : () => controller.changeZoom(document.zoom + 0.25),
+),
+              _ToolButton(
+                icon: Icons.compare_arrows_rounded,
+                tooltip: L('fit_width'),
+                selected: document?.fitMode == PdfFitMode.width,
+                onPressed: document == null
+                    ? null
+                    : () => controller.setFitMode(PdfFitMode.width),
+),
+              _ToolButton(
+                icon: Icons.crop_free_rounded,
+                tooltip: L('fit_page'),
+                selected: document?.fitMode == PdfFitMode.page,
+                onPressed: document == null
+                    ? null
+                    : () => controller.setFitMode(PdfFitMode.page),
 ),
               const SizedBox(width: 18),
               SizedBox(
@@ -1624,6 +1658,7 @@ class _ThumbnailTileState extends State<_ThumbnailTile> {
                       ? Image.file(
                           File(snapshot.data!),
                           fit: BoxFit.contain,
+                          filterQuality: FilterQuality.medium,
                           errorBuilder: (_, _, _) =>
                               const Icon(Icons.broken_image_outlined),
 )
@@ -1650,45 +1685,163 @@ class _ThumbnailTileState extends State<_ThumbnailTile> {
   }
 }
 
-class _PageCanvas extends StatelessWidget {
+class _PageCanvas extends StatefulWidget {
   const _PageCanvas({required this.controller, required this.document});
 
   final WorkspaceController controller;
   final OpenedPdf document;
 
   @override
+  State<_PageCanvas> createState() => _PageCanvasState();
+}
+
+class _PageCanvasState extends State<_PageCanvas> {
+  /// Lề quanh trang. Chế độ khớp khung phải trừ đúng con số này, nếu không
+  /// "fit width" sẽ tràn ra ngoài đúng bằng hai lần lề.
+  static const double _pageMargin = 32;
+
+  final _vertical = ScrollController();
+  final _horizontal = ScrollController();
+  bool _zoomModifierHeld = false;
+
+  @override
+  void initState() {
+    super.initState();
+    HardwareKeyboard.instance.addHandler(_trackZoomModifier);
+  }
+
+  @override
+  void dispose() {
+    HardwareKeyboard.instance.removeHandler(_trackZoomModifier);
+    _vertical.dispose();
+    _horizontal.dispose();
+    super.dispose();
+  }
+
+  /// Cuộn và phóng dùng CHUNG một sự kiện con lăn, nên phải chọn ai được nhận.
+  ///
+  /// Không thể để `Listener` bên ngoài giành: Flutter phân xử bằng
+  /// `PointerSignalResolver`, và bên trong đăng ký trước — `Scrollable` nằm
+  /// trong `Listener` nên luôn thắng. Cách còn lại là tắt hẳn cuộn khi giữ
+  /// Ctrl, và muốn vậy thì phải biết Ctrl đang giữ hay không.
+  bool _trackZoomModifier(KeyEvent event) {
+    final held = HardwareKeyboard.instance.isControlPressed;
+    if (held != _zoomModifierHeld && mounted) {
+      setState(() => _zoomModifierHeld = held);
+    }
+    return false;
+  }
+
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent || !_zoomModifierHeld) return;
+    final delta = event.scrollDelta.dy;
+    if (delta == 0) return;
+    // Mỗi nấc con lăn là một lần gọi engine render lại; bỏ qua khi đang bận
+    // để một cú xoay dài không xếp hàng chục tiến trình mutool chồng lên nhau.
+    if (widget.document.busy) return;
+    widget.controller.changeZoom(
+      widget.document.zoom + (delta < 0 ? 0.25 : -0.25),
+);
+  }
+
+  /// Mức phóng để trang vừa khung, hoặc null nếu người dùng đang tự lái.
+  double? _fitZoom(BoxConstraints constraints) {
+    final document = widget.document;
+    if (document.fitMode == PdfFitMode.free) return null;
+    if (!constraints.hasBoundedWidth || !constraints.hasBoundedHeight) {
+      return null;
+    }
+    final widthPoints = document.pageWidthPoints;
+    final heightPoints = document.pageHeightPoints;
+    if (widthPoints == null ||
+        heightPoints == null ||
+        widthPoints <= 0 ||
+        heightPoints <= 0) {
+      return null;
+    }
+    final availableWidth = constraints.maxWidth - _pageMargin * 2;
+    final availableHeight = constraints.maxHeight - _pageMargin * 2;
+    if (availableWidth <= 0 || availableHeight <= 0) return null;
+    return switch (document.fitMode) {
+      PdfFitMode.free => null,
+      PdfFitMode.width => availableWidth / widthPoints,
+      PdfFitMode.page => math.min(
+        availableWidth / widthPoints,
+        availableHeight / heightPoints,
+),
+    };
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final controller = widget.controller;
+    final document = widget.document;
     return ColoredBox(
       color: const Color(0xFFDDE2E9),
       child: Stack(
         children: [
           Positioned.fill(
-            child: InteractiveViewer(
-              constrained: false,
-              minScale: 0.5,
-              maxScale: 4,
-              boundaryMargin: const EdgeInsets.all(240),
-              child: Center(
-                child: document.renderedPath == null
-                    ? const SizedBox.shrink()
-                    : Container(
-                        margin: const EdgeInsets.all(32),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Color(0x42000000),
-                              blurRadius: 18,
-                              offset: Offset(0, 6),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                if (_fitZoom(constraints) case final target?) {
+                  final clamped = target.clamp(0.25, 4).toDouble();
+                  if ((clamped - document.zoom).abs() > 0.005) {
+                    final mode = document.fitMode;
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) controller.changeZoom(clamped, fitMode: mode);
+                    });
+                  }
+                }
+                // Ctrl đang giữ thì khoá cuộn, để sự kiện con lăn rơi xuống
+                // `_handlePointerSignal` thay vì bị Scrollable nuốt.
+                final physics = _zoomModifierHeld
+                    ? const NeverScrollableScrollPhysics()
+                    : null;
+                // Không tự bọc Scrollbar: trên desktop ScrollBehavior của
+                // Material đã gắn sẵn cho mỗi Scrollable, bọc thêm là ra hai
+                // thanh cuộn chồng nhau.
+                return Listener(
+                  onPointerSignal: _handlePointerSignal,
+                  child: SingleChildScrollView(
+                    controller: _vertical,
+                    physics: physics,
+                    child: SingleChildScrollView(
+                      controller: _horizontal,
+                      scrollDirection: Axis.horizontal,
+                      physics: physics,
+                      child: ConstrainedBox(
+                        // Ép nội dung rộng/cao tối thiểu bằng khung nhìn thì
+                        // `Center` mới có chỗ để căn giữa lúc trang nhỏ hơn.
+                        constraints: BoxConstraints(
+                          minWidth: constraints.maxWidth,
+                          minHeight: constraints.maxHeight,
+),
+                        child: Center(
+                          child: document.renderedPath == null
+                              ? const SizedBox.shrink()
+                              : Container(
+                                  margin: const EdgeInsets.all(_pageMargin),
+                                  decoration: const BoxDecoration(
+                                    color: Colors.white,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Color(0x42000000),
+                                        blurRadius: 18,
+                                        offset: Offset(0, 6),
 ),
 ],
 ),
-                        child: _EditablePage(
-                          controller: controller,
-                          document: document,
+                                  child: _EditablePage(
+                                    controller: controller,
+                                    document: document,
 ),
 ),
 ),
+),
+),
+),
+);
+              },
 ),
 ),
           if (document.busy)
@@ -1729,8 +1882,11 @@ class _EditablePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final width = document.renderedWidth;
-    final height = document.renderedHeight;
+    // logical pixel = point × zoom, KHÔNG phải số pixel của ảnh: ảnh được
+    // render dày hơn theo devicePixelRatio nên hai con số đó không còn bằng
+    // nhau. Lấy nhầm `renderedWidth` là trang to gấp dpr lần.
+    final width = document.layoutWidth;
+    final height = document.layoutHeight;
     if (width == null || height == null || document.renderedPath == null) {
       return const SizedBox.shrink();
     }
@@ -1750,6 +1906,10 @@ class _EditablePage extends StatelessWidget {
                   File(document.renderedPath!),
                   fit: BoxFit.fill,
                   gaplessPlayback: true,
+                  // Ảnh giờ có nhiều pixel hơn ô layout, tức luôn là phép thu
+                  // nhỏ. `low` (bilinear) lấy mẫu một lần nên làm răng cưa chữ;
+                  // `medium` dùng mipmap, đây đúng là ca nó sinh ra để giải.
+                  filterQuality: FilterQuality.medium,
                   errorBuilder: (_, error, _) => Padding(
                     padding: const EdgeInsets.all(32),
                     child: Text('$error'),

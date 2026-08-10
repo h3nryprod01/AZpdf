@@ -14,6 +14,12 @@ class _PdfHistoryEntry {
   final int revision;
 }
 
+/// Cách khớp trang vào khung nhìn.
+///
+/// `free` là người dùng tự đặt mức phóng; hai chế độ còn lại tính lại `zoom`
+/// mỗi khi khung nhìn đổi kích thước, nên kéo cửa sổ vẫn giữ đúng tỉ lệ.
+enum PdfFitMode { free, width, page }
+
 class OpenedPdf {
   OpenedPdf({required this.path, required this.workingPath, required this.info})
     : id = DateTime.now().microsecondsSinceEpoch.toString(),
@@ -26,8 +32,17 @@ class OpenedPdf {
   final PdfDocumentInfo info;
   int pageIndex = 0;
   double zoom = 1;
+  PdfFitMode fitMode = PdfFitMode.free;
   bool busy = false;
   String? renderedPath;
+
+  /// Mức phóng THẬT đã gửi cho engine ở lần render gần nhất. Không bằng `zoom`:
+  /// nó là `zoom * devicePixelRatio`, vì ảnh phải có đủ pixel VẬT LÝ cho màn
+  /// hình. Giữ lại ở đây để quy ngược ra kích thước point.
+  double renderScale = 1;
+
+  /// Kích thước ảnh PNG, tính bằng PIXEL — không phải logical pixel. Trên màn
+  /// 150% hai con số này lớn gấp 1,5 lần ô layout.
   double? renderedWidth;
   double? renderedHeight;
   PdfPageGeometry? pageGeometry;
@@ -46,6 +61,35 @@ class OpenedPdf {
 
   bool get canUndo => _undoStack.isNotEmpty;
   bool get canRedo => _redoStack.isNotEmpty;
+
+  /// Bề ngang trang tính bằng point (1/72 inch), quy ngược từ ảnh đã render.
+  double? get pageWidthPoints {
+    final width = renderedWidth;
+    if (width == null || renderScale <= 0) return null;
+    return width / renderScale;
+  }
+
+  double? get pageHeightPoints {
+    final height = renderedHeight;
+    if (height == null || renderScale <= 0) return null;
+    return height / renderScale;
+  }
+
+  /// Kích thước vẽ ra màn hình, tính bằng logical pixel: point × zoom.
+  ///
+  /// Cố ý KHÔNG dùng thẳng `renderedWidth` như bản trước. Từ khi render theo
+  /// devicePixelRatio, ảnh có nhiều pixel hơn ô layout, nên lấy nhầm số đó sẽ
+  /// phóng trang to gấp dpr lần. Lớp phủ annotation cũng đặt theo `point × zoom`
+  /// (`_AnnotationOverlay`), nên hai bên phải cùng một hệ quy chiếu.
+  double? get layoutWidth {
+    final points = pageWidthPoints;
+    return points == null ? null : points * zoom;
+  }
+
+  double? get layoutHeight {
+    final points = pageHeightPoints;
+    return points == null ? null : points * zoom;
+  }
 
   List<PdfAnnotation> get currentAnnotations =>
       annotations[pageIndex] ?? const [];
@@ -70,6 +114,15 @@ class WorkspaceController extends ChangeNotifier {
   final Directory cacheDirectory = Directory.systemTemp.createTempSync(
     'azpdf-shell-',
 );
+
+  /// Trần cho scale gửi engine. Ở zoom 4 trên màn 200% thì `zoom * dpr` là 8,
+  /// tức 576 DPI — một trang A4 thành ~4760×6740 px. Chặn ở 4 (288 DPI) vẫn
+  /// sắc hơn mắt phân biệt được trên desktop mà không nuốt mất trăm MB.
+  static const double _maxRenderScale = 4;
+
+  /// Số pixel vật lý trên mỗi logical pixel của cửa sổ. Giao diện đặt vào từ
+  /// `MediaQuery`; mặc định 1 để controller còn chạy được ngoài widget tree.
+  double renderPixelRatio = 1;
 
   EngineHealth? health;
   String? startupError;
@@ -129,6 +182,30 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
+  /// Ghi lại devicePixelRatio mới. Trả về `true` nếu cần render lại.
+  ///
+  /// Cố ý KHÔNG tự gọi `renderCurrent()`: nơi duy nhất biết dpr là widget, và
+  /// nó đọc được trong `didChangeDependencies` — tức đang ở pha build, nơi một
+  /// `notifyListeners()` sẽ ném "setState() called during build". Người gọi
+  /// nhận `true` rồi tự hoãn sang sau frame.
+  bool updateRenderPixelRatio(double ratio) {
+    final next = ratio.isFinite && ratio > 0 ? ratio : 1.0;
+    if ((next - renderPixelRatio).abs() < 0.01) return false;
+    renderPixelRatio = next;
+    return current != null;
+  }
+
+  /// Scale gửi cho engine: mức phóng nhân với mật độ điểm ảnh thật.
+  ///
+  /// Bản trước gửi thẳng `zoom`, và engine đổi thành `72 * scale` DPI — nên ở
+  /// 100% trên màn 150% một trang A4 chỉ có 595 px để phủ 892 px vật lý, và
+  /// Flutter phóng ảnh lên 1,5 lần. Đó là toàn bộ lý do chữ nhòe so với Chrome:
+  /// không phải engine render kém, mà là render thiếu một phần ba số pixel.
+  double _renderScaleFor(OpenedPdf document) {
+    final zoom = document.zoom <= 0 ? 1.0 : document.zoom;
+    return (zoom * renderPixelRatio).clamp(0.05, _maxRenderScale).toDouble();
+  }
+
   Future<void> renderCurrent() async {
     final document = current;
     if (document == null) return;
@@ -136,16 +213,18 @@ class WorkspaceController extends ChangeNotifier {
     document.error = null;
     notifyListeners();
     try {
+      final scale = _renderScaleFor(document);
       final output =
           '${cacheDirectory.path}${Platform.pathSeparator}'
-          '${document.id}-p${document.pageIndex}-z${(document.zoom * 100).round()}-'
+          '${document.id}-p${document.pageIndex}-z${(scale * 100).round()}-'
           '${DateTime.now().microsecondsSinceEpoch}.png';
       final rendered = await engine.renderPage(
         document.workingPath,
         document.pageIndex,
-        document.zoom,
+        scale,
         output,
 );
+      document.renderScale = scale;
       document.renderedPath = rendered.output;
       document.renderedWidth = rendered.width;
       document.renderedHeight = rendered.height;
@@ -177,10 +256,13 @@ class WorkspaceController extends ChangeNotifier {
       final output =
           '${cacheDirectory.path}${Platform.pathSeparator}'
           '${document.id}-thumb-$page.png';
+      // Ảnh nhỏ cũng phải theo dpr, vì ô 66×86 logical là 99×129 pixel vật lý
+      // trên màn 150% — render 0.18 cố định thì cột trang bên trái nhòe y hệt
+      // trang chính, chỉ ít ai soi nên lâu nay không ai báo.
       final rendered = await engine.renderPage(
         document.workingPath,
         page,
-        0.18,
+        (0.18 * renderPixelRatio).clamp(0.05, 1.0).toDouble(),
         output,
 );
       document.thumbnails[page] = rendered.output;
@@ -206,12 +288,36 @@ class WorkspaceController extends ChangeNotifier {
     await renderCurrent();
   }
 
-  Future<void> changeZoom(double zoom) async {
+  /// Đổi mức phóng. Mặc định bỏ chế độ khớp khung: người bấm +/− là đang tự
+  /// lái, nên giữ `fit` lại sẽ khiến khung nhìn giật về ngay lần layout sau.
+  /// Chỉ `_PageCanvas` truyền `fitMode` khác khi chính nó vừa tính ra zoom.
+  Future<void> changeZoom(
+    double zoom, {
+    PdfFitMode fitMode = PdfFitMode.free,
+  }) async {
     final document = current;
     if (document == null) return;
-    document.zoom = zoom.clamp(0.25, 4);
+    final next = zoom.clamp(0.25, 4).toDouble();
+    // Không đổi gì thì thoát TRƯỚC khi notify. Đây là thứ cắt vòng lặp
+    // layout → tính zoom khớp → render → layout: vòng sau tính ra đúng con số
+    // cũ, và im lặng ở đây là chỗ nó dừng.
+    if (document.fitMode == fitMode && (next - document.zoom).abs() < 0.001) {
+      return;
+    }
+    document.fitMode = fitMode;
+    document.zoom = next;
     notifyListeners();
     await renderCurrent();
+  }
+
+  /// Bật chế độ khớp khung. Không tính zoom ở đây — chỉ `_PageCanvas` mới biết
+  /// khung nhìn rộng bao nhiêu, nên nó tính ở lần layout kế và gọi ngược lại
+  /// `changeZoom(..., fitMode: mode)`.
+  void setFitMode(PdfFitMode mode) {
+    final document = current;
+    if (document == null || document.fitMode == mode) return;
+    document.fitMode = mode;
+    notifyListeners();
   }
 
   void selectDocument(int index) {
@@ -743,15 +849,14 @@ class WorkspaceController extends ChangeNotifier {
     required double width,
     required double height,
   }) {
-    final zoom = document.zoom <= 0 ? 1 : document.zoom;
     final geometry =
         document.pageGeometry ??
         PdfPageGeometry(
           pageBox: PdfBounds(
             x: 0,
             y: 0,
-            width: (document.renderedWidth ?? 595 * zoom) / zoom,
-            height: (document.renderedHeight ?? 842 * zoom) / zoom,
+            width: document.pageWidthPoints ?? 595,
+            height: document.pageHeightPoints ?? 842,
 ),
           rotation: 0,
 );
