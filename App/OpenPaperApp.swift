@@ -1,5 +1,6 @@
 import SwiftUI
 
+
 @main
 struct AZpdfApp: App {
     @State private var workspace = DocumentWorkspace()
@@ -10,6 +11,7 @@ struct AZpdfApp: App {
     // commands), and keying the window root rebuilds its view tree — together
     // that is what makes the switch apply without a relaunch.
     @AppStorage(AppLanguage.storageKey) private var appLanguage = AppLanguage.system.rawValue
+
 
     var body: some Scene {
         WindowGroup("AZpdf") {
@@ -132,6 +134,7 @@ struct AZpdfApp: App {
                     .keyboardShortcut("i", modifiers: [.command, .option])
                 Button(L("Export Current Page…")) { workspace.activeStore.prepareCurrentPageExport() }
                     .keyboardShortcut("e", modifiers: [.command, .shift])
+                Button(L("Export Page as Image…")) { workspace.activeStore.beginImageExport() }
                 Button(L("Export Protected Copy…")) { workspace.activeStore.beginPasswordProtectedExport() }
                 Button(L("Delete Current Page")) { workspace.activeStore.deleteCurrentPage() }
                     .keyboardShortcut(.delete, modifiers: [.command, .shift])

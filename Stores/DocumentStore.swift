@@ -5,6 +5,18 @@ import SwiftUI
 import UniformTypeIdentifiers
 import AZpdfCore
 
+enum ImageExportFormat {
+    case png
+    case jpeg
+
+    var utType: UTType {
+        switch self {
+        case .png: return .png
+        case .jpeg: return .jpeg
+        }
+    }
+}
+
 // Feature actions live in DocumentStore+*.swift extensions (FileIO, Annotations,
 // Pages, Navigation, OCR, Signing, Conformance). This file owns the observable
 // state and the shared plumbing those extensions build on. Helpers used across
@@ -27,6 +39,7 @@ final class DocumentStore {
     var isImageImporterPresented = false
     var isReplacingSelectedImage = false // internal for DocumentStore+Annotations
     var isCurrentPageExporterPresented = false
+    var isImageExporterPresented = false
     var isPasswordPromptPresented = false
     var isPasswordProtectSheetPresented = false
     var isTextAnnotationSheetPresented = false

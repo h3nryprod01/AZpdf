@@ -89,6 +89,60 @@ extension DocumentStore {
         isCurrentPageExporterPresented = currentPageExportData != nil
     }
 
+    @MainActor
+    func beginImageExport() {
+        guard document?.page(at: selectedPageIndex) != nil else { return }
+        isImageExporterPresented = true
+    }
+
+    @MainActor
+    func exportCurrentPageAsImage(format: ImageExportFormat) {
+        guard let page = document?.page(at: selectedPageIndex) else { return }
+
+        let scale: CGFloat = 2.0
+        let pageRect = page.bounds(for: .mediaBox)
+        let imageSize = NSSize(width: pageRect.width * scale, height: pageRect.height * scale)
+
+        guard let image = page.thumbnail(of: imageSize, for: .mediaBox) else {
+            lastError = L("Could not render the page as image.")
+            return
+        }
+
+        guard let tiffData = image.tiffRepresentation,
+              let bitmap = NSBitmapImageRep(data: tiffData) else {
+            lastError = L("Could not create image data.")
+            return
+        }
+
+        let imageData: Data?
+        let fileExtension: String
+        switch format {
+        case .png:
+            imageData = bitmap.representation(using: .png, properties: [:])
+            fileExtension = "png"
+        case .jpeg:
+            imageData = bitmap.representation(using: .jpeg, properties: [.compressionFactor: 0.9])
+            fileExtension = "jpg"
+        }
+
+        guard let data = imageData else {
+            lastError = L("Could not encode the image.")
+            return
+        }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [format.utType]
+        panel.nameFieldStringValue = "\(title)-page-\(selectedPageIndex + 1).\(fileExtension)"
+        guard panel.runModal() == .OK, let url = panel.url else { return }
+
+        do {
+            try data.write(to: url)
+        } catch {
+            lastError = L("Could not save the image.")
+        }
+        isImageExporterPresented = false
+    }
+
     func openRecentDocument(_ url: URL) {
         open(url)
     }
