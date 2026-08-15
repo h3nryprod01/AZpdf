@@ -53,7 +53,9 @@ safe_version() {
 
 root_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 app_version="${AZPDF_VERSION:-$(awk '/^version:/ {print $2; exit}' "$root_dir/Shell/azpdf_desktop/pubspec.yaml")}"
-mutool_version="$(safe_version "$MUTOOL" --version | rg -o '[0-9]+(\.[0-9]+){2}' | head -n 1 || true)"
+# grep -oE, không phải rg: runner không cài ripgrep, và `| rg ... || true` nuốt exit 127
+# thành chuỗi rỗng ⇒ script dừng ở "Không xác định được version" trên một mutool hoàn toàn tốt.
+mutool_version="$(safe_version "$MUTOOL" --version | grep -oE '[0-9]+(\.[0-9]+){2}' | head -n 1 || true)"
 [[ -n "$app_version" && -n "$mutool_version" ]] || {
   echo "Không xác định được version AZpdf hoặc MuPDF." >&2
   exit 2
