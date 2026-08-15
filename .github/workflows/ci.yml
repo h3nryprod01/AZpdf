@@ -37,6 +37,17 @@ jobs:
         run: swift --version
       - name: Test
         run: swift test
+      # Lưới duy nhất bắt được "render đổi" — 217 unit test không thấy một pixel nào.
+      # Chỉ chạy trên macOS: baseline là ảnh PDFKit render, còn Linux/Windows dùng MuPDF vẽ
+      # khác về bản chất, so chéo nền tảng chỉ sinh đỏ giả. Hai nền tảng kia đã có `selftest`.
+      - name: Pixel-diff render regression
+        run: |
+          # Tự chứng minh cổng còn bắt được trước đã. Bản đầu của cổng này FAIL đúng ở đây:
+          # ngưỡng ">0,1% pixel" để lọt cả ảnh dịch 2 px lẫn hai trang khác hẳn nhau, vì trang
+          # A4 chữ đen nền trắng có ~99,97% pixel trắng. Nay không còn ngưỡng tỉ lệ nào.
+          ./script/pixel_diff.sh --self-test
+          swift script/render_baselines.swift --out "$RUNNER_TEMP/render"
+          ./script/pixel_diff.sh Tests/Fixtures/render/baseline "$RUNNER_TEMP/render"
       # Both gates below shelled out to ripgrep, which this runner does not have,
       # and `if rg ...; then fail; fi` reads a missing binary (exit 127) as "no
       # match" — so both reported "passed" here without scanning a single file,
