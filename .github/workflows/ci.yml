@@ -425,6 +425,21 @@ jobs:
           if (-not $b) { throw 'khong tim thay binary test' }
           $exe = Join-Path $env:RUNNER_TEMP 'AZpdfTests.exe'
           Copy-Item $b.FullName $exe -Force
+          # Resource bundle phải đi CÙNG binary. Bước copy trên là workaround cho 0xC000013A,
+          # và nó tách binary khỏi thư mục build — trước đây không sao vì code dùng
+          # `Bundle.module` (SwiftPM nhúng sẵn đường dẫn build). Từ khi bỏ `Bundle.module` trên
+          # non-Darwin (nó gọi preconditionFailure, giết tiến trình thay vì throw), engine chỉ
+          # dò cạnh binary — nên copy tới đây làm mọi đường dò trượt hết và test annotation đỏ
+          # với "thiếu AZpdf_AZpdfMuPDF.resources cạnh azpdf-engine".
+          #
+          # Copy bundle theo là cách đúng chứ không phải vá tạm: đó CHÍNH LÀ bố cục mà gói
+          # portable Windows phải có, nên test giờ chạy trên đúng layout sẽ ship.
+          $rb = Get-ChildItem .build -Recurse -Directory `
+            -Include 'AZpdf_AZpdfMuPDF.resources','AZpdf_AZpdfMuPDF.bundle' |
+            Select-Object -First 1
+          if (-not $rb) { throw 'khong tim thay resource bundle cua AZpdfMuPDF trong .build' }
+          Copy-Item $rb.FullName (Join-Path $env:RUNNER_TEMP $rb.Name) -Recurse -Force
+          Write-Host "resource bundle: $($rb.Name) -> $env:RUNNER_TEMP"
           $out = cmd /c "`"$exe`" 2>&1" | Out-String
           Write-Host $out
           # Dạng có skip dùng " and " chứ không phải dấu phẩy:

@@ -4,7 +4,9 @@ import 'package:azpdf_desktop/main.dart';
 import 'package:azpdf_desktop/src/controllers/workspace_controller.dart';
 import 'package:azpdf_desktop/src/engine/azpdf_engine_client.dart';
 import 'package:azpdf_desktop/src/models/pdf_models.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:azpdf_desktop/src/l10n/strings.dart';
 
