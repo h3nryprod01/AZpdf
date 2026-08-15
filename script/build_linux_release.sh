@@ -131,7 +131,7 @@ require_json() {
   status=$?
   set -e
   case "$status" in
-    0) ;;
+    0) printf '%s\n' "$payload" ;;   # in ra để phần tổng kết cuối file thấy được, không cần biến rời
     1) echo "$label thất bại: $payload" >&2; exit 1 ;;
     *) echo "Không kiểm được $label: grep thoát $status. Output: $payload" >&2; exit 1 ;;
   esac
@@ -160,7 +160,7 @@ if [[ -x "$BUNDLE/runtime/ocrmypdf/ocrmypdf" && \
 fi
 
 echo "AZpdf Linux bundle: $BUNDLE"
-echo "$health"
-if [[ -n "${ocr_health:-}" ]]; then echo "$ocr_health"; fi
-if [[ -n "${signature_health:-}" ]]; then echo "$signature_health"; fi
+# health/ocr-health/signature-health đã được require_json in ra ngay lúc kiểm, nên ở đây
+# không còn biến nào để echo — ba dòng cũ tham chiếu $health sau khi refactor xoá biến đó,
+# và `set -u` biến chúng thành "unbound variable" đúng ở bước cuối cùng của cả job.
 if [[ -n "${sbom:-}" ]]; then echo "SBOM: $sbom"; fi
