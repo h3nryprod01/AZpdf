@@ -740,7 +740,20 @@ jobs:
           export QPDF_BIN="$(command -v qpdf)"
           export TESSDATA_DIR="$(dirname "$(find /usr/share -name eng.traineddata | head -1)")"
           export GHOSTSCRIPT_RESOURCE_DIR="$(find /usr/share/ghostscript -maxdepth 3 -type d -name Resource | head -1)"
-          echo "tessdata=$TESSDATA_DIR  gsresource=$GHOSTSCRIPT_RESOURCE_DIR"
+          # Trên Linux script BẮT BUỘC có ICC dir — bỏ trống thì nó dừng với
+          # "GHOSTSCRIPT_ICC_DIR must contain Ghostscript ICC profiles on Linux" (đo trên CI
+          # 2026-08-15). Dò theo file profile thật thay vì đoán tên thư mục, vì đường dẫn có
+          # số phiên bản Ghostscript trong đó.
+          icc="$(dirname "$(find /usr/share/ghostscript -name 'default_cmyk.icc' | head -1)")"
+          if [ ! -d "$icc" ]; then
+            echo "Không tìm thấy thư mục ICC của Ghostscript" >&2
+            find /usr/share/ghostscript -maxdepth 3 -type d >&2
+            exit 1
+          fi
+          export GHOSTSCRIPT_ICC_DIR="$icc"
+          echo "tessdata=$TESSDATA_DIR"
+          echo "gsresource=$GHOSTSCRIPT_RESOURCE_DIR"
+          echo "gsicc=$GHOSTSCRIPT_ICC_DIR"
           ./script/build_ocrmypdf_runtime.sh
           echo "OCRMY_PDF_RUNTIME_DIR=$PWD/dist/runtime/ocrmypdf" >> "$GITHUB_ENV"
       - name: Flutter SDK ghim 3.44.0
