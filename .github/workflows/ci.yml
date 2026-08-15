@@ -744,13 +744,19 @@ jobs:
           # "GHOSTSCRIPT_ICC_DIR must contain Ghostscript ICC profiles on Linux" (đo trên CI
           # 2026-08-15). Dò theo file profile thật thay vì đoán tên thư mục, vì đường dẫn có
           # số phiên bản Ghostscript trong đó.
-          icc="$(dirname "$(find /usr/share/ghostscript -name 'default_cmyk.icc' | head -1)")"
-          if [ ! -d "$icc" ]; then
-            echo "Không tìm thấy thư mục ICC của Ghostscript" >&2
-            find /usr/share/ghostscript -maxdepth 3 -type d >&2
+          # Debian/Ubuntu TÁCH ICC ra khỏi cây ghostscript: chúng nằm ở
+          # /usr/share/color/icc/ghostscript, KHÔNG phải /usr/share/ghostscript/<ver>/iccprofiles.
+          # Xác nhận trên Ubuntu 24.04 thật (2026-08-15).
+          iccfile="$(find /usr/share/color /usr/share/ghostscript -name 'default_rgb.icc' 2>/dev/null | head -1)"
+          # Kiểm FILE, không kiểm dirname: `dirname ""` trả về "." và "." luôn là thư mục hợp lệ,
+          # nên guard viết theo dirname sẽ cho lọt đúng trường hợp không tìm thấy gì — đã dính
+          # đúng bẫy đó ở lượt trước, gsicc ra "." rồi mới đỏ ở tận trong script.
+          if [ -z "$iccfile" ]; then
+            echo "Không tìm thấy ICC profile của Ghostscript" >&2
+            find /usr/share -maxdepth 4 -type d -name '*icc*' >&2 || true
             exit 1
           fi
-          export GHOSTSCRIPT_ICC_DIR="$icc"
+          export GHOSTSCRIPT_ICC_DIR="$(dirname "$iccfile")"
           echo "tessdata=$TESSDATA_DIR"
           echo "gsresource=$GHOSTSCRIPT_RESOURCE_DIR"
           echo "gsicc=$GHOSTSCRIPT_ICC_DIR"
