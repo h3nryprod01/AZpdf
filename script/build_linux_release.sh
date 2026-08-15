@@ -90,17 +90,28 @@ install -m 644 \
   "$RESOURCE_BUNDLE/Resources/azpdf_annotations.js" \
   "$BUNDLE/$RESOURCE_BUNDLE_NAME/Resources/azpdf_annotations.js"
 
-if ldd "$BUNDLE/azpdf-engine" | rg -q 'not found'; then
-  echo "azpdf-engine còn dependency bị thiếu." >&2
-  ldd "$BUNDLE/azpdf-engine" >&2
-  exit 1
-fi
-
-if ldd "$BUNDLE/mutool" | rg -q 'not found'; then
-  echo "mutool còn dependency bị thiếu." >&2
-  ldd "$BUNDLE/mutool" >&2
-  exit 1
-fi
+# `grep` POSIX, KHÔNG phải `rg`, và xử lý exit-status tường minh. Ba lệnh `rg` trong file này
+# đã hỏng suốt trên máy không cài ripgrep — đo trên runner GitHub 2026-08-15:
+#   · hai lệnh dưới đây: `rg: command not found` ⇒ ống trả khác 0 ⇒ điều kiện SAI ⇒ rơi thẳng
+#     xuống dòng "pass". Hai audit dependency này CHƯA TỪNG chạy trong CI.
+#   · lệnh health bên dưới: cùng lý do, nhưng ở nhánh `if !` nên biến kết quả ĐÚNG thành đỏ.
+# Máy dev có ripgrep nên dựng tay luôn qua, và không ai thấy. Đây là lần THỨ BA lớp lỗi này
+# cắn dự án (xem decisions.md 2026-07-31: hai security gate "pass" nhiều tháng mà chưa quét gì).
+check_missing_libs() {
+  local name="$1" path="$2" out status
+  out="$(ldd "$path" 2>&1)"
+  set +e
+  printf '%s\n' "$out" | grep -q 'not found'
+  status=$?
+  set -e
+  case "$status" in
+    0) echo "$name còn dependency bị thiếu." >&2; printf '%s\n' "$out" >&2; exit 1 ;;
+    1) ;;
+    *) echo "Không kiểm được dependency của $name: grep thoát $status." >&2; exit 1 ;;
+  esac
+}
+check_missing_libs azpdf-engine "$BUNDLE/azpdf-engine"
+check_missing_libs mutool "$BUNDLE/mutool"
 
 if [[ -x "$BUNDLE/runtime/ocrmypdf/ocrmypdf" ]]; then
   "$ROOT/script/audit_runtime.sh" "$BUNDLE/runtime/ocrmypdf" ocrmypdf
@@ -110,36 +121,37 @@ if [[ -x "$BUNDLE/runtime/pyhanko/pyhanko" ]]; then
   "$ROOT/script/audit_runtime.sh" "$BUNDLE/runtime/pyhanko" pyhanko
 fi
 
-health="$($BUNDLE/azpdf-engine health)"
-if ! rg -q '"ok":true' <<<"$health"; then
-  echo "Engine health check thất bại: $health" >&2
-  exit 1
-fi
+# Một helper cho mọi lần soi output JSON. Dùng grep POSIX và phân biệt "không khớp" (exit 1)
+# với "không chạy được" (exit khác) — vì đó chính là chỗ `rg` đã lừa: thiếu binary trả 127, mà
+# `if ! rg ...` đọc 127 thành "không khớp" rồi báo hỏng trên một kết quả hoàn toàn đúng.
+require_json() {
+  local label="$1" pattern="$2" payload="$3" status
+  set +e
+  printf '%s\n' "$payload" | grep -q "$pattern"
+  status=$?
+  set -e
+  case "$status" in
+    0) ;;
+    1) echo "$label thất bại: $payload" >&2; exit 1 ;;
+    *) echo "Không kiểm được $label: grep thoát $status. Output: $payload" >&2; exit 1 ;;
+  esac
+}
+
+require_json "Engine health check" '"ok":true' "$($BUNDLE/azpdf-engine health)"
 
 if [[ -x "$BUNDLE/runtime/ocrmypdf/ocrmypdf" ]]; then
-  ocr_health="$($BUNDLE/azpdf-engine ocr-health)"
-  if ! rg -q '"ok":true' <<<"$ocr_health"; then
-    echo "OCR health check thất bại: $ocr_health" >&2
-    exit 1
-  fi
+  require_json "OCR health check" '"ok":true' "$($BUNDLE/azpdf-engine ocr-health)"
 fi
 
 if [[ -x "$BUNDLE/runtime/pyhanko/pyhanko" ]]; then
-  signature_health="$($BUNDLE/azpdf-engine signature-health)"
-  if ! rg -q '"ok":true' <<<"$signature_health"; then
-    echo "PAdES health check thất bại: $signature_health" >&2
-    exit 1
-  fi
+  require_json "PAdES health check" '"ok":true' "$($BUNDLE/azpdf-engine signature-health)"
 fi
 
 smoke_directory="$(mktemp -d)"
 trap 'rm -rf "$smoke_directory"' EXIT
 MUTOOL_BIN="$BUNDLE/mutool" "$ROOT/script/generate_pdf_fixtures.sh" "$smoke_directory"
-annotations="$($BUNDLE/azpdf-engine annotations --document "$smoke_directory/basic.pdf" --page 0)"
-if ! rg -q '"annotations":\[\]' <<<"$annotations"; then
-  echo "Engine annotation resource check thất bại: $annotations" >&2
-  exit 1
-fi
+require_json "Engine annotation resource check" '"annotations":\[\]' \
+  "$($BUNDLE/azpdf-engine annotations --document "$smoke_directory/basic.pdf" --page 0)"
 
 if [[ -x "$BUNDLE/runtime/ocrmypdf/ocrmypdf" && \
       -x "$BUNDLE/runtime/pyhanko/pyhanko" ]]; then
