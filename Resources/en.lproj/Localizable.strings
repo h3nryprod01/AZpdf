@@ -441,3 +441,22 @@
 
 /* Models/EditableImageAnnotation.swift */
 "Image inserted by AZpdf" = "Image inserted by AZpdf";
+
+/* UX issues #2 #6 #7 #8 — Go to Page, Rotate Left, Page Display, Custom Zoom */
+"Go to Page…" = "Go to Page…";
+"Go to Page" = "Go to Page";
+"Go" = "Go";
+"Page number" = "Page number";
+"Enter a page number from 1 to %@." = "Enter a page number from 1 to %@.";
+"There is no page %@. This document has %@ pages." = "There is no page %@. This document has %@ pages.";
+"Custom Zoom…" = "Custom Zoom…";
+"Custom Zoom" = "Custom Zoom";
+"Apply" = "Apply";
+"Percent" = "Percent";
+"Enter a zoom level between 50% and 400%." = "Enter a zoom level between 50% and 400%.";
+"Rotate Page Left" = "Rotate Page Left";
+"Page Display" = "Page Display";
+"Single Page Continuous" = "Single Page Continuous";
+"Two Pages Continuous" = "Two Pages Continuous";
+"Two Pages" = "Two Pages";
+"First Page as Cover" = "First Page as Cover";

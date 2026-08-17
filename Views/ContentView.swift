@@ -94,6 +94,28 @@ struct ContentView: View {
         .alert("AZpdf", isPresented: Binding(get: { store.lastError != nil }, set: { if !$0 { store.lastError = nil } })) {
             Button(L("Close"), role: .cancel) { store.lastError = nil }
         } message: { Text(store.lastError ?? "") }
+        .alert(L("Go to Page"), isPresented: $store.isGoToPagePresented) {
+            TextField(L("Page number"), text: $store.goToPageInput)
+            Button(L("Go")) {
+                // goToPage từ chối số ngoài khoảng — báo lại thay vì im lặng không nhảy.
+                if Int(store.goToPageInput).map({ store.goToPage($0) }) != true {
+                    store.lastError = L("There is no page \(store.goToPageInput). This document has \(store.pageCount) pages.")
+                }
+            }
+            Button(L("Cancel"), role: .cancel) {}
+        } message: {
+            Text(L("Enter a page number from 1 to \(store.pageCount)."))
+        }
+        .alert(L("Custom Zoom"), isPresented: $store.isZoomInputPresented) {
+            TextField(L("Percent"), text: $store.zoomInput)
+            Button(L("Apply")) {
+                // setZoomPercent tự clamp về [50, 400] — gõ chữ thì giữ nguyên zoom hiện tại.
+                if let percent = Int(store.zoomInput) { store.setZoomPercent(percent) }
+            }
+            Button(L("Cancel"), role: .cancel) {}
+        } message: {
+            Text(L("Enter a zoom level between 50% and 400%."))
+        }
         .alert(L("Protected Document"), isPresented: $store.isPasswordPromptPresented) {
             SecureField(L("Password"), text: $store.password)
             Button(L("Unlock")) { store.unlockDocument() }
@@ -330,9 +352,24 @@ struct ContentView: View {
             Button { store.isFindBarPresented.toggle() } label: { Label(L("Find"), systemImage: "magnifyingglass") }
                 .help(Text(L("Find in PDF (⌘F)")))
             Button { store.zoomOut() } label: { Label(L("Zoom Out"), systemImage: "minus.magnifyingglass") }
-            Text(store.isAutoScale ? L("Fit Page") : "\(Int(store.zoomScale * 100))%")
-                .monospacedDigit().frame(minWidth: 42)
-                .accessibilityLabel(store.isAutoScale ? L("Fit Page") : L("Zoom \(Int(store.zoomScale * 100)) percent"))
+            // Issue #8: chỉ số zoom giờ là menu — preset + Custom… — thay vì text trơ.
+            Menu {
+                ForEach([50, 100, 125, 150, 200], id: \.self) { percent in
+                    Button("\(percent)%") { store.setZoomPercent(percent) }
+                }
+                Divider()
+                Button(L("Custom Zoom…")) {
+                    store.zoomInput = ""
+                    store.isZoomInputPresented = true
+                }
+                Button(L("Fit Page")) { store.fitPage() }
+            } label: {
+                Text(store.isAutoScale ? L("Fit Page") : "\(Int(store.zoomScale * 100))%")
+                    .monospacedDigit().frame(minWidth: 42)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .accessibilityLabel(store.isAutoScale ? L("Fit Page") : L("Zoom \(Int(store.zoomScale * 100)) percent"))
             Button { store.zoomIn() } label: { Label(L("Zoom In"), systemImage: "plus.magnifyingglass") }
             Button { store.fitPage() } label: { Label(L("Fit Page"), systemImage: "arrow.up.left.and.down.right.magnifyingglass") }
             Button { store.beginDocumentProperties() } label: { Label(L("Properties"), systemImage: "doc.text") }

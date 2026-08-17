@@ -70,8 +70,10 @@ struct AZpdfApp: App {
                 Button(L("Next Result")) { workspace.activeStore.goToNextSearchResult() }
                     .keyboardShortcut("g", modifiers: .command)
                     .disabled(workspace.activeStore.searchResultCount == 0)
+                // ⇧⌘G — chuẩn macOS cho find-previous (mọi app AppKit). Trước là ⌥⌘G, vừa
+                // lệch chuẩn vừa chặn mất phím Go to Page của Preview.
                 Button(L("Previous Result")) { workspace.activeStore.goToPreviousSearchResult() }
-                    .keyboardShortcut("g", modifiers: [.command, .option])
+                    .keyboardShortcut("g", modifiers: [.command, .shift])
                     .disabled(workspace.activeStore.searchResultCount == 0)
                 Divider()
                 Button(L("Zoom In")) { workspace.activeStore.zoomIn() }
@@ -87,6 +89,22 @@ struct AZpdfApp: App {
                 Button(L("Show/Hide Inspector")) { workspace.activeStore.isInspectorPresented.toggle() }
                     .keyboardShortcut("i", modifiers: .command)
                     .disabled(workspace.activeStore.document == nil)
+                Divider()
+                // Issue #7 — chế độ hai trang. Picker trong Commands hiện thành nhóm radio.
+                Picker(L("Page Display"), selection: Binding(
+                    get: { workspace.activeStore.displayModeChoice },
+                    set: { workspace.activeStore.displayModeChoice = $0 }
+                )) {
+                    Text(L("Single Page Continuous")).tag(PDFDisplayModeChoice.singleContinuous)
+                    Text(L("Two Pages Continuous")).tag(PDFDisplayModeChoice.twoUpContinuous)
+                    Text(L("Two Pages")).tag(PDFDisplayModeChoice.twoUp)
+                }
+                .pickerStyle(.inline)
+                Toggle(L("First Page as Cover"), isOn: Binding(
+                    get: { workspace.activeStore.displaysAsBook },
+                    set: { workspace.activeStore.displaysAsBook = $0 }
+                ))
+                .disabled(!workspace.activeStore.displayModeChoice.isTwoUp)
             }
             CommandMenu(L("Go")) {
                 Button(L("Previous Page")) { workspace.activeStore.goToPreviousPage() }
@@ -95,14 +113,25 @@ struct AZpdfApp: App {
                 Button(L("Next Page")) { workspace.activeStore.goToNextPage() }
                     .keyboardShortcut("]", modifiers: .command)
                     .disabled(!workspace.activeStore.canGoToNextPage)
+                Divider()
+                // ⌥⌘G như Preview (issue #2). Phím này vừa được giải phóng: Previous Result
+                // trước chiếm ⌥⌘G là lệch chuẩn — chuẩn macOS cho find-previous là ⇧⌘G.
+                Button(L("Go to Page…")) {
+                    workspace.activeStore.goToPageInput = ""
+                    workspace.activeStore.isGoToPagePresented = true
+                }
+                .keyboardShortcut("g", modifiers: [.command, .option])
+                .disabled(workspace.activeStore.document == nil)
             }
             CommandMenu("PDF") {
                 Button(L("Add Note")) { workspace.activeStore.addNote() }
                     .keyboardShortcut("n", modifiers: [.command, .shift])
                 Button(L("Add Text…")) { workspace.activeStore.beginTextAnnotation() }
                     .keyboardShortcut("t", modifiers: [.command, .shift])
+                // ⌥⌘S — dời khỏi ⇧⌘G để trả phím đó về find-previous theo chuẩn macOS.
+                // Help từng ghi Signature = ⇧⌘G: một dòng drift đúng kiểu issue #9 cảnh báo.
                 Button(L("Insert Signature…")) { workspace.activeStore.beginSignature() }
-                    .keyboardShortcut("g", modifiers: [.command, .shift])
+                    .keyboardShortcut("s", modifiers: [.command, .option])
                 Button(L("Sign with Certificate…")) { workspace.activeStore.beginCertificateSigning() }
                 Button(L("Verify .p7s Signature…")) { workspace.activeStore.beginCertificateSignatureVerification() }
                 Button(L("Sign PDF with PAdES…")) { workspace.activeStore.beginPAdESSigning() }
@@ -124,6 +153,8 @@ struct AZpdfApp: App {
                 Divider()
                 Button(L("Rotate Page Right")) { workspace.activeStore.rotateCurrentPage() }
                     .keyboardShortcut("r", modifiers: [.command, .shift])
+                Button(L("Rotate Page Left")) { workspace.activeStore.rotateCurrentPageCounterClockwise() }
+                    .keyboardShortcut("l", modifiers: [.command, .shift])
                 Button(L("Duplicate Current Page")) { workspace.activeStore.duplicateCurrentPage() }
                     .keyboardShortcut("d", modifiers: [.command, .shift])
                 Button(L("Insert Pages from PDF…")) { workspace.activeStore.beginInsertPages() }

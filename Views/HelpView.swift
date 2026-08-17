@@ -10,14 +10,46 @@ struct HelpView: View {
                     Text(L("Use ⌘O to open a PDF, or drag a PDF file into the window. Each document opens in its own tab."))
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                // Danh sách này có test canh (KeyboardShortcutHelpDriftTests): mỗi phím tắt
+                // khai trong OpenPaperApp.swift phải xuất hiện ở đây, và không phím nào được
+                // gán hai lệnh. Thiếu hoặc trùng là test đỏ — Help không thể trôi khỏi code
+                // lần nữa (issue #9: từng có dòng ghi sai phím vì bảng viết tay).
                 GroupBox(L("Keyboard Shortcuts")) {
                     Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 8) {
-                        GridRow { Text(L("Open PDF")); Text("⌘O") }
+                        GridRow { Text(L("Open PDF…")); Text("⌘O") }
                         GridRow { Text(L("Save")); Text("⌘S") }
-                        GridRow { Text(L("Print Document")); Text("⌘P") }
+                        GridRow { Text(L("Save As…")); Text("⇧⌘S") }
+                        GridRow { Text(L("Close Tab")); Text("⌘W") }
+                        GridRow { Text(L("Print…")); Text("⌘P") }
+                        GridRow { Text(L("Undo")); Text("⌘Z") }
+                        GridRow { Text(L("Redo")); Text("⇧⌘Z") }
+                        GridRow { Text(L("Find in PDF…")); Text("⌘F") }
+                        GridRow { Text(L("Next Result")); Text("⌘G") }
+                        GridRow { Text(L("Previous Result")); Text("⇧⌘G") }
+                        GridRow { Text(L("Zoom In")); Text("⌘+") }
+                        GridRow { Text(L("Zoom Out")); Text("⌘-") }
+                        GridRow { Text(L("Fit Page")); Text("⌘0") }
+                        GridRow { Text(L("Show/Hide Inspector")); Text("⌘I") }
                         GridRow { Text(L("Previous / Next Page")); Text("⌘[ / ⌘]") }
-                        GridRow { Text(L("Note / Highlight")); Text("⇧⌘N / ⇧⌘H") }
-                        GridRow { Text(L("Handwritten Signature")); Text("⇧⌘G") }
+                        GridRow { Text(L("Go to Page…")); Text("⌥⌘G") }
+                        GridRow { Text(L("Add Note")); Text("⇧⌘N") }
+                        GridRow { Text(L("Add Text…")); Text("⇧⌘T") }
+                        GridRow { Text(L("Insert Signature…")); Text("⌥⌘S") }
+                        GridRow { Text(L("Highlight Selection")); Text("⇧⌘H") }
+                        GridRow { Text(L("Redact Selection")); Text("⇧⌘X") }
+                        GridRow { Text(L("Rotate Page Right")); Text("⇧⌘R") }
+                        GridRow { Text(L("Rotate Page Left")); Text("⇧⌘L") }
+                        GridRow { Text(L("Duplicate Current Page")); Text("⇧⌘D") }
+                        GridRow { Text(L("Delete Current Page")); Text("⇧⌘⌫") }
+                        GridRow { Text(L("Insert Pages from PDF…")); Text("⇧⌘I") }
+                        GridRow { Text(L("Insert Image…")); Text("⌥⌘I") }
+                        GridRow { Text(L("Export Current Page…")); Text("⇧⌘E") }
+                        GridRow { Text(L("OCR Current Page…")); Text("⇧⌘O") }
+                        GridRow { Text(L("OCR Region…")); Text("⇧⌘V") }
+                        GridRow { Text(L("OCR Entire Document…")); Text("⇧⌘A") }
+                        GridRow { Text(L("Validate PDF/A & PDF/UA…")); Text("⇧⌘K") }
+                        GridRow { Text(L("Document Properties…")); Text("⇧⌘M") }
+                        GridRow { Text(L("AZpdf Help")); Text("⇧⌘/") }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                 }

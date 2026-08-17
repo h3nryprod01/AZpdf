@@ -21,9 +21,27 @@ final class DocumentStore {
 
     var document: PDFDocument?
     var fileURL: URL?
-    var selectedPageIndex = 0
+    var selectedPageIndex = 0 {
+        // Nhớ vị trí đọc theo tài liệu (issue #4). didSet thay vì "lưu lúc đóng" vì app không
+        // có một điểm đóng duy nhất đáng tin (đóng tab, quit, kill) — ghi mỗi lần đổi trang
+        // thì vị trí luôn đúng dù thoát kiểu gì. UserDefaults tự coalesce nên không thành I/O.
+        didSet { rememberReadingPosition() }
+    }
     var zoomScale: CGFloat = 1
     var isAutoScale = true
+    /// Chế độ hiển thị trang (issue #7), persist giữa các lần mở app — cùng pattern với
+    /// `showPageBreaks`.
+    var displayModeChoice = PDFDisplayModeChoice.load() {
+        didSet { displayModeChoice.persist() }
+    }
+    /// Trang đầu đứng riêng làm bìa (chỉ có nghĩa ở chế độ hai trang).
+    var displaysAsBook = PDFDisplayModeChoice.loadDisplaysAsBook() {
+        didSet { PDFDisplayModeChoice.persistDisplaysAsBook(displaysAsBook) }
+    }
+    var isGoToPagePresented = false   // issue #2 — alert nhập số trang
+    var goToPageInput = ""
+    var isZoomInputPresented = false  // issue #8 — alert nhập % zoom tuỳ ý
+    var zoomInput = ""
     var isImageImporterPresented = false
     var isReplacingSelectedImage = false // internal for DocumentStore+Annotations
     var isCurrentPageExporterPresented = false
@@ -147,7 +165,9 @@ final class DocumentStore {
         }
         document = pdf
         fileURL = url
-        selectedPageIndex = 0
+        // fileURL phải đứng TRƯỚC selectedPageIndex: didSet của selectedPageIndex ghi vị trí
+        // đọc theo fileURL — đảo thứ tự là ghi trang của tài liệu mới vào key tài liệu cũ.
+        selectedPageIndex = savedReadingPosition(for: url, pageCount: pdf.pageCount)
         zoomScale = 1
         isAutoScale = true
         documentRevision += 1
@@ -247,6 +267,29 @@ final class DocumentStore {
         recentDocumentPaths.insert(url.path, at: 0)
         recentDocumentPaths = Array(recentDocumentPaths.prefix(8))
         persistRecentDocuments()
+    }
+
+    // MARK: Vị trí đọc theo tài liệu (issue #4)
+
+    private static let readingPositionsKey = "readingPositions"
+
+    private func rememberReadingPosition() {
+        guard let path = fileURL?.path else { return }
+        var positions = UserDefaults.standard.dictionary(forKey: Self.readingPositionsKey) as? [String: Int] ?? [:]
+        positions[path] = selectedPageIndex
+        // Prune theo danh sách recents (tối đa 8) + tài liệu đang mở: không cho dictionary
+        // phình vô hạn theo mọi file từng mở suốt đời app.
+        let keep = Set(recentDocumentPaths + [path])
+        positions = positions.filter { keep.contains($0.key) }
+        UserDefaults.standard.set(positions, forKey: Self.readingPositionsKey)
+    }
+
+    /// Vị trí đọc đã lưu, clamp về trang cuối nếu tài liệu ngắn lại từ lần trước — index cũ
+    /// vượt pageCount mà cứ set thẳng là PDFView cuộn vào hư không.
+    func savedReadingPosition(for url: URL, pageCount: Int) -> Int {
+        let positions = UserDefaults.standard.dictionary(forKey: Self.readingPositionsKey) as? [String: Int] ?? [:]
+        guard let saved = positions[url.path] else { return 0 }
+        return min(max(0, saved), max(0, pageCount - 1))
     }
 
     func persistRecentDocuments() {

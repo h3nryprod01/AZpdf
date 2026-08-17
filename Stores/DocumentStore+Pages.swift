@@ -16,6 +16,23 @@ extension DocumentStore {
         record(operation)
     }
 
+    /// Xoay ngược chiều kim đồng hồ (issue #6). `DocumentOperation.rotate` không mang chiều —
+    /// thêm chiều vào Core sẽ lan sang conformance fixture và selftest của cả ba nền tảng, quá
+    /// đắt cho một tiện ích UI. Nên: CCW = 3 lần rotate CW dưới MỘT bước undo (undo là
+    /// snapshot, `registerUndoStep()` một lần là một bước), và `record` cả ba — log thao tác
+    /// phản ánh trung thực chuỗi đã áp lên tài liệu.
+    func rotateCurrentPageCounterClockwise() {
+        guard let document else { return }
+        registerUndoStep()
+        let operation = DocumentOperation.rotate(page: selectedPageIndex)
+        for _ in 0..<3 {
+            guard apply(operation, to: document) else { return }
+            record(operation)
+        }
+        documentRevision += 1
+        isModified = true
+    }
+
     func deleteCurrentPage() {
         guard let document, document.pageCount > 1 else { return }
         registerUndoStep()

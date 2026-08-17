@@ -10,7 +10,8 @@ struct PDFReaderView: NSViewRepresentable {
     func makeNSView(context: Context) -> PlacementPDFView {
         let view = PlacementPDFView()
         view.autoScales = true
-        view.displayMode = .singlePageContinuous
+        view.displayMode = store.displayModeChoice.pdfKitMode
+        view.displaysAsBook = store.displaysAsBook
         view.displayDirection = .vertical
         view.displaysPageBreaks = true
         view.setAccessibilityLabel(L("PDF Reader"))
@@ -41,6 +42,14 @@ struct PDFReaderView: NSViewRepresentable {
     }
 
     func updateNSView(_ view: PlacementPDFView, context: Context) {
+        // Issue #7 — có guard: set displayMode vô điều kiện làm PDFView re-layout và nhảy về
+        // đầu trang trên MỌI lần update (kể cả gõ tìm kiếm), vì mỗi lần set là một lần layout.
+        if view.displayMode != store.displayModeChoice.pdfKitMode {
+            view.displayMode = store.displayModeChoice.pdfKitMode
+        }
+        if view.displaysAsBook != store.displaysAsBook {
+            view.displaysAsBook = store.displaysAsBook
+        }
         if view.document !== store.document {
             view.document = store.document
             // A new document means any on-object selection frame is anchored
