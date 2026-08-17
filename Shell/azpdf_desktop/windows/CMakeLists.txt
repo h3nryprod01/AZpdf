@@ -4,7 +4,10 @@ project(azpdf_desktop LANGUAGES CXX)
 
 # The name of the executable created for the application. Change this to change
 # the on-disk name of your application.
-set(BINARY_NAME "azpdf_desktop")
+# "AZpdf", không phải "azpdf_desktop": tên file người dùng nhìn thấy và bấm đúp. README
+# v1.3.0–1.3.2 từng hướng dẫn chạy AZpdf.exe trong khi binary tên azpdf_desktop.exe —
+# người tải zip không tìm thấy file được hướng dẫn. Đổi binary về khớp tài liệu và kỳ vọng.
+set(BINARY_NAME "AZpdf")
 
 # Explicitly opt in to modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

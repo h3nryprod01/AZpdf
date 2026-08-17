@@ -578,7 +578,7 @@ jobs:
       - name: Assemble the portable zip
         shell: pwsh
         run: |
-          if (-not (Test-Path stage\azpdf_desktop.exe)) { throw 'azpdf_desktop.exe missing from the shell artifact.' }
+          if (-not (Test-Path stage\AZpdf.exe)) { throw 'AZpdf.exe missing from the shell artifact.' }
           if (-not (Test-Path stage\azpdf-engine.exe))  { throw 'azpdf-engine.exe missing from the engine artifact.' }
           if (-not (Test-Path stage\mutool.exe))        { throw 'mutool.exe missing from the engine artifact.' }
           # Kiểm tra ĐÚNG file mà `Bundle.module` cần, không chỉ kiểm tra thư mục bundle: một
@@ -630,6 +630,51 @@ jobs:
           name: azpdf-windows-portable
           path: out/
           if-no-files-found: error
+      # Bộ cài thật (NSIS) — mục tiêu "cài đơn giản nhất": setup.exe per-user không UAC,
+      # Start Menu, mục Add/Remove. Lý do chọn NSIS thay vì MSI ghi trong azpdf_installer.nsi.
+      - name: Build the NSIS installer
+        shell: pwsh
+        run: |
+          makensis /VERSION
+          $ver = (Get-Content VERSION -Raw).Trim()
+          makensis /DVERSION=$ver /DSTAGE=stage script\azpdf_installer.nsi
+          if ($LASTEXITCODE -ne 0) { throw "makensis failed: $LASTEXITCODE" }
+          Move-Item "script\AZpdf-Setup-$ver.exe" out\ -ErrorAction SilentlyContinue
+          if (-not (Test-Path "out\AZpdf-Setup-$ver.exe")) {
+            # makensis ghi OutFile cạnh script hoặc cwd tuỳ phiên bản — dò cả hai.
+            $f = Get-ChildItem -Recurse -Filter "AZpdf-Setup-$ver.exe" | Select-Object -First 1
+            if (-not $f) { throw "installer not produced" }
+            Move-Item $f.FullName out\
+          }
+          Get-ChildItem out | ForEach-Object { Write-Host "  $($_.Name)  $([math]::Round($_.Length/1MB,1)) MB" }
+      - name: Install silently, run the engine from Program Files, uninstall, verify cleanup
+        shell: pwsh
+        run: |
+          $ver = (Get-Content VERSION -Raw).Trim()
+          $dir = Join-Path $env:LOCALAPPDATA 'Programs\AZpdf'
+          # 1. Cài im lặng — đúng đường người dùng bấm Next sẽ đi.
+          Start-Process -Wait -FilePath "out\AZpdf-Setup-$ver.exe" -ArgumentList '/S'
+          if (-not (Test-Path "$dir\AZpdf.exe"))        { throw 'AZpdf.exe missing after install' }
+          if (-not (Test-Path "$dir\azpdf-engine.exe")) { throw 'azpdf-engine.exe missing after install' }
+          if (-not (Test-Path "$dir\Uninstall.exe"))    { throw 'Uninstall.exe missing after install' }
+          # 2. Engine phải chạy từ CHỖ ĐÃ CÀI — không phải từ stage.
+          Push-Location $dir
+          $out = & .\azpdf-engine.exe health 2>&1 | Out-String
+          Pop-Location
+          Write-Host "health from installed dir: $out"
+          if ($out -notmatch '"ok"\s*:\s*true') { throw "engine health failed from installed location: $out" }
+          # 3. Gỡ im lặng phải dọn sạch — cài được mà không gỡ được là bẫy, không phải app.
+          Start-Process -Wait -FilePath "$dir\Uninstall.exe" -ArgumentList '/S'
+          Start-Sleep -Seconds 3   # uninstaller NSIS tự copy ra temp rồi thoát — chờ nó xoá xong
+          if (Test-Path "$dir\AZpdf.exe") { throw 'uninstall left AZpdf.exe behind' }
+          $reg = Get-ItemProperty -Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AZpdf' -ErrorAction SilentlyContinue
+          if ($reg) { throw 'uninstall left the Add/Remove registry entry behind' }
+          Write-Host 'install -> health ok -> uninstall -> sạch'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: azpdf-windows-installer
+          path: out/AZpdf-Setup-*.exe
+          if-no-files-found: error
 
   windows-shell:
     runs-on: windows-2022
@@ -663,8 +708,8 @@ jobs:
         working-directory: Shell/azpdf_desktop
         run: |
           $bundle = 'build\windows\x64\runner\Release'
-          if (-not (Test-Path "$bundle\azpdf_desktop.exe")) {
-            throw "azpdf_desktop.exe not found in $bundle."
+          if (-not (Test-Path "$bundle\AZpdf.exe")) {
+            throw "AZpdf.exe not found in $bundle."
           }
           Get-ChildItem $bundle | ForEach-Object { Write-Host "  $($_.Name)" }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
