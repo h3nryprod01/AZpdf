@@ -5,104 +5,10 @@ import 'package:flutter/foundation.dart';
 
 import '../engine/azpdf_engine_client.dart';
 import '../models/pdf_models.dart';
+import '../models/opened_pdf.dart';
+// Giữ nguyên mọi file đang import OpenedPdf qua controller — 3 file UI không phải đổi gì.
+export '../models/opened_pdf.dart';
 import '../l10n/strings.dart';
-
-class _PdfHistoryEntry {
-  const _PdfHistoryEntry({required this.path, required this.revision});
-
-  final String path;
-  final int revision;
-}
-
-/// Cách khớp trang vào khung nhìn.
-///
-/// `free` là người dùng tự đặt mức phóng; hai chế độ còn lại tính lại `zoom`
-/// mỗi khi khung nhìn đổi kích thước, nên kéo cửa sổ vẫn giữ đúng tỉ lệ.
-enum PdfFitMode { free, width, page }
-
-class OpenedPdf {
-  OpenedPdf({required this.path, required this.workingPath, required this.info})
-    : id = DateTime.now().microsecondsSinceEpoch.toString(),
-      name = File(path).uri.pathSegments.last;
-
-  final String id;
-  String path;
-  final String workingPath;
-  String name;
-  final PdfDocumentInfo info;
-  int pageIndex = 0;
-  double zoom = 1;
-  PdfFitMode fitMode = PdfFitMode.free;
-  bool busy = false;
-  String? renderedPath;
-
-  /// Mức phóng THẬT đã gửi cho engine ở lần render gần nhất. Không bằng `zoom`:
-  /// nó là `zoom * devicePixelRatio`, vì ảnh phải có đủ pixel VẬT LÝ cho màn
-  /// hình. Giữ lại ở đây để quy ngược ra kích thước point.
-  double renderScale = 1;
-
-  /// Kích thước ảnh PNG, tính bằng PIXEL — không phải logical pixel. Trên màn
-  /// 150% hai con số này lớn gấp 1,5 lần ô layout.
-  double? renderedWidth;
-  double? renderedHeight;
-  PdfPageGeometry? pageGeometry;
-  String? error;
-  bool dirty = false;
-  String? selectedAnnotationId;
-  String searchQuery = '';
-  List<PdfSearchMatch> searchMatches = const [];
-  final Map<int, String> thumbnails = {};
-  final Map<int, List<PdfAnnotation>> annotations = {};
-  DocumentIr? layoutReview;
-  final List<_PdfHistoryEntry> _undoStack = [];
-  final List<_PdfHistoryEntry> _redoStack = [];
-  int revision = 0;
-  int savedRevision = 0;
-
-  bool get canUndo => _undoStack.isNotEmpty;
-  bool get canRedo => _redoStack.isNotEmpty;
-
-  /// Bề ngang trang tính bằng point (1/72 inch), quy ngược từ ảnh đã render.
-  double? get pageWidthPoints {
-    final width = renderedWidth;
-    if (width == null || renderScale <= 0) return null;
-    return width / renderScale;
-  }
-
-  double? get pageHeightPoints {
-    final height = renderedHeight;
-    if (height == null || renderScale <= 0) return null;
-    return height / renderScale;
-  }
-
-  /// Kích thước vẽ ra màn hình, tính bằng logical pixel: point × zoom.
-  ///
-  /// Cố ý KHÔNG dùng thẳng `renderedWidth` như bản trước. Từ khi render theo
-  /// devicePixelRatio, ảnh có nhiều pixel hơn ô layout, nên lấy nhầm số đó sẽ
-  /// phóng trang to gấp dpr lần. Lớp phủ annotation cũng đặt theo `point × zoom`
-  /// (`_AnnotationOverlay`), nên hai bên phải cùng một hệ quy chiếu.
-  double? get layoutWidth {
-    final points = pageWidthPoints;
-    return points == null ? null : points * zoom;
-  }
-
-  double? get layoutHeight {
-    final points = pageHeightPoints;
-    return points == null ? null : points * zoom;
-  }
-
-  List<PdfAnnotation> get currentAnnotations =>
-      annotations[pageIndex] ?? const [];
-
-  PdfAnnotation? get selectedAnnotation {
-    final id = selectedAnnotationId;
-    if (id == null) return null;
-    for (final annotation in currentAnnotations) {
-      if (annotation.id == id) return annotation;
-    }
-    return null;
-  }
-}
 
 class WorkspaceController extends ChangeNotifier {
   WorkspaceController(this.engine);
@@ -330,8 +236,8 @@ class WorkspaceController extends ChangeNotifier {
     if (index < 0 || index >= documents.length) return;
     final wasSelected = selectedIndex == index;
     final document = documents.removeAt(index);
-    _deleteHistory(document._undoStack);
-    _deleteHistory(document._redoStack);
+    _deleteHistory(document.undoStack);
+    _deleteHistory(document.redoStack);
     if (documents.isEmpty) {
       selectedIndex = -1;
     } else if (selectedIndex > index) {
@@ -461,7 +367,7 @@ class WorkspaceController extends ChangeNotifier {
     document.busy = true;
     document.error = null;
     notifyListeners();
-    _PdfHistoryEntry? before;
+    PdfHistoryEntry? before;
     String? output;
     final passwordPath =
         '${cacheDirectory.path}${Platform.pathSeparator}'
@@ -538,7 +444,7 @@ class WorkspaceController extends ChangeNotifier {
     document.busy = true;
     document.error = null;
     notifyListeners();
-    _PdfHistoryEntry? before;
+    PdfHistoryEntry? before;
     String? output;
     try {
       before = await _snapshot(document);
@@ -622,7 +528,7 @@ class WorkspaceController extends ChangeNotifier {
     document.busy = true;
     document.error = null;
     notifyListeners();
-    _PdfHistoryEntry? before;
+    PdfHistoryEntry? before;
     try {
       before = await _snapshot(document);
       if (annotation.kind == PdfAnnotationKind.image) {
@@ -727,7 +633,7 @@ class WorkspaceController extends ChangeNotifier {
     if (document == null || annotation == null) return;
     document.busy = true;
     notifyListeners();
-    _PdfHistoryEntry? before;
+    PdfHistoryEntry? before;
     try {
       before = await _snapshot(document);
       await engine.removeAnnotation(
@@ -762,8 +668,8 @@ class WorkspaceController extends ChangeNotifier {
   }
 
   Future<void> _restoreHistory(OpenedPdf document, {required bool undo}) async {
-    final source = undo ? document._undoStack : document._redoStack;
-    final destination = undo ? document._redoStack : document._undoStack;
+    final source = undo ? document.undoStack : document.redoStack;
+    final destination = undo ? document.redoStack : document.undoStack;
     final target = source.last;
     final currentSnapshot = await _snapshot(document);
     source.removeLast();
@@ -798,19 +704,19 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
-  Future<_PdfHistoryEntry> _snapshot(OpenedPdf document) async {
+  Future<PdfHistoryEntry> _snapshot(OpenedPdf document) async {
     final path =
         '${cacheDirectory.path}${Platform.pathSeparator}'
         'history-${document.id}-${_historySequence++}.pdf';
     await File(document.workingPath).copy(path);
-    return _PdfHistoryEntry(path: path, revision: document.revision);
+    return PdfHistoryEntry(path: path, revision: document.revision);
   }
 
-  void _commitMutation(OpenedPdf document, _PdfHistoryEntry before) {
-    document._undoStack.add(before);
-    _trimHistory(document._undoStack);
-    _deleteHistory(document._redoStack);
-    document._redoStack.clear();
+  void _commitMutation(OpenedPdf document, PdfHistoryEntry before) {
+    document.undoStack.add(before);
+    _trimHistory(document.undoStack);
+    _deleteHistory(document.redoStack);
+    document.redoStack.clear();
     document.revision = _nextRevision++;
     document.dirty = document.revision != document.savedRevision;
     document.layoutReview = null;
@@ -818,7 +724,7 @@ class WorkspaceController extends ChangeNotifier {
 
   Future<void> _restoreFailedMutation(
     OpenedPdf document,
-    _PdfHistoryEntry before,
+    PdfHistoryEntry before,
 ) async {
     try {
       await File(before.path).copy(document.workingPath);
@@ -827,13 +733,13 @@ class WorkspaceController extends ChangeNotifier {
     }
   }
 
-  void _trimHistory(List<_PdfHistoryEntry> history) {
+  void _trimHistory(List<PdfHistoryEntry> history) {
     while (history.length > _historyLimit) {
       _deleteFile(history.removeAt(0).path);
     }
   }
 
-  void _deleteHistory(List<_PdfHistoryEntry> history) {
+  void _deleteHistory(List<PdfHistoryEntry> history) {
     for (final entry in history) {
       _deleteFile(entry.path);
     }
